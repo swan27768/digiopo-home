@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigiOpo – Opinto-ohjauksen digitaalinen kumppani</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue-deep:   #1a3f6f;
+    --blue-mid:    #2563a8;
+    --blue-pale:   #ddeaf7;
+    --green-deep:  #1a6b45;
+    --green-mid:   #2d9e6b;
+    --green-pale:  #d4f2e7;
+    --yellow:      #f5c842;
+    --yellow-soft: #fae592;
+    --yellow-pale: #fef9e0;
+    --text-dark:   #0f2540;
+    --text-mid:    #3a5a7a;
+    --text-light:  #7a9ab5;
+    --white:       #f8fbff;
+    --off-white:   #eef5fb;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--white);
+    color: var(--text-dark);
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    backdrop-filter: blur(20px);
+    background: rgba(248,251,255,0.88);
+    border-bottom: 1px solid rgba(107,163,216,0.2);
+    padding: 0 48px;
+    height: 66px;
+    display: flex; align-items: center;
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 23px;
+    font-weight: 600;
+    color: var(--blue-deep);
+    letter-spacing: -0.5px;
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--green-mid); font-style: italic; }
+  .nav-dot { color: var(--yellow); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+    padding-top: 66px;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 15% 20%, rgba(37,99,168,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 85% 70%, rgba(45,158,107,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 10%, rgba(245,200,66,0.08) 0%, transparent 55%),
+      linear-gradient(160deg, #f8fbff 0%, #eef5fb 50%, #e8f4f0 100%);
+  }
+  .blob {
+    position: absolute; border-radius: 50%;
+    filter: blur(60px); opacity: 0.18;
+    animation: float 8s ease-in-out infinite;
+  }
+  .blob-1 { width: 420px; height: 420px; background: var(--blue-mid);  top: -80px;  left: -120px; animation-delay: 0s; }
+  .blob-2 { width: 320px; height: 320px; background: var(--green-mid); bottom: 40px; right: -60px; animation-delay: 3s; }
+  .blob-3 { width: 200px; height: 200px; background: var(--yellow);    top: 40%;    right: 20%;   animation-delay: 5s; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%       { transform: translateY(-24px) scale(1.04); }
+  }
+  .hero-content {
+    position: relative;
+    max-width: 720px;
+    text-align: center;
+    padding: 80px 32px;
+    display: flex; flex-direction: column; align-items: center; gap: 28px;
+  }
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(38px, 6vw, 64px);
+    font-weight: 600;
+    line-height: 1.12;
+    color: var(--blue-deep);
+    letter-spacing: -1.5px;
+  }
+  h1 em {
+    font-style: italic;
+    background: linear-gradient(135deg, var(--green-mid), var(--blue-mid));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--text-mid);
+    max-width: 520px;
+    line-height: 1.65;
+  }
+  .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .btn-primary {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid));
+    color: #fff; font-size: 15px; font-weight: 500;
+    padding: 14px 34px; border-radius: 32px; text-decoration: none;
+    box-shadow: 0 6px 24px rgba(26,63,111,0.28);
+    transition: all 0.25s;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(26,63,111,0.36); }
+  .btn-secondary {
+    display: inline-block;
+    border: 1.5px solid var(--green-mid);
+    color: var(--green-deep); font-size: 15px; font-weight: 500;
+    padding: 14px 32px; border-radius: 32px; text-decoration: none;
+    transition: all 0.25s;
+  }
+  .btn-secondary:hover { background: var(--green-pale); transform: translateY(-2px); }
+
+  /* ── SECTIONS ── */
+  .section { padding: 96px 48px; max-width: 1100px; margin: 0 auto; }
+  .section-label {
+    font-size: 11.5px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--green-mid); margin-bottom: 14px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(26px, 3.5vw, 40px);
+    font-weight: 600; color: var(--blue-deep);
+    line-height: 1.2; letter-spacing: -0.8px;
+    max-width: 520px; margin-bottom: 52px;
+  }
+
+  /* ── PALVELUT – 3 korttia ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 24px;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid rgba(107,163,216,0.18);
+    border-radius: 22px;
+    padding: 38px 32px;
+    position: relative; overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    border-radius: 22px 22px 0 0;
+  }
+  .card.blue::before   { background: linear-gradient(90deg, var(--blue-mid), #6fa3d8); }
+  .card.green::before  { background: linear-gradient(90deg, var(--green-mid), #7ecfaa); }
+  .card.yellow::before { background: linear-gradient(90deg, #d4a400, var(--yellow)); }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(26,63,111,0.10); }
+  .card-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; margin-bottom: 22px;
+  }
+  .card.blue   .card-icon { background: var(--blue-pale); }
+  .card.green  .card-icon { background: var(--green-pale); }
+  .card.yellow .card-icon { background: var(--yellow-pale); }
+  .card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; font-weight: 600;
+    color: var(--blue-deep); margin-bottom: 12px; line-height: 1.25;
+  }
+  .card p {
+    font-size: 14.5px; color: var(--text-mid); line-height: 1.7;
+    margin-bottom: 24px;
+  }
+  .card-link {
+    font-size: 13.5px; font-weight: 500; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .card.blue   .card-link { color: var(--blue-mid); }
+  .card.green  .card-link { color: var(--green-deep); }
+  .card.yellow .card-link { color: #7a5c00; }
+
+  /* ── NÄIN SE TOIMII ── */
+  .how-wrapper {
+    background: linear-gradient(135deg, var(--blue-deep) 0%, #1a5a4a 100%);
+    border-radius: 32px; padding: 72px 64px;
+    position: relative; overflow: hidden;
+  }
+  .how-wrapper::before {
+    content: '';
+    position: absolute; width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(245,200,66,0.12), transparent 70%);
+    top: -100px; right: -80px; border-radius: 50%;
+  }
+  .how-wrapper .section-label { color: var(--yellow-soft); }
+  .how-wrapper .section-title { color: #fff; max-width: 100%; margin-bottom: 48px; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; }
+  .step { display: flex; flex-direction: column; gap: 14px; position: relative; }
+  .step-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 52px; font-weight: 600; line-height: 1;
+    color: var(--yellow); opacity: 0.85;
+  }
+  .step h4 { font-size: 16px; font-weight: 600; color: #fff; }
+  .step p   { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.65; }
+
+  /* ── CTA BANNER ── */
+  .cta-banner {
+    text-align: center;
+    padding: 96px 48px;
+    background: var(--off-white);
+    border-top: 1px solid rgba(107,163,216,0.15);
+  }
+  .cta-banner h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(26px, 4vw, 44px);
+    color: var(--blue-deep); margin-bottom: 14px; letter-spacing: -0.8px;
+  }
+  .cta-banner p {
+    font-size: 17px; color: var(--text-mid);
+    max-width: 440px; margin: 0 auto 36px; line-height: 1.65;
+  }
+  .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--blue-deep);
+    color: rgba(255,255,255,0.55);
+    padding: 40px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px; font-size: 13px;
+  }
+  .footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; font-weight: 600; color: #fff;
+  }
+  .footer-logo span { color: #7ecfaa; font-style: italic; }
+  footer a { color: rgba(255,255,255,0.55); text-decoration: none; }
+  footer a:hover { color: #fff; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .section { padding: 64px 24px; }
+    .how-wrapper { padding: 48px 28px; }
+    .cta-banner { padding: 64px 24px; }
+    footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Digi<span>Opo</span><span class="nav-dot">·</span>fi</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+  <div class="hero-content">
+    <h1>Opinto-ohjaus<br><em>digitaalisesti</em> toimivaksi</h1>
+    <p class="hero-sub">
+      DigiOpo tuo opinto-ohjaajille älykkäät digitaaliset työkalut ja valmiit materiaalit –
+      niin että sinulla on enemmän aikaa oppilaille.
+    </p>
+    <div class="hero-actions">
+      <a href="#tilaus" class="btn-primary">Tilaa digikirja</a>
+      <a href="/materiaalit" class="btn-secondary">Ilmaiset materiaalit</a>
+    </div>
+  </div>
+</div>
+
+<!-- PALVELUT -->
+<div class="section" id="palvelut">
+  <div class="section-label">Mitä DigiOpo tarjoaa</div>
+  <h2 class="section-title">Kolme tapaa tehdä arjesta sujuvampaa</h2>
+  <div class="cards">
+
+    <div class="card blue">
+      <div class="card-icon">📖</div>
+      <h3>app.digiopo.fi – digitaalinen oppikirja</h3>
+      <p>Maksullinen digikirja opinto-ohjaajan tunneille. Tilaa tilauslomakkeella ja oppilaat pääsevät käyttämään heti osoitteessa app.digiopo.fi.</p>
+      <a href="#tilaus" class="card-link">Tilaa tilauslomakkeella →</a>
+    </div>
+
+    <div class="card green" id="materiaalit">
+      <div class="card-icon">🌿</div>
+      <h3>Ilmaiset materiaalit</h3>
+      <p>Oma sivu, jolta voit ladata yksittäisiä pelejä, tehtäviä ja materiaaleja ilmaiseksi – ei kirjautumista, ei rekisteröitymistä.</p>
+      <a href="/materiaalit" class="card-link">Siirry materiaaleihin →</a>
+    </div>
+
+    <div class="card yellow">
+      <div class="card-icon">🔄</div>
+      <h3>Jatkuva materiaalipäivitys</h3>
+      <p>Tilauksen mukana tulee jatkuvasti uusia materiaaleja ja ominaisuuksia. Sisältö pysyy aina ajantasaisena – ilman lisätyötä sinulta.</p>
+      <a href="#tilaus" class="card-link">Lue lisää tilauksesta →</a>
+    </div>
+
+    <div class="card blue">
+      <div class="card-icon">🎥</div>
+      <h3>Stream-palvelut</h3>
+      <p>Livenä tai tallennettuna – DigiOpon stream-palvelut tuovat asiantuntijat ja opinto-ohjauksen sisällöt suoraan luokkaan tai etäyhteydellä.</p>
+      <a href="#tilaus" class="card-link">Lue lisää →</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- NÄIN SE TOIMII -->
+<div class="section" style="padding-top: 0;">
+  <div class="how-wrapper">
+    <div class="section-label">Näin se toimii</div>
+    <h2 class="section-title">Kolme askelta käyttöönottoon</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h4>Tilaa ja kirjaudu</h4>
+        <p>Täytä tilauslomake. Saat tunnukset heti sähköpostiin – ei odottelua.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h4>Valitse materiaalit</h4>
+        <p>Selaa kirjastoa ja ota sopivat materiaalit suoraan käyttöön omalle luokallesi.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h4>Ohjaa ja seuraa</h4>
+        <p>Oppilaat työskentelevät omassa näkymässä – sinä näet tilanteen yhdellä silmäyksellä.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA BANNER -->
+<div class="cta-banner" id="tilaus">
+  <h2>Valmis kokeilemaan?</h2>
+  <p>Tilaa digikirja tilauslomakkeella tai tutustu ilmaisiin materiaaleihin – ei kirjautumista tarvita.</p>
+  <div class="cta-actions">
+    <a href="#" class="btn-primary">Täytä tilauslomake</a>
+    <a href="/materiaalit" class="btn-secondary">Ilmaiset materiaalit</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Digi<span>Opo</span>·fi</div>
+  <div>© 2024 DigiOpo · <a href="mailto:hei@digiopo.fi">hei@digiopo.fi</a></div>
+</footer>
+
+<script>
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    nav.style.boxShadow = window.scrollY > 40 ? '0 4px 24px rgba(26,63,111,0.08)' : 'none';
+  });
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.card, .step').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(22px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
