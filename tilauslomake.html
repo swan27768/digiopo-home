@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tilauslomake – DigiOpo.fi</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue-deep:   #1a3f6f;
+    --blue-mid:    #2563a8;
+    --blue-pale:   #ddeaf7;
+    --green-deep:  #1a6b45;
+    --green-mid:   #2d9e6b;
+    --green-pale:  #d4f2e7;
+    --yellow:      #f5c842;
+    --yellow-pale: #fef9e0;
+    --text-dark:   #0f2540;
+    --text-mid:    #3a5a7a;
+    --text-light:  #7a9ab5;
+    --white:       #f8fbff;
+    --off-white:   #eef5fb;
+    --error:       #dc2626;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--white);
+    color: var(--text-dark);
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    backdrop-filter: blur(20px);
+    background: rgba(248,251,255,0.88);
+    border-bottom: 1px solid rgba(107,163,216,0.2);
+    padding: 0 48px; height: 66px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 23px; font-weight: 700;
+    color: var(--blue-deep); text-decoration: none;
+  }
+  .nav-logo span { color: var(--green-mid); }
+  .nav-logo .dot { color: var(--yellow); }
+  .nav-back {
+    font-size: 13.5px; color: var(--text-mid);
+    text-decoration: none; display: flex; align-items: center; gap: 6px;
+    transition: color 0.2s;
+  }
+  .nav-back:hover { color: var(--blue-deep); }
+
+  /* PAGE */
+  .page {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 120px 32px 80px;
+  }
+
+  .page-label {
+    font-size: 11.5px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--green-mid); margin-bottom: 12px;
+  }
+  .page-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 800; color: var(--blue-deep);
+    line-height: 1.15; letter-spacing: -0.8px;
+    margin-bottom: 12px;
+  }
+  .page-sub {
+    font-size: 16px; color: var(--text-mid);
+    line-height: 1.65; margin-bottom: 48px;
+    max-width: 520px;
+  }
+
+  /* FORM */
+  .form-card {
+    background: #fff;
+    border: 1px solid rgba(107,163,216,0.2);
+    border-radius: 24px;
+    padding: 48px;
+    box-shadow: 0 4px 32px rgba(26,63,111,0.06);
+  }
+
+  .form-section {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--text-light);
+    margin: 32px 0 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--off-white);
+  }
+  .form-section:first-child { margin-top: 0; }
+
+  .field { margin-bottom: 20px; }
+  label {
+    display: block;
+    font-size: 13.5px; font-weight: 500;
+    color: var(--text-dark); margin-bottom: 7px;
+  }
+  label span { color: var(--error); margin-left: 2px; }
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 14.5px;
+    color: var(--text-dark);
+    background: var(--white);
+    border: 1.5px solid rgba(107,163,216,0.35);
+    border-radius: 10px;
+    padding: 12px 16px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus {
+    border-color: var(--blue-mid);
+    box-shadow: 0 0 0 3px rgba(37,99,168,0.1);
+  }
+  input::placeholder, textarea::placeholder { color: var(--text-light); }
+  select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237a9ab5' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* Checkbox */
+  .checkbox-field {
+    display: flex; align-items: flex-start; gap: 12px;
+    margin-top: 8px;
+  }
+  .checkbox-field input[type="checkbox"] {
+    width: 18px; height: 18px; min-width: 18px;
+    border-radius: 5px; cursor: pointer;
+    margin-top: 2px;
+    accent-color: var(--blue-mid);
+  }
+  .checkbox-field label {
+    font-size: 13.5px; color: var(--text-mid);
+    cursor: pointer; line-height: 1.5; margin-bottom: 0;
+  }
+  .checkbox-field label a { color: var(--blue-mid); }
+
+  /* Tilaustyyppi */
+  .order-types { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
+  .order-type {
+    border: 1.5px solid rgba(107,163,216,0.3);
+    border-radius: 12px; padding: 16px;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .order-type input[type="radio"] { display: none; }
+  .order-type:has(input:checked) {
+    border-color: var(--blue-mid);
+    background: var(--blue-pale);
+  }
+  .order-type-title {
+    font-size: 14px; font-weight: 600; color: var(--blue-deep);
+  }
+  .order-type-desc { font-size: 12px; color: var(--text-mid); }
+
+  /* Submit */
+  .submit-area { margin-top: 36px; }
+  .btn-submit {
+    width: 100%;
+    background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid));
+    color: #fff; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 16px; font-weight: 700;
+    padding: 16px; border-radius: 12px;
+    border: none; cursor: pointer;
+    box-shadow: 0 6px 24px rgba(26,63,111,0.25);
+    transition: all 0.25s;
+  }
+  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(26,63,111,0.32); }
+  .submit-note {
+    text-align: center; margin-top: 14px;
+    font-size: 12.5px; color: var(--text-light);
+    line-height: 1.6;
+  }
+
+  /* SUCCESS */
+  .success-msg {
+    display: none;
+    background: var(--green-pale);
+    border: 1.5px solid var(--green-mid);
+    border-radius: 16px; padding: 32px;
+    text-align: center; margin-top: 24px;
+  }
+  .success-msg h3 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 20px; font-weight: 700;
+    color: var(--green-deep); margin-bottom: 10px;
+  }
+  .success-msg p { font-size: 14.5px; color: var(--green-deep); line-height: 1.6; }
+
+  /* INFO BOX */
+  .info-box {
+    background: var(--yellow-pale);
+    border: 1px solid #f5c842;
+    border-radius: 12px; padding: 16px 20px;
+    font-size: 13.5px; color: #7a5c00;
+    line-height: 1.6; margin-bottom: 32px;
+  }
+  .info-box strong { font-weight: 600; }
+
+  @media (max-width: 640px) {
+    nav { padding: 0 20px; }
+    .page { padding: 100px 20px 60px; }
+    .form-card { padding: 28px 20px; }
+    .field-row { grid-template-columns: 1fr; }
+    .order-types { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Digi<span>Opo</span><span class="dot">·</span>fi</a>
+  <a href="index.html" class="nav-back">← Takaisin etusivulle</a>
+</nav>
+
+<div class="page">
+  <div class="page-label">Tilauslomake</div>
+  <h1 class="page-title">Tilaa DigiOpo-lisenssi</h1>
+  <p class="page-sub">Täytä lomake ja otamme sinuun yhteyttä tilauksen vahvistamiseksi. Saat koulukoodin sähköpostiisi nopeasti.</p>
+
+  <div class="info-box">
+    <strong>Miten tilaus etenee?</strong><br>
+    Täytät lomakkeen → saat sähköpostiisi vahvistuksen ja laskun → maksat laskun → saat koulukoodin → jaat koodin oppilaillesi.
+  </div>
+
+  <div class="form-card">
+    <form id="tilausForm" action="https://formspree.io/f/xbdbendl" method="POST" novalidate>
+
+      <div class="form-section">Yhteystiedot</div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="etunimi">Etunimi <span>*</span></label>
+          <input type="text" id="etunimi" name="etunimi" placeholder="Etunimi" required>
+        </div>
+        <div class="field">
+          <label for="sukunimi">Sukunimi <span>*</span></label>
+          <input type="text" id="sukunimi" name="sukunimi" placeholder="Sukunimi" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="email">Sähköposti <span>*</span></label>
+        <input type="email" id="email" name="email" placeholder="nimi@koulu.fi" required>
+      </div>
+
+      <div class="field">
+        <label for="puhelin">Puhelinnumero</label>
+        <input type="tel" id="puhelin" name="puhelin" placeholder="+358 40 123 4567">
+      </div>
+
+      <div class="form-section">Koulu</div>
+
+      <div class="field">
+        <label for="koulu">Koulun nimi <span>*</span></label>
+        <input type="text" id="koulu" name="koulu" placeholder="Esim. Esimerkin yhtenäiskoulu" required>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="kunta">Kunta <span>*</span></label>
+          <input type="text" id="kunta" name="kunta" placeholder="Esim. Helsinki" required>
+        </div>
+        <div class="field">
+          <label for="oppilasmaara">Oppilaiden määrä <span>*</span></label>
+          <input type="number" id="oppilasmaara" name="oppilasmaara" placeholder="Esim. 60" min="1" required>
+        </div>
+      </div>
+
+      <div class="form-section">Tilaustyyppi</div>
+
+      <div class="order-types">
+        <label class="order-type">
+          <input type="radio" name="tilaustyyppi" value="yksittainen" checked>
+          <span class="order-type-title">Yksittäinen tilaus</span>
+          <span class="order-type-desc">Vain omaan käyttöön</span>
+        </label>
+        <label class="order-type">
+          <input type="radio" name="tilaustyyppi" value="koululisenssi">
+          <span class="order-type-title">Koululisenssi</span>
+          <span class="order-type-desc">Koko koululle</span>
+        </label>
+      </div>
+
+      <div class="field" style="margin-top: 20px;">
+        <label for="lisatiedot">Lisätietoja (vapaaehtoinen)</label>
+        <textarea id="lisatiedot" name="lisatiedot" rows="3" placeholder="Esim. erityistoiveet tai kysymykset..."></textarea>
+      </div>
+
+      <div class="field">
+        <div class="checkbox-field">
+          <input type="checkbox" id="tietosuoja" name="tietosuoja" required>
+          <label for="tietosuoja">Hyväksyn <a href="tietosuojaseloste.html" target="_blank">tietosuojaselosteen</a> ja annan luvan ottaa minuun yhteyttä tilauksen käsittelyä varten. <span style="color:var(--error)">*</span></label>
+        </div>
+      </div>
+
+      <div class="submit-area">
+        <button type="submit" class="btn-submit">Lähetä tilaus →</button>
+        <p class="submit-note">Otamme yhteyttä 1–2 arkipäivän sisällä.<br>Tähtimerkatut kentät ovat pakollisia.</p>
+      </div>
+
+    </form>
+
+    <div class="success-msg" id="successMsg">
+      <h3>✓ Tilaus vastaanotettu!</h3>
+      <p>Kiitos tilauksestasi! Otamme sinuun yhteyttä sähköpostitse 1–2 arkipäivän sisällä tilauksen vahvistamiseksi.</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById('tilausForm');
+  const btn = form.querySelector('.btn-submit');
+
+  btn.addEventListener('click', async function(e) {
+    e.preventDefault();
+
+    // Validointi
+    const required = form.querySelectorAll('[required]');
+    let valid = true;
+    let firstInvalid = null;
+
+    required.forEach(field => {
+      field.style.borderColor = '';
+      field.style.outline = '';
+      let fieldValid = true;
+
+      if (field.type === 'checkbox' && !field.checked) {
+        field.style.outline = '2px solid #dc2626';
+        fieldValid = false;
+      } else if (field.type !== 'checkbox' && (!field.value || !field.value.trim())) {
+        field.style.borderColor = '#dc2626';
+        fieldValid = false;
+      }
+
+      if (!fieldValid) {
+        valid = false;
+        if (!firstInvalid) firstInvalid = field;
+      }
+    });
+
+    if (!valid) {
+      if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    btn.textContent = 'Lähetetään...';
+    btn.disabled = true;
+
+    const data = new FormData(form);
+
+    try {
+      const res = await fetch('https://formspree.io/f/xbdbendl', {
+        method: 'POST',
+        body: data,
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (res.ok) {
+        form.style.display = 'none';
+        document.getElementById('successMsg').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const json = await res.json();
+        console.error('Formspree error:', json);
+        btn.textContent = 'Lähetys epäonnistui – yritä uudelleen';
+        btn.disabled = false;
+      }
+    } catch(err) {
+      console.error('Verkkovirhe:', err);
+      btn.textContent = 'Verkkovirhe – yritä uudelleen';
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

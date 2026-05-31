@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tietosuojaseloste – DigiOpo.fi</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue-deep:  #1a3f6f;
+    --blue-mid:   #2563a8;
+    --blue-pale:  #ddeaf7;
+    --green-mid:  #2d9e6b;
+    --yellow:     #f5c842;
+    --text-dark:  #0f2540;
+    --text-mid:   #3a5a7a;
+    --text-light: #7a9ab5;
+    --white:      #f8fbff;
+    --off-white:  #eef5fb;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--white);
+    color: var(--text-dark);
+    line-height: 1.7;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    backdrop-filter: blur(20px);
+    background: rgba(248,251,255,0.88);
+    border-bottom: 1px solid rgba(107,163,216,0.2);
+    padding: 0 48px; height: 66px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 23px; font-weight: 700;
+    color: var(--blue-deep); text-decoration: none;
+  }
+  .nav-logo span { color: var(--green-mid); }
+  .nav-logo .dot { color: var(--yellow); }
+  .nav-back {
+    font-size: 13.5px; color: var(--text-mid);
+    text-decoration: none; display: flex; align-items: center; gap: 6px;
+    transition: color 0.2s;
+  }
+  .nav-back:hover { color: var(--blue-deep); }
+
+  /* PAGE */
+  .page {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 120px 32px 96px;
+  }
+
+  .page-label {
+    font-size: 11.5px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--green-mid); margin-bottom: 12px;
+  }
+  .page-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 800; color: var(--blue-deep);
+    line-height: 1.15; letter-spacing: -0.8px;
+    margin-bottom: 10px;
+  }
+  .page-updated {
+    font-size: 13px; color: var(--text-light);
+    margin-bottom: 48px;
+  }
+
+  /* CONTENT */
+  .content { display: flex; flex-direction: column; gap: 40px; }
+
+  .section-block {
+    background: #fff;
+    border: 1px solid rgba(107,163,216,0.18);
+    border-radius: 18px;
+    padding: 32px 36px;
+  }
+  .section-block h2 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 17px; font-weight: 700;
+    color: var(--blue-deep);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-block h2 .num {
+    width: 28px; height: 28px; min-width: 28px;
+    background: var(--blue-pale);
+    color: var(--blue-mid);
+    border-radius: 8px;
+    font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .section-block p {
+    font-size: 14.5px; color: var(--text-mid);
+    margin-bottom: 12px;
+  }
+  .section-block p:last-child { margin-bottom: 0; }
+  .section-block ul {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 8px;
+    margin: 12px 0;
+  }
+  .section-block ul li {
+    font-size: 14.5px; color: var(--text-mid);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .section-block ul li::before {
+    content: '–';
+    color: var(--green-mid);
+    font-weight: 600;
+    min-width: 12px;
+    margin-top: 1px;
+  }
+  .section-block a { color: var(--blue-mid); }
+
+  /* CONTACT BOX */
+  .contact-box {
+    background: var(--blue-pale);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-top: 8px;
+  }
+  .contact-box p {
+    font-size: 14px; color: var(--blue-deep); margin-bottom: 6px;
+  }
+  .contact-box p:last-child { margin-bottom: 0; }
+  .contact-box strong { font-weight: 600; }
+
+  /* FOOTER */
+  footer {
+    background: var(--blue-deep);
+    color: rgba(255,255,255,0.55);
+    padding: 40px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px; font-size: 13px;
+    margin-top: 80px;
+  }
+  .footer-logo {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 20px; font-weight: 700; color: #fff;
+  }
+  .footer-logo span { color: #7ecfaa; }
+
+  @media (max-width: 640px) {
+    nav { padding: 0 20px; }
+    .page { padding: 100px 20px 60px; }
+    .section-block { padding: 24px 20px; }
+    footer { padding: 32px 20px; flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Digi<span>Opo</span><span class="dot">·</span>fi</a>
+  <a href="tilauslomake.html" class="nav-back">← Takaisin tilauslomakkeelle</a>
+</nav>
+
+<div class="page">
+  <div class="page-label">Tietosuoja</div>
+  <h1 class="page-title">Tietosuojaseloste</h1>
+  <p class="page-updated">Päivitetty: toukokuu 2025 · EU:n yleinen tietosuoja-asetus (GDPR) 2016/679</p>
+
+  <div class="content">
+
+    <div class="section-block">
+      <h2><span class="num">1</span>Rekisterinpitäjä</h2>
+      <p>DigiOpo.fi-palvelun rekisterinpitäjä on:</p>
+      <div class="contact-box">
+        <p><strong>DigiOpo</strong></p>
+        <p>Sähköposti: <a href="mailto:digiopo@digiopo.fi">digiopo@digiopo.fi</a></p>
+        <p>Verkkosivusto: <a href="https://digiopo.fi">digiopo.fi</a></p>
+      </div>
+    </div>
+
+    <div class="section-block">
+      <h2><span class="num">2</span>Mitä tietoja keräämme</h2>
+      <p>Tilauslomakkeen kautta keräämme seuraavat tiedot:</p>
+      <ul>
+        <li>Etunimi ja sukunimi</li>
+        <li>Sähköpostiosoite</li>
+        <li>Puhelinnumero (vapaaehtoinen)</li>
+        <li>Koulun nimi ja kunta</li>
+        <li>Luokkien määrä</li>
+        <li>Tilaustyyppi (yksittäinen tilaus tai koululisenssi)</li>
+        <li>Mahdolliset lisätiedot, jotka tilaaja itse kirjoittaa lomakkeelle</li>
+      </ul>
+      <p>DigiOpo.fi-markkinointisivu ei vaadi kirjautumista eikä kerää tietoja evästeiden tai seurantatyökalujen avulla.</p>
+    </div>
+
+    <div class="section-block">
+      <h2><span class="num">3</span>Miksi keräämme tietoja</h2>
+      <p>Henkilötietoja käsitellään yksinomaan seuraaviin tarkoituksiin:</p>
+      <ul>
+        <li>Tilauksen vastaanottaminen ja käsittely</li>
+        <li>Yhteydenotto tilaajaan tilauksen vahvistamiseksi</li>
+        <li>Koululisenssin toimittaminen (koulukoodin lähettäminen)</li>
+        <li>Asiakaspalvelu ja mahdolliset jatkokysymykset</li>
+      </ul>
+      <p>Emme käytä tietoja markkinointiin ilman erillistä suostumustasi.</p>
+    </div>
+
+    <div class="section-block">
+      <h2><span class="num">4</span>Käsittelyn oikeusperuste</h2>
+      <p>Henkilötietojen käsittelyn oikeusperusteena on:</p>
+      <ul>
+        <li><strong>Sopimuksen täytäntöönpano</strong> – tietojen käsittely on välttämätöntä tilauksen toteuttamiseksi (GDPR 6 art. 1 b-kohta)</li>
+        <li><strong>Rekisteröidyn suostumus</strong> – tilaaja antaa lomakkeella nimenomaisen suostumuksen yhteystietojen käsittelyyn</li>
+      </ul>
+    </div>
+
+    <div class="section-block">
+      <h2><span class="num">5</span>Tietojen säilytysaika</h2>
+      <p>Säilytämme tilauslomakkeen tietoja niin kauan kuin asiakassuhde on voimassa tai niin kauan kuin se on tarpeen tilauksen toteuttamiseksi.</p>
+      <p>Tilauksen peruuttamisen tai lisenssin päättymisen jälkeen tiedot poistetaan 12 kuukauden kuluessa, ellei laki edellytä pidempää säilytysaikaa (esim. kirjanpitovelvollisuus 6 vuotta).</p>
+    </div>
+
+    <div class="section-block">
+      <h2><span class="num">6</span>Tietojen luovuttaminen</h2>
+      <p>Emme myy, vuokraa tai luovuta henkilötietoja kolmansille osapuolille ilman nimenomaista suostumustasi.</p>
+      <p>Tietoja voidaan käsitellä teknisten palveluntarjoajien toimesta (esim. sähköpostipalvelu tilausvahvistusten lähettämiseen). Nämä palveluntarjoajat toimivat tietojen käsittelijöinä eivätkä saa käyttää tietoja omiin tarkoituksiinsa.</p>
+    </div>
+
+    <div class="section-block">
+      <h2><span class="num">7</span>Rekisteröidyn oikeudet</h2>
+      <p>Sinulla on GDPR:n mukaiset oikeudet:</p>
+      <ul>
+        <li><strong>Oikeus tarkastaa</strong> omat tietosi</li>
+        <li><strong>Oikeus oikaista</strong> virheelliset tiedot</li>
+        <li><strong>Oikeus poistaa</strong> tietosi ("oikeus tulla unohdetuksi")</li>
+        <li><strong>Oikeus rajoittaa</strong> tietojesi käsittelyä</li>
+        <li><strong>Oikeus peruuttaa suostumus</strong> milloin tahansa</li>
+        <li><strong>Oikeus tehdä valitus</strong> tietosuojavaltuutetulle</li>
+      </ul>
+      <p>Pyyntöjen tekemiseen käytä alla olevaa yhteystietoa. Vastaamme pyyntöihin 30 päivän kuluessa.</p>
+    </div>
+
+    <div class="section-block">
+      <h2><span class="num">8</span>Yhteystiedot</h2>
+      <p>Kaikki tietosuojaan liittyvät pyynnöt ja kysymykset:</p>
+      <div class="contact-box">
+        <p><strong>DigiOpo – tietosuoja-asiat</strong></p>
+        <p>Sähköposti: <a href="mailto:digiopo@digiopo.fi">digiopo@digiopo.fi</a></p>
+      </div>
+      <p style="margin-top: 16px;">Voit myös tehdä valituksen Suomen tietosuojavaltuutetulle: <a href="https://tietosuoja.fi" target="_blank">tietosuoja.fi</a></p>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">Digi<span>Opo</span>·fi</div>
+  <div>© 2025 DigiOpo · <a href="mailto:digiopo@digiopo.fi" style="color:rgba(255,255,255,0.55);">digiopo@digiopo.fi</a></div>
+</footer>
+
+</body>
+</html>
