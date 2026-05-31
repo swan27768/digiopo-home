@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DigiOpo – Opinto-ohjauksen digitaalinen kumppani</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -25,7 +25,7 @@
   }
   html { scroll-behavior: smooth; }
   body {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     background: var(--white);
     color: var(--text-dark);
     overflow-x: hidden;
@@ -42,14 +42,14 @@
     display: flex; align-items: center;
   }
   .nav-logo {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 23px;
     font-weight: 600;
     color: var(--blue-deep);
     letter-spacing: -0.5px;
     text-decoration: none;
   }
-  .nav-logo span { color: var(--green-mid); font-style: italic; }
+  .nav-logo span { color: var(--green-mid); font-style: normal; }
   .nav-dot { color: var(--yellow); }
 
   /* ── HERO ── */
@@ -61,23 +61,15 @@
   }
   .hero-bg {
     position: absolute; inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 15% 20%, rgba(37,99,168,0.12) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at 85% 70%, rgba(45,158,107,0.10) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 40% at 50% 10%, rgba(245,200,66,0.08) 0%, transparent 55%),
-      linear-gradient(160deg, #f8fbff 0%, #eef5fb 50%, #e8f4f0 100%);
+    background-image: url('images/tausta_vihrea.png');
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
   }
-  .blob {
-    position: absolute; border-radius: 50%;
-    filter: blur(60px); opacity: 0.18;
-    animation: float 8s ease-in-out infinite;
-  }
-  .blob-1 { width: 420px; height: 420px; background: var(--blue-mid);  top: -80px;  left: -120px; animation-delay: 0s; }
-  .blob-2 { width: 320px; height: 320px; background: var(--green-mid); bottom: 40px; right: -60px; animation-delay: 3s; }
-  .blob-3 { width: 200px; height: 200px; background: var(--yellow);    top: 40%;    right: 20%;   animation-delay: 5s; }
-  @keyframes float {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50%       { transform: translateY(-24px) scale(1.04); }
+  .hero-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(248,251,255,0.35);
   }
   .hero-content {
     position: relative;
@@ -87,7 +79,7 @@
     display: flex; flex-direction: column; align-items: center; gap: 28px;
   }
   h1 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: clamp(38px, 6vw, 64px);
     font-weight: 600;
     line-height: 1.12;
@@ -95,7 +87,7 @@
     letter-spacing: -1.5px;
   }
   h1 em {
-    font-style: italic;
+    font-style: normal;
     background: linear-gradient(135deg, var(--green-mid), var(--blue-mid));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -135,7 +127,7 @@
     color: var(--green-mid); margin-bottom: 14px;
   }
   .section-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: clamp(26px, 3.5vw, 40px);
     font-weight: 600; color: var(--blue-deep);
     line-height: 1.2; letter-spacing: -0.8px;
@@ -173,7 +165,7 @@
   .card.green  .card-icon { background: var(--green-pale); }
   .card.yellow .card-icon { background: var(--yellow-pale); }
   .card h3 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 20px; font-weight: 600;
     color: var(--blue-deep); margin-bottom: 12px; line-height: 1.25;
   }
@@ -206,7 +198,7 @@
   .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; }
   .step { display: flex; flex-direction: column; gap: 14px; position: relative; }
   .step-num {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 52px; font-weight: 600; line-height: 1;
     color: var(--yellow); opacity: 0.85;
   }
@@ -221,7 +213,7 @@
     border-top: 1px solid rgba(107,163,216,0.15);
   }
   .cta-banner h2 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: clamp(26px, 4vw, 44px);
     color: var(--blue-deep); margin-bottom: 14px; letter-spacing: -0.8px;
   }
@@ -240,10 +232,10 @@
     flex-wrap: wrap; gap: 16px; font-size: 13px;
   }
   .footer-logo {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 20px; font-weight: 600; color: #fff;
   }
-  .footer-logo span { color: #7ecfaa; font-style: italic; }
+  .footer-logo span { color: #7ecfaa; font-style: normal; }
   footer a { color: rgba(255,255,255,0.55); text-decoration: none; }
   footer a:hover { color: #fff; }
 
@@ -266,13 +258,9 @@
 
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-bg">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
-  </div>
+  <div class="hero-bg"></div>
   <div class="hero-content">
-    <h1>Opinto-ohjaus<br><em>digitaalisesti</em> toimivaksi</h1>
+    <h1>DigiOpo.fi<br><em>Yläkoulun oppilaanohjaus</em><br>uudelle aikakaudelle</h1>
     <p class="hero-sub">
       DigiOpo tuo opinto-ohjaajille älykkäät digitaaliset työkalut ja valmiit materiaalit –
       niin että sinulla on enemmän aikaa oppilaille.
@@ -292,8 +280,8 @@
 
     <div class="card blue">
       <div class="card-icon">📖</div>
-      <h3>app.digiopo.fi – digitaalinen oppikirja</h3>
-      <p>Maksullinen digikirja opinto-ohjaajan tunneille. Tilaa tilauslomakkeella ja oppilaat pääsevät käyttämään heti osoitteessa app.digiopo.fi.</p>
+      <h3>Omilla jäljillä – yläkoulun opo-tuntien digioppikirja 7.–9. luokalle</h3>
+      <p>Ajankohtainen, päivittyvä ja valmis käyttöön – joka tunnille. Maksullinen digikirja tilataan tilauslomakkeella ja oppilaat pääsevät käyttämään heti osoitteessa app.digiopo.fi.</p>
       <a href="#tilaus" class="card-link">Tilaa tilauslomakkeella →</a>
     </div>
 
