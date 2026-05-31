@@ -41,6 +41,19 @@
     height: 66px;
     display: flex; align-items: center;
   }
+  .nav-links { display: flex; gap: 6px; align-items: center; }
+  .nav-links a {
+    text-decoration: none; font-size: 13.5px; font-weight: 400;
+    color: var(--text-mid); padding: 6px 14px; border-radius: 20px;
+    transition: all 0.2s;
+  }
+  .nav-links a:hover { background: var(--blue-pale); color: var(--blue-deep); }
+  .nav-links .nav-cta {
+    background: var(--blue-deep); color: #fff !important;
+    font-weight: 600 !important; padding: 8px 20px !important;
+    border-radius: 22px !important;
+  }
+  .nav-links .nav-cta:hover { background: var(--blue-mid) !important; transform: translateY(-1px); }
   .nav-logo {
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 23px;
@@ -181,6 +194,40 @@
   .card.green  .card-link { color: var(--green-deep); }
   .card.yellow .card-link { color: #7a5c00; }
 
+  /* ── VIDEO PREVIEW ── */
+  .video-preview-wrap {
+    display: grid; grid-template-columns: 1fr 1.4fr;
+    gap: 56px; align-items: center;
+  }
+  .video-placeholder {
+    background: linear-gradient(135deg, var(--blue-deep), #1a5a4a);
+    border-radius: 20px; aspect-ratio: 16/9;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+    cursor: pointer; position: relative; overflow: hidden;
+    box-shadow: 0 12px 48px rgba(26,63,111,0.22);
+    transition: transform 0.3s;
+    margin-bottom: 0;
+  }
+  .video-placeholder:hover { transform: translateY(-3px); }
+  .video-placeholder::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 30% 60%, rgba(45,158,107,0.2), transparent 60%);
+  }
+  .video-play-btn {
+    width: 68px; height: 68px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: #fff; position: relative;
+    transition: all 0.2s;
+  }
+  .video-placeholder:hover .video-play-btn { background: rgba(255,255,255,0.25); transform: scale(1.08); }
+  .video-placeholder p { color: rgba(255,255,255,0.55); font-size: 13px; position: relative; }
+  @media (max-width: 768px) {
+    .video-preview-wrap { grid-template-columns: 1fr; gap: 28px; }
+  }
+
   /* ── NÄIN SE TOIMII ── */
   .how-wrapper {
     background: linear-gradient(135deg, var(--blue-deep) 0%, #1a5a4a 100%);
@@ -253,7 +300,12 @@
 
 <!-- NAV -->
 <nav>
-  <a href="#" class="nav-logo">Digi<span>Opo</span><span class="nav-dot">·</span>fi</a>
+  <a href="index.html" class="nav-logo">Digi<span>Opo</span><span class="dot">·</span>fi</a>
+  <div class="nav-links">
+    <a href="tehtavapankki.html">Tehtäväpankki</a>
+    <a href="stream-palvelut.html">Stream-palvelut</a>
+    <a href="tilauslomake.html" class="nav-cta">Tilaa digikirja</a>
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -282,7 +334,7 @@
       <div class="card-icon">📖</div>
       <h3>Omilla jäljillä – yläkoulun opo-tuntien digioppikirja 7.–9. luokalle</h3>
       <p>Ajankohtainen, päivittyvä ja valmis käyttöön – joka tunnille. Maksullinen digikirja tilataan tilauslomakkeella ja oppilaat pääsevät käyttämään heti osoitteessa app.digiopo.fi.</p>
-      <a href="tilauslomake.html" class="card-link">Tilaa tilauslomakkeella →</a>
+      <a href="digikirja.html" class="card-link">Tutustu digikirjaan →</a>
     </div>
 
     <div class="card green" id="materiaalit">
@@ -299,6 +351,22 @@
       <a href="stream-palvelut.html" class="card-link">Lue lisää →</a>
     </div>
 
+  </div>
+</div>
+
+<!-- VIDEO PREVIEW -->
+<div class="section" style="padding-bottom: 80px;">
+  <div class="video-preview-wrap">
+    <div class="video-preview-text">
+      <div class="section-label">Katso esittely</div>
+      <h2 class="section-title" style="margin-bottom: 16px;">Digikirja käytännössä – 1 min</h2>
+      <p style="font-size: 15px; color: var(--text-mid); line-height: 1.7; margin-bottom: 28px;">Katso lyhyt esittelyvideo ja näe miten DigiOpo toimii oppilaan ja opettajan näkökulmasta.</p>
+      <a href="digikirja.html" class="btn-primary" style="display: inline-block;">Tutustu digikirjaan tarkemmin →</a>
+    </div>
+    <div class="video-placeholder">
+      <div class="video-play-btn">▶</div>
+      <p>Esittelyvideo tulossa pian</p>
+    </div>
   </div>
 </div>
 
@@ -345,7 +413,7 @@
 <!-- FOOTER -->
 <footer>
   <div class="footer-logo">Digi<span>Opo</span>·fi</div>
-  <div>© 2026 DigiOpo · <a href="mailto:digiopo@digiopo.fi">hei@digiopo.fi</a></div>
+  <div>© 2024 DigiOpo · <a href="mailto:digiopo@digiopo.fi">hei@digiopo.fi</a></div>
 </footer>
 
 <script>

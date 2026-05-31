@@ -41,6 +41,19 @@
   }
   .nav-logo span { color: var(--green-mid); }
   .nav-logo .dot { color: var(--yellow); }
+  .nav-links { display: flex; gap: 6px; align-items: center; }
+  .nav-links a {
+    text-decoration: none; font-size: 13.5px; font-weight: 400;
+    color: var(--text-mid); padding: 6px 14px; border-radius: 20px;
+    transition: all 0.2s;
+  }
+  .nav-links a:hover { background: var(--blue-pale); color: var(--blue-deep); }
+  .nav-links .nav-cta {
+    background: var(--blue-deep); color: #fff !important;
+    font-weight: 600 !important; padding: 8px 20px !important;
+    border-radius: 22px !important;
+  }
+  .nav-links .nav-cta:hover { background: var(--blue-mid) !important; transform: translateY(-1px); }
   .nav-back { font-size: 13.5px; color: var(--text-mid); text-decoration: none; transition: color 0.2s; }
   .nav-back:hover { color: var(--blue-deep); }
 
@@ -254,7 +267,11 @@
 <!-- NAV -->
 <nav>
   <a href="index.html" class="nav-logo">Digi<span>Opo</span><span class="dot">·</span>fi</a>
-  <a href="index.html" class="nav-back">← Etusivu</a>
+  <div class="nav-links">
+    <a href="tehtavapankki.html">Tehtäväpankki</a>
+    <a href="stream-palvelut.html">Stream-palvelut</a>
+    <a href="tilauslomake.html" class="nav-cta">Tilaa digikirja</a>
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -266,7 +283,7 @@
     <p class="hero-sub">
       DigiOpon stream-palvelut tuovat työelämän asiantuntijat ja opinto-ohjauksen sisällöt suoraan oppitunnille – livenä tai tallennettuna.
     </p>
-    
+    <a href="#tilaa" class="btn-primary">Lue lisää ja tilaa</a>
   </div>
 </div>
 
@@ -350,9 +367,9 @@
 <!-- CTA -->
 <div class="cta-section" id="tilaa">
   <h2>Kiinnostaako stream-palvelut?</h2>
-  <p>Ota yhteyttä – kerromme lisää ja sovimme ensimmäisen vierailun.</p>
+  <p>Ota yhteyttä tai tilaa suoraan – kerromme lisää ja sovimme ensimmäisen vierailun.</p>
   <div class="cta-actions">
-   
+    <a href="tilauslomake.html" class="btn-primary">Tilaa stream-paketti</a>
     <a href="mailto:digiopo@digiopo.fi" class="btn-outline">Ota yhteyttä sähköpostilla</a>
   </div>
 </div>
