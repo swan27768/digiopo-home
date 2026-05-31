@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opinto-ohjaajan digitaalinen tehtäväpankki – DigiOpo.fi</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue-deep:  #1a3f6f;
+    --blue-mid:   #2563a8;
+    --blue-pale:  #ddeaf7;
+    --green-deep: #1a6b45;
+    --green-mid:  #2d9e6b;
+    --green-pale: #d4f2e7;
+    --yellow:     #f5c842;
+    --yellow-pale:#fef9e0;
+    --text-dark:  #0f2540;
+    --text-mid:   #3a5a7a;
+    --text-light: #7a9ab5;
+    --white:      #f8fbff;
+    --off-white:  #eef5fb;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; background: var(--white); color: var(--text-dark); }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    backdrop-filter: blur(20px);
+    background: rgba(248,251,255,0.88);
+    border-bottom: 1px solid rgba(107,163,216,0.2);
+    padding: 0 48px; height: 66px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 23px; font-weight: 700;
+    color: var(--blue-deep); text-decoration: none;
+  }
+  .nav-logo span { color: var(--green-mid); }
+  .nav-logo .dot { color: var(--yellow); }
+  .nav-back { font-size: 13.5px; color: var(--text-mid); text-decoration: none; transition: color 0.2s; }
+  .nav-back:hover { color: var(--blue-deep); }
+
+  /* PAGE */
+  .page { max-width: 1100px; margin: 0 auto; padding: 100px 32px 80px; }
+
+  .page-label {
+    font-size: 11.5px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--green-mid); margin-bottom: 12px;
+  }
+  .page-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(26px, 4vw, 38px); font-weight: 800;
+    color: var(--blue-deep); letter-spacing: -0.8px;
+    margin-bottom: 10px;
+  }
+  .page-sub {
+    font-size: 15.5px; color: var(--text-mid);
+    line-height: 1.65; margin-bottom: 40px; max-width: 560px;
+  }
+
+  /* FILTERS */
+  .filters {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 28px; align-items: center;
+  }
+  .search-wrap {
+    position: relative; flex: 1; min-width: 220px;
+  }
+  .search-wrap svg {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--text-light); pointer-events: none;
+  }
+  .search-input {
+    width: 100%; font-family: 'Inter', sans-serif;
+    font-size: 14px; color: var(--text-dark);
+    background: #fff; border: 1.5px solid rgba(107,163,216,0.3);
+    border-radius: 10px; padding: 10px 14px 10px 40px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--blue-mid); }
+  .search-input::placeholder { color: var(--text-light); }
+
+  .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px; font-weight: 500;
+    padding: 8px 16px; border-radius: 20px;
+    border: 1.5px solid rgba(107,163,216,0.3);
+    background: #fff; color: var(--text-mid);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .filter-btn:hover { border-color: var(--blue-mid); color: var(--blue-deep); }
+  .filter-btn.active { background: var(--blue-deep); border-color: var(--blue-deep); color: #fff; }
+  .filter-btn.green.active { background: var(--green-mid); border-color: var(--green-mid); }
+
+  /* RESULTS COUNT */
+  .results-info {
+    font-size: 13px; color: var(--text-light);
+    margin-bottom: 16px;
+  }
+  .results-info strong { color: var(--text-mid); }
+
+  /* TABLE */
+  .table-wrap {
+    background: #fff;
+    border: 1px solid rgba(107,163,216,0.18);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 2px 20px rgba(26,63,111,0.05);
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr {
+    background: var(--off-white);
+    border-bottom: 1px solid rgba(107,163,216,0.2);
+  }
+  th {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    color: var(--text-light); padding: 14px 20px;
+    text-align: left; white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid rgba(107,163,216,0.1);
+    transition: background 0.15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--off-white); }
+  td { padding: 16px 20px; font-size: 14px; color: var(--text-mid); vertical-align: middle; }
+
+  .task-name {
+    font-weight: 600; color: var(--text-dark);
+    font-size: 14.5px;
+  }
+
+  /* Luokka-badge */
+  .badge {
+    display: inline-flex; align-items: center;
+    font-size: 12px; font-weight: 600;
+    padding: 4px 10px; border-radius: 12px;
+    margin: 2px;
+  }
+  .badge-6 { background: #f0e6ff; color: #6b21a8; }
+  .badge-7 { background: var(--blue-pale); color: var(--blue-mid); }
+  .badge-8 { background: var(--green-pale); color: var(--green-deep); }
+  .badge-9 { background: var(--yellow-pale); color: #7a5c00; }
+
+  /* Aihe-tag */
+  .tag {
+    display: inline-block;
+    font-size: 12px; color: var(--text-mid);
+    background: var(--off-white);
+    border-radius: 6px; padding: 3px 9px;
+    margin: 2px;
+  }
+
+  /* Download button */
+  .btn-download {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px; font-weight: 500;
+    color: var(--blue-mid);
+    background: var(--blue-pale);
+    border: none; border-radius: 8px;
+    padding: 7px 14px; cursor: pointer;
+    text-decoration: none; transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-download:hover { background: var(--blue-mid); color: #fff; }
+  .btn-download svg { width: 14px; height: 14px; }
+
+  /* EMPTY */
+  .empty-state {
+    text-align: center; padding: 64px 32px;
+    display: none;
+  }
+  .empty-state p { font-size: 15px; color: var(--text-light); }
+
+  /* FOOTER */
+  footer {
+    background: var(--blue-deep); color: rgba(255,255,255,0.55);
+    padding: 40px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px; font-size: 13px; margin-top: 80px;
+  }
+  .footer-logo { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; color: #fff; }
+  .footer-logo span { color: #7ecfaa; }
+  footer a { color: rgba(255,255,255,0.55); text-decoration: none; }
+  footer a:hover { color: #fff; }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .page { padding: 90px 16px 60px; }
+    th:nth-child(3), td:nth-child(3) { display: none; }
+    footer { padding: 32px 20px; flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Digi<span>Opo</span><span class="dot">·</span>fi</a>
+  <a href="index.html" class="nav-back">← Etusivu</a>
+</nav>
+
+<div class="page">
+  <div class="page-label">Ilmainen</div>
+  <h1 class="page-title">Opinto-ohjaajan digitaalinen tehtäväpankki</h1>
+  <p class="page-sub">Lataa ilmaiset tehtävät suoraan käyttöön – ei kirjautumista, ei rekisteröitymistä. Kaikki materiaalit on suunniteltu yläkoulun opo-tunneille.</p>
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" class="search-input" id="searchInput" placeholder="Hae tehtävän nimellä tai aiheella...">
+    </div>
+    <div class="filter-group" id="luokkaFilters">
+      <button class="filter-btn active" data-luokka="kaikki">Kaikki</button>
+      <button class="filter-btn" data-luokka="6">6. luokka</button>
+      <button class="filter-btn" data-luokka="7">7. luokka</button>
+      <button class="filter-btn" data-luokka="8">8. luokka</button>
+      <button class="filter-btn" data-luokka="9">9. luokka</button>
+    </div>
+  </div>
+
+  <div class="results-info" id="resultsInfo"></div>
+
+  <div class="table-wrap">
+    <table id="tehtavaTable">
+      <thead>
+        <tr>
+          <th>Tehtävän nimi</th>
+          <th>Kohderyhmä</th>
+          <th>Aihe</th>
+          <th>Teema</th>
+          <th>Lataa</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <!-- Rivit generoidaan JavaScriptillä -->
+      </tbody>
+    </table>
+    <div class="empty-state" id="emptyState">
+      <p>Tällä hetkellä ei tuloksia hakuehdoilla. Laitetaan kun ehditään.</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">Digi<span>Opo</span>·fi</div>
+  <div>© 2025 DigiOpo · <a href="mailto:digiopo@digiopo.fi">digiopo@digiopo.fi</a></div>
+</footer>
+
+<script>
+  // ── TEHTÄVÄT – lisää omat tehtäväsi tänne ──
+  // Esimerkkirakenne:
+  // { nimi: "Tehtävän nimi", luokat: ["7"], aihe: "Aihe", teema: "Teema", tiedosto: "tehtavat/tiedosto.html" }
+  const tehtavat = [];
+
+  const badgeClass = { "6": "badge-6", "7": "badge-7", "8": "badge-8", "9": "badge-9" };
+
+  function renderRows(data) {
+    const tbody = document.getElementById('tableBody');
+    const empty = document.getElementById('emptyState');
+    const info = document.getElementById('resultsInfo');
+
+    tbody.innerHTML = '';
+
+    if (data.length === 0) {
+      empty.style.display = 'block';
+      info.innerHTML = '';
+      return;
+    }
+
+    empty.style.display = 'none';
+    info.innerHTML = `Näytetään <strong>${data.length}</strong> tehtävää`;
+
+    data.forEach(t => {
+      const tr = document.createElement('tr');
+      tr.dataset.luokat = t.luokat.join(',');
+      tr.dataset.search = (t.nimi + ' ' + t.aihe + ' ' + (t.teema || '')).toLowerCase();
+
+      const badges = t.luokat.map(l =>
+        `<span class="badge ${badgeClass[l]}">${l}. lk</span>`
+      ).join('');
+
+      tr.innerHTML = `
+        <td class="task-name">${t.nimi}</td>
+        <td>${badges}</td>
+        <td><span class="tag">${t.aihe}</span></td>
+        <td><span class="tag">${t.teema || '–'}</span></td>
+        <td>
+          <a href="${t.tiedosto}" class="btn-download" target="_blank">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Avaa
+          </a>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function filterAndRender() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const activeLuokka = document.querySelector('#luokkaFilters .filter-btn.active').dataset.luokka;
+
+    const filtered = tehtavat.filter(t => {
+      const matchLuokka = activeLuokka === 'kaikki' || t.luokat.includes(activeLuokka);
+      const matchSearch = (t.nimi + ' ' + t.aihe + ' ' + (t.teema || '')).toLowerCase().includes(query);
+      return matchLuokka && matchSearch;
+    });
+
+    renderRows(filtered);
+  }
+
+  // Luokkasuodattimet
+  document.querySelectorAll('#luokkaFilters .filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#luokkaFilters .filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterAndRender();
+    });
+  });
+
+  // Haku
+  document.getElementById('searchInput').addEventListener('input', filterAndRender);
+
+  // Alustus
+  renderRows(tehtavat);
+</script>
+
+</body>
+</html>
