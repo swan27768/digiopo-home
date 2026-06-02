@@ -187,6 +187,24 @@
   .btn-download:hover { background: var(--blue-mid); color: #fff; }
   .btn-download svg { width: 14px; height: 14px; }
 
+  /* STAR RATING */
+  .star-rating {
+    display: inline-flex; gap: 2px;
+    direction: rtl; /* hover-trick: highlight left stars on hover */
+  }
+  .star {
+    font-size: 22px; cursor: pointer; line-height: 1;
+    color: #d0dce8;
+    transition: color 0.12s, transform 0.1s;
+    user-select: none;
+  }
+  /* Highlight all stars to the left of (and including) hovered star */
+  .star-rating:hover .star { color: var(--yellow); }
+  .star-rating .star:hover ~ .star { color: #d0dce8; }
+  /* Saved rating */
+  .star-rating[data-rating] .star.lit { color: var(--yellow); }
+  .star:hover { transform: scale(1.2); }
+
   /* EMPTY */
   .empty-state {
     text-align: center; padding: 64px 32px;
@@ -254,8 +272,8 @@
           <th>Tehtävän nimi</th>
           <th>Kohderyhmä</th>
           <th>Aihe</th>
-          <th>Teema</th>
           <th>Lataa</th>
+          <th>Palaute</th>
         </tr>
       </thead>
       <tbody id="tableBody">
@@ -276,10 +294,46 @@
 <script>
   // ── TEHTÄVÄT – lisää omat tehtäväsi tänne ──
   // Esimerkkirakenne:
-  // { nimi: "Tehtävän nimi", luokat: ["7"], aihe: "Aihe", teema: "Teema", tiedosto: "tehtavat/tiedosto.html" }
+  // { nimi: "Tehtävän nimi", luokat: ["7"], aihe: "Aihe", tiedosto: "tehtavat/tiedosto.html" }
   const tehtavat = [];
 
   const badgeClass = { "6": "badge-6", "7": "badge-7", "8": "badge-8", "9": "badge-9" };
+
+  // Ratings stored by task name (persists in localStorage)
+  const ratingsKey = 'tehtavapankki_ratings';
+  function getRatings() {
+    try { return JSON.parse(localStorage.getItem(ratingsKey) || '{}'); } catch(e) { return {}; }
+  }
+  function saveRating(nimi, value) {
+    const r = getRatings();
+    r[nimi] = value;
+    localStorage.setItem(ratingsKey, JSON.stringify(r));
+  }
+
+  function buildStars(nimi) {
+    const saved = getRatings()[nimi] || 0;
+    // Stars rendered right-to-left (dir=rtl) so CSS hover trick works
+    // but we number them 5→1 so visually they appear 1–5 left to right
+    const wrapper = document.createElement('div');
+    wrapper.className = 'star-rating';
+    wrapper.title = 'Anna palaute';
+
+    for (let i = 5; i >= 1; i--) {
+      const s = document.createElement('span');
+      s.className = 'star' + (i <= saved ? ' lit' : '');
+      s.textContent = '★';
+      s.dataset.value = i;
+      s.addEventListener('click', () => {
+        saveRating(nimi, i);
+        // Update lit state within this widget
+        wrapper.querySelectorAll('.star').forEach(el => {
+          el.classList.toggle('lit', Number(el.dataset.value) <= i);
+        });
+      });
+      wrapper.appendChild(s);
+    }
+    return wrapper;
+  }
 
   function renderRows(data) {
     const tbody = document.getElementById('tableBody');
@@ -300,7 +354,7 @@
     data.forEach(t => {
       const tr = document.createElement('tr');
       tr.dataset.luokat = t.luokat.join(',');
-      tr.dataset.search = (t.nimi + ' ' + t.aihe + ' ' + (t.teema || '')).toLowerCase();
+      tr.dataset.search = (t.nimi + ' ' + t.aihe).toLowerCase();
 
       const badges = t.luokat.map(l =>
         `<span class="badge ${badgeClass[l]}">${l}. lk</span>`
@@ -310,14 +364,16 @@
         <td class="task-name">${t.nimi}</td>
         <td>${badges}</td>
         <td><span class="tag">${t.aihe}</span></td>
-        <td><span class="tag">${t.teema || '–'}</span></td>
         <td>
           <a href="${t.tiedosto}" class="btn-download" target="_blank">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Avaa
           </a>
         </td>
+        <td></td>
       `;
+      // Append star widget into the last <td>
+      tr.querySelector('td:last-child').appendChild(buildStars(t.nimi));
       tbody.appendChild(tr);
     });
   }
@@ -328,7 +384,7 @@
 
     const filtered = tehtavat.filter(t => {
       const matchLuokka = activeLuokka === 'kaikki' || t.luokat.includes(activeLuokka);
-      const matchSearch = (t.nimi + ' ' + t.aihe + ' ' + (t.teema || '')).toLowerCase().includes(query);
+      const matchSearch = (t.nimi + ' ' + t.aihe).toLowerCase().includes(query);
       return matchLuokka && matchSearch;
     });
 
