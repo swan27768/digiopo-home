@@ -295,7 +295,14 @@
   // ── TEHTÄVÄT – lisää omat tehtäväsi tänne ──
   // Esimerkkirakenne:
   // { nimi: "Tehtävän nimi", luokat: ["7"], aihe: "Aihe", tiedosto: "tehtavat/tiedosto.html" }
-  const tehtavat = [];
+  const tehtavat = [
+    {
+      nimi: "Seikkailu tulevaisuuden koulussa",
+      luokat: ["6", "7"],
+      aihe: "Ympäristö ja tulevaisuus",
+      tiedosto: "ladattavat/tulevaisuuden-koulu.html"
+    }
+  ];
 
   const badgeClass = { "6": "badge-6", "7": "badge-7", "8": "badge-8", "9": "badge-9" };
 
@@ -365,9 +372,9 @@
         <td>${badges}</td>
         <td><span class="tag">${t.aihe}</span></td>
         <td>
-          <a href="${t.tiedosto}" class="btn-download" target="_blank">
+          <a href="${t.tiedosto}" class="btn-download" download>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Avaa
+            Lataa
           </a>
         </td>
         <td></td>
