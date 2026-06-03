@@ -285,6 +285,12 @@
   .footer-logo span { color: #7ecfaa; font-style: normal; }
   footer a { color: rgba(255,255,255,0.55); text-decoration: none; }
   footer a:hover { color: #fff; }
+  .visitor-count {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: rgba(255,255,255,0.45);
+  }
+  .visitor-count svg { width: 14px; height: 14px; opacity: 0.6; }
+  #visitorCount { color: rgba(255,255,255,0.75); font-weight: 500; }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
@@ -414,6 +420,10 @@
 <footer>
   <div class="footer-logo">Digi<span>Opo</span>·fi</div>
   <div>© 2026 DigiOpo · <a href="mailto:digiopo@digiopo.fi">digiopo@digiopo.fi</a></div>
+  <div class="visitor-count">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    <span id="visitorCount">–</span> kävijää
+  </div>
 </footer>
 
 <script>
@@ -430,6 +440,15 @@
       }
     });
   }, { threshold: 0.1 });
+
+  // Kävijälaskuri
+  fetch('https://api.counterapi.dev/v1/digiopo/homepage/up')
+    .then(r => r.json())
+    .then(d => {
+      const el = document.getElementById('visitorCount');
+      if (el && d.count) el.textContent = Number(d.count).toLocaleString('fi');
+    })
+    .catch(() => {});
 
   document.querySelectorAll('.card, .step').forEach(el => {
     el.style.opacity = '0';

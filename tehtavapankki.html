@@ -185,6 +185,10 @@
     white-space: nowrap;
   }
   .btn-download:hover { background: var(--blue-mid); color: #fff; }
+  .dl-count {
+    font-size: 11px; color: var(--text-light); margin-top: 4px;
+    text-align: center; min-height: 16px;
+  }
   .btn-download svg { width: 14px; height: 14px; }
 
   /* STAR RATING */
@@ -372,16 +376,31 @@
         <td>${badges}</td>
         <td><span class="tag">${t.aihe}</span></td>
         <td>
-          <a href="${t.tiedosto}" class="btn-download" download>
+          <a href="${t.tiedosto}" class="btn-download" download data-file="${t.tiedosto}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Lataa
           </a>
+          <div class="dl-count"></div>
         </td>
         <td></td>
       `;
       // Append star widget into the last <td>
       tr.querySelector('td:last-child').appendChild(buildStars(t.nimi));
       tbody.appendChild(tr);
+
+      // Latauslaskuri
+      const countKey = 'dl_' + t.tiedosto.replace(/[^a-z0-9]/gi, '_').toLowerCase().slice(0, 40);
+      const countEl = tr.querySelector('.dl-count');
+      fetch(`https://api.counterapi.dev/v1/digiopo/${countKey}`)
+        .then(r => r.json())
+        .then(d => { if (d.count !== undefined) countEl.textContent = d.count + ' latausta'; })
+        .catch(() => {});
+      tr.querySelector('.btn-download').addEventListener('click', () => {
+        fetch(`https://api.counterapi.dev/v1/digiopo/${countKey}/up`)
+          .then(r => r.json())
+          .then(d => { if (d.count !== undefined) countEl.textContent = d.count + ' latausta'; })
+          .catch(() => {});
+      });
     });
   }
 
