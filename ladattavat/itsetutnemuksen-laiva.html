@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Itsetuntemuksen Laiva</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(180deg, #b8d4f0 0%, #7fb3e8 40%, #5a9fd4 70%, #3a7fc1 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    text-align: center;
+    color: #1a3a5c;
+    font-size: 2rem;
+    padding: 18px 0 6px;
+    text-shadow: 0 2px 8px rgba(255,255,255,0.5);
+    letter-spacing: 1px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #2a5a8c;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 6px 20px 14px;
+  }
+  .prog-dot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+  }
+  .prog-dot.done { opacity: 1; }
+  .prog-dot .dot-circle {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2.5px solid #1a3a5c;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    background: white;
+    transition: background 0.3s;
+  }
+  .prog-dot.done .dot-circle { background: #ffd700; }
+  .prog-dot .dot-label { font-size: 0.65rem; color: #1a3a5c; font-weight: 600; }
+
+  /* Scene container */
+  .scene {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 10px 80px;
+  }
+
+  svg#ship-scene {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 4px 16px rgba(0,0,0,0.15));
+  }
+
+  /* Clickable zones */
+  .zone {
+    cursor: pointer;
+    transition: filter 0.2s;
+  }
+  .zone:hover { filter: brightness(1.12) drop-shadow(0 0 8px rgba(255,220,50,0.8)); }
+  .zone.filled { filter: brightness(1.05) drop-shadow(0 0 6px rgba(100,200,100,0.8)); }
+
+  /* Text labels on SVG zones */
+  .zone-label {
+    font-size: 11px;
+    font-weight: 700;
+    fill: #1a3a5c;
+    pointer-events: none;
+    text-anchor: middle;
+  }
+  .zone-preview {
+    font-size: 9px;
+    fill: #2a5a8c;
+    pointer-events: none;
+    text-anchor: middle;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,30,60,0.55);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: white;
+    border-radius: 20px;
+    padding: 28px 32px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.3);
+    position: relative;
+    animation: popIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .modal-icon { font-size: 2.8rem; text-align: center; margin-bottom: 6px; }
+  .modal h2 { text-align: center; color: #1a3a5c; font-size: 1.25rem; margin-bottom: 6px; }
+  .modal .modal-desc {
+    text-align: center; color: #5a7a9c; font-size: 0.88rem;
+    margin-bottom: 16px; line-height: 1.5;
+  }
+
+  .modal textarea {
+    width: 100%;
+    min-height: 120px;
+    border: 2.5px solid #b8d4f0;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 1rem;
+    font-family: inherit;
+    color: #1a3a5c;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .modal textarea:focus { border-color: #5a9fd4; }
+
+  .modal-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    justify-content: flex-end;
+  }
+  .btn {
+    padding: 10px 24px;
+    border-radius: 30px;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .btn-save { background: linear-gradient(135deg, #5a9fd4, #3a7fc1); color: white; }
+  .btn-cancel { background: #f0f4f8; color: #5a7a9c; }
+
+  .close-btn {
+    position: absolute;
+    top: 14px; right: 18px;
+    background: none; border: none;
+    font-size: 1.4rem; cursor: pointer;
+    color: #8aaccc;
+    line-height: 1;
+  }
+
+  /* Bottom action bar */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(8px);
+    padding: 12px 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    border-top: 1px solid #c8dff0;
+    z-index: 50;
+  }
+  .btn-print {
+    background: linear-gradient(135deg, #ffd700, #ffaa00);
+    color: #1a3a5c;
+    padding: 10px 28px;
+  }
+  .btn-reset {
+    background: #f0f4f8;
+    color: #5a7a9c;
+    padding: 10px 20px;
+  }
+
+  /* Celebration */
+  .celebration {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,30,60,0.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .celebration.show { display: flex; }
+  .celebration-box {
+    background: white;
+    border-radius: 24px;
+    padding: 36px 40px;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 16px 64px rgba(0,0,0,0.4);
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .celebration-box h2 { color: #1a3a5c; font-size: 1.6rem; margin: 12px 0 8px; }
+  .celebration-box p { color: #5a7a9c; line-height: 1.6; margin-bottom: 20px; }
+
+  @media print {
+    body { background: white !important; }
+    .bottom-bar, .modal-overlay, .celebration { display: none !important; }
+    .progress-wrap { display: none; }
+    h1 { color: #1a3a5c; }
+    .scene { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<h1>⚓ Itsetuntemuksen Laiva</h1>
+<p class="subtitle">Klikkaa laivan osia ja täytä ne omilla ajatuksillasi</p>
+
+<!-- Progress dots -->
+<div class="progress-wrap" id="progressBar">
+  <!-- filled by JS -->
+</div>
+
+<div class="scene">
+<svg id="ship-scene" viewBox="0 0 900 580" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="skyGrad" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#c5dff5"/>
+      <stop offset="100%" stop-color="#7fb3e8"/>
+    </radialGradient>
+    <radialGradient id="seaGrad" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#5a9fd4"/>
+      <stop offset="100%" stop-color="#2a6fa8"/>
+    </radialGradient>
+    <radialGradient id="sunGrad" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffe566"/>
+      <stop offset="100%" stop-color="#ffaa00"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Sky background -->
+  <rect width="900" height="580" fill="url(#skyGrad)"/>
+
+  <!-- Waves / sea -->
+  <ellipse cx="450" cy="520" rx="500" ry="100" fill="url(#seaGrad)" opacity="0.7"/>
+  <rect x="0" y="460" width="900" height="120" fill="#3a7fc1" opacity="0.5"/>
+  <!-- Wave lines -->
+  <path d="M0,470 Q80,460 160,470 Q240,480 320,470 Q400,460 480,470 Q560,480 640,470 Q720,460 800,470 Q860,480 900,470" stroke="white" stroke-width="2" fill="none" opacity="0.4"/>
+  <path d="M0,485 Q100,475 200,485 Q300,495 400,485 Q500,475 600,485 Q700,495 800,485 Q860,475 900,485" stroke="white" stroke-width="1.5" fill="none" opacity="0.3"/>
+
+  <!-- ============ SUN (zone 1) ============ -->
+  <g class="zone" id="zone-sun" onclick="openZone('sun')">
+    <circle cx="110" cy="100" r="62" fill="url(#sunGrad)" stroke="#ffcc00" stroke-width="3"/>
+    <!-- Sun rays -->
+    <g stroke="#ffcc00" stroke-width="3" stroke-linecap="round">
+      <line x1="110" y1="25" x2="110" y2="10"/>
+      <line x1="110" y1="175" x2="110" y2="190"/>
+      <line x1="35" y1="100" x2="20" y2="100"/>
+      <line x1="185" y1="100" x2="200" y2="100"/>
+      <line x1="59" y1="49" x2="49" y2="39"/>
+      <line x1="161" y1="49" x2="171" y2="39"/>
+      <line x1="59" y1="151" x2="49" y2="161"/>
+      <line x1="161" y1="151" x2="171" y2="161"/>
+    </g>
+    <text x="110" y="94" class="zone-label" fill="#1a3a5c">☀️</text>
+    <text x="110" y="110" class="zone-label">Aurinko</text>
+    <text x="110" y="123" class="zone-preview" id="preview-sun">Ilahduttavat asiat</text>
+  </g>
+
+  <!-- ============ CLOUD 1 (zone 2 - dreams) ============ -->
+  <g class="zone" id="zone-cloud" onclick="openZone('cloud')">
+    <ellipse cx="700" cy="80" rx="90" ry="45" fill="white" stroke="#c0d8f0" stroke-width="2"/>
+    <ellipse cx="650" cy="88" rx="60" ry="36" fill="white" stroke="#c0d8f0" stroke-width="2"/>
+    <ellipse cx="755" cy="90" rx="55" ry="32" fill="white" stroke="#c0d8f0" stroke-width="2"/>
+    <text x="700" y="78" class="zone-label">☁️ Pilvet</text>
+    <text x="700" y="93" class="zone-preview" id="preview-cloud">Haaveet ja unelmat</text>
+  </g>
+
+  <!-- Second small cloud (decorative) -->
+  <ellipse cx="820" cy="150" rx="50" ry="28" fill="white" opacity="0.7"/>
+  <ellipse cx="785" cy="158" rx="35" ry="22" fill="white" opacity="0.7"/>
+  <ellipse cx="850" cy="158" rx="32" ry="20" fill="white" opacity="0.7"/>
+
+  <!-- ============ MAST ============ -->
+  <line x1="460" y1="80" x2="460" y2="420" stroke="#8B6914" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- ============ SAIL (zone 3 - encouragers) ============ -->
+  <g class="zone" id="zone-sail" onclick="openZone('sail')">
+    <path d="M465,90 L650,300 L465,310 Z" fill="#a8d4f0" stroke="#4a8cbf" stroke-width="2.5" opacity="0.88"/>
+    <path d="M455,100 L270,290 L455,310 Z" fill="#c8e8f8" stroke="#4a8cbf" stroke-width="2" opacity="0.82"/>
+    <!-- Sail grid lines -->
+    <line x1="465" y1="150" x2="612" y2="213" stroke="#4a8cbf" stroke-width="1" opacity="0.4"/>
+    <line x1="465" y1="200" x2="576" y2="240" stroke="#4a8cbf" stroke-width="1" opacity="0.4"/>
+    <line x1="465" y1="255" x2="536" y2="268" stroke="#4a8cbf" stroke-width="1" opacity="0.4"/>
+    <text x="530" y="210" class="zone-label">⛵ Purje</text>
+    <text x="530" y="226" class="zone-preview" id="preview-sail">Tsemppaajat &amp; voimanlähteet</text>
+  </g>
+
+  <!-- ============ SHIP HULL (zone 4 - strengths) ============ -->
+  <g class="zone" id="zone-hull" onclick="openZone('hull')">
+    <!-- Hull body -->
+    <path d="M240,400 L240,440 Q450,480 660,440 L660,400 Z" fill="#d4a44c" stroke="#8B6914" stroke-width="3"/>
+    <!-- Hull deck top -->
+    <rect x="245" y="390" width="410" height="22" rx="4" fill="#e8c070" stroke="#8B6914" stroke-width="2"/>
+    <!-- Deck details -->
+    <circle cx="310" cy="401" r="5" fill="#8B6914" opacity="0.5"/>
+    <circle cx="350" cy="401" r="5" fill="#8B6914" opacity="0.5"/>
+    <circle cx="550" cy="401" r="5" fill="#8B6914" opacity="0.5"/>
+    <circle cx="590" cy="401" r="5" fill="#8B6914" opacity="0.5"/>
+    <!-- Porthole -->
+    <circle cx="580" cy="430" r="16" fill="#7fb3d4" stroke="#4a6c8c" stroke-width="3"/>
+    <circle cx="580" cy="430" r="10" fill="#b8d8ec" stroke="#4a6c8c" stroke-width="1.5"/>
+    <text x="450" y="425" class="zone-label">🚢 Laivan runko</text>
+    <text x="450" y="441" class="zone-preview" id="preview-hull">Omat vahvuutesi</text>
+  </g>
+
+  <!-- ============ ANCHOR (zone 5 - things slowing down) ============ -->
+  <g class="zone" id="zone-anchor" onclick="openZone('anchor')">
+    <!-- Anchor ring -->
+    <circle cx="175" cy="450" r="22" fill="none" stroke="#2a4a7c" stroke-width="5"/>
+    <!-- Anchor vertical shaft -->
+    <line x1="175" y1="428" x2="175" y2="510" stroke="#2a4a7c" stroke-width="5" stroke-linecap="round"/>
+    <!-- Anchor horizontal bar -->
+    <line x1="148" y1="450" x2="202" y2="450" stroke="#2a4a7c" stroke-width="5" stroke-linecap="round"/>
+    <!-- Anchor flukes -->
+    <path d="M175,510 L148,492 Q155,510 175,515 Q195,510 202,492 Z" fill="#2a4a7c" stroke="#2a4a7c" stroke-width="2"/>
+    <!-- Chain -->
+    <path d="M197,432 Q210,420 220,430 Q230,440 240,435" stroke="#2a4a7c" stroke-width="3" fill="none" stroke-dasharray="6,4"/>
+    <text x="175" y="530" class="zone-label">⚓ Ankkuri</text>
+    <text x="175" y="544" class="zone-preview" id="preview-anchor">Jarruttavat asiat</text>
+  </g>
+
+  <!-- ============ ROCKS / REEF (zone 6 - fears) ============ -->
+  <g class="zone" id="zone-rocks" onclick="openZone('rocks')">
+    <ellipse cx="790" cy="420" rx="70" ry="42" fill="#6a7a8c" stroke="#4a5a6c" stroke-width="2.5"/>
+    <ellipse cx="830" cy="440" rx="52" ry="32" fill="#7a8a9c" stroke="#4a5a6c" stroke-width="2"/>
+    <ellipse cx="755" cy="438" rx="40" ry="28" fill="#5a6a7c" stroke="#4a5a6c" stroke-width="2"/>
+    <!-- Rock texture -->
+    <line x1="770" y1="410" x2="780" y2="430" stroke="#4a5a6c" stroke-width="1.5" opacity="0.5"/>
+    <line x1="800" y1="405" x2="808" y2="425" stroke="#4a5a6c" stroke-width="1.5" opacity="0.5"/>
+    <line x1="825" y1="428" x2="835" y2="448" stroke="#4a5a6c" stroke-width="1.5" opacity="0.5"/>
+    <text x="793" y="422" class="zone-label" fill="white">🪨 Karikko</text>
+    <text x="793" y="438" class="zone-preview" id="preview-rocks" fill="#d0e0f0">Pelottavat asiat</text>
+  </g>
+
+  <!-- ============ HELP ZONE (zone 7) ============ -->
+  <g class="zone" id="zone-help" onclick="openZone('help')">
+    <rect x="15" y="300" width="130" height="80" rx="14" fill="white" stroke="#5a9fd4" stroke-width="2.5" opacity="0.9"/>
+    <text x="80" y="323" class="zone-label">🤝 Apua</text>
+    <text x="80" y="338" class="zone-preview" id="preview-help">tarvitsisin</text>
+    <text x="80" y="352" class="zone-preview">avukseni</text>
+    <text x="80" y="367" class="zone-preview">...</text>
+  </g>
+
+  <!-- ============ CAPTAIN (zone 8) ============ -->
+  <g class="zone" id="zone-captain" onclick="openZone('captain')">
+    <!-- Body -->
+    <ellipse cx="265" cy="390" rx="28" ry="20" fill="white" stroke="#8aaccc" stroke-width="2"/>
+    <!-- Head -->
+    <circle cx="265" cy="362" r="24" fill="#f5e6d0" stroke="#8aaccc" stroke-width="2"/>
+    <!-- Hair -->
+    <path d="M244,352 Q265,340 286,352 Q286,345 265,342 Q244,345 244,352" fill="#4a3a2a"/>
+    <!-- Eyes -->
+    <circle cx="257" cy="362" r="3" fill="#2a3a4c"/>
+    <circle cx="273" cy="362" r="3" fill="#2a3a4c"/>
+    <!-- Smile -->
+    <path d="M255,372 Q265,380 275,372" stroke="#8a5a4c" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- Captain's hat -->
+    <rect x="250" y="338" width="30" height="6" rx="3" fill="#1a3a5c"/>
+    <rect x="253" y="326" width="24" height="14" rx="3" fill="#1a3a5c"/>
+    <text x="265" y="415" class="zone-label">👤 Kapteeni</text>
+    <text x="265" y="429" class="zone-preview" id="preview-captain">Kuka minä olen?</text>
+  </g>
+
+  <!-- Decorative birds -->
+  <path d="M540,160 Q545,155 550,160" stroke="#2a4a6c" stroke-width="2" fill="none"/>
+  <path d="M560,145 Q567,139 574,145" stroke="#2a4a6c" stroke-width="2" fill="none"/>
+  <path d="M520,175 Q526,170 532,175" stroke="#2a4a6c" stroke-width="1.5" fill="none"/>
+
+  <!-- Fish -->
+  <g transform="translate(720,500)" opacity="0.6">
+    <ellipse cx="0" cy="0" rx="18" ry="9" fill="#ffaa44"/>
+    <path d="M-18,0 L-28,-8 L-28,8 Z" fill="#ff8800"/>
+    <circle cx="8" cy="-2" r="2.5" fill="#1a3a5c"/>
+  </g>
+
+</svg>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <div class="modal-icon" id="modalIcon"></div>
+    <h2 id="modalTitle"></h2>
+    <p class="modal-desc" id="modalDesc"></p>
+    <textarea id="modalInput" placeholder="Kirjoita tähän..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeModal()">Peruuta</button>
+      <button class="btn btn-save" onclick="saveZone()">Tallenna ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Celebration -->
+<div class="celebration" id="celebration">
+  <div class="celebration-box">
+    <div style="font-size:3.5rem">🎉⚓🎉</div>
+    <h2>Laiva on valmis!</h2>
+    <p>Hienoa työtä! Olet täyttänyt kaikki laivan osat ja rakentanut oman itsetuntemuksen laivasi. Sinulla on nyt hyvä kuva itsestäsi kapteenina!</p>
+    <button class="btn btn-print" onclick="document.getElementById('celebration').classList.remove('show'); window.print()">🖨️ Tulosta laiva</button>
+    <button class="btn btn-cancel" style="margin-top:10px" onclick="document.getElementById('celebration').classList.remove('show')">Sulje</button>
+  </div>
+</div>
+
+<!-- Bottom bar -->
+<div class="bottom-bar">
+  <button class="btn btn-print" onclick="window.print()">🖨️ Tulosta / Tallenna PDF</button>
+  <button class="btn btn-reset" onclick="resetAll()">🔄 Aloita alusta</button>
+</div>
+
+<script>
+const zones = {
+  sun: {
+    icon: '☀️',
+    title: 'Aurinko — Myönteinen energia',
+    desc: 'Mitkä asiat tuovat sinulle myönteistä energiaa ja ilahduttavat sinua?',
+    defaultPreview: 'Ilahduttavat asiat',
+  },
+  cloud: {
+    icon: '☁️',
+    title: 'Pilvet — Haaveet ja unelmat',
+    desc: 'Kirjoita omat haaveesi ja unelmasi. Mitä toivot tulevaisuudelta?',
+    defaultPreview: 'Haaveet ja unelmat',
+  },
+  sail: {
+    icon: '⛵',
+    title: 'Purje — Tsemppaajat ja voimanlähteet',
+    desc: 'Ketkä ihmiset tai mitkä asiat tsemppaavat sinua ja antavat voimaa?',
+    defaultPreview: 'Tsemppaajat & voimanlähteet',
+  },
+  hull: {
+    icon: '🚢',
+    title: 'Laivan runko — Omat vahvuudet',
+    desc: 'Mitkä ovat sinun vahvuutesi? Missä olet hyvä?',
+    defaultPreview: 'Omat vahvuutesi',
+  },
+  anchor: {
+    icon: '⚓',
+    title: 'Ankkuri — Jarruttavat asiat',
+    desc: 'Mitkä asiat hidastavat tai jarruttavat sinua? Mihin tarvitsisit apua?',
+    defaultPreview: 'Jarruttavat asiat',
+  },
+  rocks: {
+    icon: '🪨',
+    title: 'Karikko — Pelottavat asiat',
+    desc: 'Mitä pelkäät tai mistä olet huolissasi?',
+    defaultPreview: 'Pelottavat asiat',
+  },
+  help: {
+    icon: '🤝',
+    title: 'Apua — Mihin tarvitsen tukea?',
+    desc: 'Missä asioissa tarvitsisit apua tai tukea muilta?',
+    defaultPreview: 'tarvitsisin avukseni...',
+  },
+  captain: {
+    icon: '👤',
+    title: 'Kapteeni — Kuka minä olen?',
+    desc: 'Kuvaile itseäsi kapteenina. Millainen ihminen olet? Mitä arvostat?',
+    defaultPreview: 'Kuka minä olen?',
+  },
+};
+
+const labels = [
+  { key: 'sun', emoji: '☀️', label: 'Aurinko' },
+  { key: 'cloud', emoji: '☁️', label: 'Pilvet' },
+  { key: 'sail', emoji: '⛵', label: 'Purje' },
+  { key: 'hull', emoji: '🚢', label: 'Runko' },
+  { key: 'anchor', emoji: '⚓', label: 'Ankkuri' },
+  { key: 'rocks', emoji: '🪨', label: 'Karikko' },
+  { key: 'help', emoji: '🤝', label: 'Apua' },
+  { key: 'captain', emoji: '👤', label: 'Kapteeni' },
+];
+
+const data = {};
+let currentZone = null;
+
+function buildProgress() {
+  const bar = document.getElementById('progressBar');
+  bar.innerHTML = '';
+  labels.forEach(({ key, emoji, label }) => {
+    const d = document.createElement('div');
+    d.className = 'prog-dot' + (data[key] ? ' done' : '');
+    d.id = 'prog-' + key;
+    d.onclick = () => openZone(key);
+    d.innerHTML = `<div class="dot-circle">${emoji}</div><div class="dot-label">${label}</div>`;
+    bar.appendChild(d);
+  });
+}
+
+function openZone(key) {
+  currentZone = key;
+  const z = zones[key];
+  document.getElementById('modalIcon').textContent = z.icon;
+  document.getElementById('modalTitle').textContent = z.title;
+  document.getElementById('modalDesc').textContent = z.desc;
+  document.getElementById('modalInput').value = data[key] || '';
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('modalInput').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  currentZone = null;
+}
+
+function saveZone() {
+  if (!currentZone) return;
+  const val = document.getElementById('modalInput').value.trim();
+  data[currentZone] = val;
+
+  // Update preview text in SVG
+  const previewEl = document.getElementById('preview-' + currentZone);
+  if (previewEl) {
+    if (val) {
+      const short = val.length > 28 ? val.slice(0, 26) + '…' : val;
+      previewEl.textContent = short;
+    } else {
+      previewEl.textContent = zones[currentZone].defaultPreview;
+    }
+  }
+
+  // Mark zone as filled
+  const zoneEl = document.getElementById('zone-' + currentZone);
+  if (zoneEl) {
+    if (val) zoneEl.classList.add('filled');
+    else zoneEl.classList.remove('filled');
+  }
+
+  closeModal();
+  buildProgress();
+  checkCompletion();
+}
+
+function checkCompletion() {
+  const filled = labels.filter(l => data[l.key] && data[l.key].length > 0);
+  if (filled.length === labels.length) {
+    setTimeout(() => document.getElementById('celebration').classList.add('show'), 400);
+  }
+}
+
+function resetAll() {
+  if (!confirm('Haluatko varmasti aloittaa alusta? Kaikki tiedot poistetaan.')) return;
+  labels.forEach(({ key }) => {
+    delete data[key];
+    const previewEl = document.getElementById('preview-' + key);
+    if (previewEl) previewEl.textContent = zones[key].defaultPreview;
+    const zoneEl = document.getElementById('zone-' + key);
+    if (zoneEl) zoneEl.classList.remove('filled');
+  });
+  buildProgress();
+}
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Keyboard: Escape closes modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && e.ctrlKey && currentZone) saveZone();
+});
+
+// Init
+buildProgress();
+</script>
+</body>
+</html>
