@@ -252,6 +252,61 @@
   .step h4 { font-size: 16px; font-weight: 600; color: #fff; }
   .step p   { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.65; }
 
+  /* ── TEHTÄVÄPANKKI NOSTO ── */
+  .tehtavapankki-section {
+    background: var(--off-white);
+    border-top: 1px solid rgba(45,158,107,0.12);
+    border-bottom: 1px solid rgba(45,158,107,0.12);
+  }
+  .download-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  .download-card {
+    background: #fff;
+    border: 1.5px solid rgba(45,158,107,0.2);
+    border-radius: 18px;
+    padding: 28px 26px;
+    display: flex; flex-direction: column; gap: 10px;
+    transition: transform 0.25s, box-shadow 0.25s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .download-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 36px rgba(26,63,111,0.10);
+    border-color: rgba(45,158,107,0.5);
+  }
+  .download-badge {
+    font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--green-mid);
+    background: var(--green-pale);
+    padding: 3px 10px; border-radius: 20px;
+    align-self: flex-start;
+  }
+  .download-emoji { font-size: 2.4rem; line-height: 1; }
+  .download-card h3 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 17px; font-weight: 600;
+    color: var(--blue-deep); line-height: 1.3;
+    margin: 0;
+  }
+  .download-card p {
+    font-size: 13.5px; color: var(--text-mid); line-height: 1.6;
+    flex: 1; margin: 0;
+  }
+  .download-cta {
+    font-size: 13px; font-weight: 500;
+    color: var(--green-deep);
+    display: flex; align-items: center; gap: 5px;
+    margin-top: 4px;
+  }
+  .tehtavapankki-footer {
+    margin-top: 32px;
+    text-align: center;
+  }
+
   /* ── CTA BANNER ── */
   .cta-banner {
     text-align: center;
@@ -350,13 +405,35 @@
       <a href="tehtavapankki.html" class="card-link">Siirry tehtäväpankkiin →</a>
     </div>
 
-<div class="card yellow">
+    <div class="card yellow">
       <div class="card-icon">🎥</div>
       <h3>Stream-palvelut</h3>
       <p>Livenä tai tallennettuna – DigiOpon stream-palvelut tuovat asiantuntijat ja opinto-ohjauksen sisällöt suoraan luokkaan tai etäyhteydellä.</p>
       <a href="stream-palvelut.html" class="card-link">Lue lisää →</a>
     </div>
 
+  </div>
+</div>
+
+<!-- TEHTÄVÄPANKKI NOSTO -->
+<div class="tehtavapankki-section">
+  <div class="section" id="tehtavapankki" style="padding-top: 80px; padding-bottom: 80px;">
+    <div class="section-label">Tehtäväpankki</div>
+    <h2 class="section-title">Ilmaisia materiaaleja tunnille</h2>
+    <div class="download-grid">
+
+      <a href="ladattavat/itsetuntemuksen-laiva.html" class="download-card" target="_blank">
+        <span class="download-badge">Uusi</span>
+        <div class="download-emoji">⚓</div>
+        <h3>Itsetuntemuksen laiva</h3>
+        <p>Interaktiivinen itsereflektioharjoitus, jossa oppilas täyttää laivan osat omilla vahvuuksillaan, unelmillaan, peloillaan ja voimanlähteillään.</p>
+        <span class="download-cta">Avaa tehtävä →</span>
+      </a>
+
+    </div>
+    <div class="tehtavapankki-footer">
+      <a href="tehtavapankki.html" class="btn-secondary">Kaikki materiaalit tehtäväpankissa →</a>
+    </div>
   </div>
 </div>
 
@@ -450,7 +527,7 @@
     })
     .catch(() => {});
 
-  document.querySelectorAll('.card, .step').forEach(el => {
+  document.querySelectorAll('.card, .step, .download-card').forEach(el => {
     el.style.opacity = '0';
     el.style.transform = 'translateY(22px)';
     el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
