@@ -176,6 +176,7 @@
     transition: all 0.25s;
   }
   .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(26,63,111,0.32); }
+  .btn-submit:disabled { opacity: 0.7; transform: none; cursor: not-allowed; }
   .submit-note {
     text-align: center; margin-top: 14px;
     font-size: 12.5px; color: var(--text-light);
@@ -227,15 +228,15 @@
 <div class="page">
   <div class="page-label">Tilauslomake</div>
   <h1 class="page-title">Tilaa DigiOpo-lisenssi</h1>
-  <p class="page-sub">Täytä lomake ja otamme sinuun yhteyttä tilauksen vahvistamiseksi. Saat koulukoodin sähköpostiisi nopeasti.</p>
+  <p class="page-sub">Täytä lomake ja saat koulukoodisi suoraan sähköpostiisi. Lasku lähetetään erikseen.</p>
 
   <div class="info-box">
     <strong>Miten tilaus etenee?</strong><br>
-    Täytät lomakkeen → saat sähköpostiisi vahvistuksen ja laskun → maksat laskun → saat koulukoodin → jaat koodin oppilaillesi.
+    Täytät lomakkeen → saat koulukoodin heti sähköpostiisi → jaat koodin oppilaillesi → lasku toimitetaan erikseen.
   </div>
 
   <div class="form-card">
-    <form id="tilausForm" action="https://formspree.io/f/xbdbendl" method="POST" novalidate>
+    <form id="tilausForm" novalidate>
 
       <div class="form-section">Yhteystiedot</div>
 
@@ -305,18 +306,16 @@
         </div>
       </div>
 
-      <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
-
       <div class="submit-area">
         <button type="submit" class="btn-submit">Lähetä tilaus →</button>
-        <p class="submit-note">Otamme yhteyttä 1–2 arkipäivän sisällä.<br>Tähtimerkatut kentät ovat pakollisia.</p>
+        <p class="submit-note">Saat koulukoodin sähköpostiisi välittömästi.<br>Tähtimerkatut kentät ovat pakollisia.</p>
       </div>
 
     </form>
 
     <div class="success-msg" id="successMsg">
-      <h3>✓ Tilaus vastaanotettu!</h3>
-      <p>Kiitos tilauksestasi! Otamme sinuun yhteyttä sähköpostitse 1–2 arkipäivän sisällä tilauksen vahvistamiseksi.</p>
+      <h3>✓ Koodi lähetetty sähköpostiisi!</h3>
+      <p>Kiitos tilauksestasi! Koulukoodisi on nyt lähetetty sähköpostiisi – tarkista myös roskapostikansio.<br><br>Lasku toimitetaan erikseen.</p>
     </div>
 
   </div>
@@ -326,7 +325,7 @@
   const form = document.getElementById('tilausForm');
   const btn = form.querySelector('.btn-submit');
 
-  btn.addEventListener('click', async function(e) {
+  form.addEventListener('submit', async function(e) {
     e.preventDefault();
 
     // Validointi
@@ -361,22 +360,35 @@
     btn.textContent = 'Lähetetään...';
     btn.disabled = true;
 
-    const data = new FormData(form);
+    // Kerätään kenttien arvot JSON-objektiin
+    const tilaustyyppi = form.querySelector('input[name="tilaustyyppi"]:checked')?.value || 'yksittainen';
+    const data = {
+      etunimi:     form.etunimi.value.trim(),
+      sukunimi:    form.sukunimi.value.trim(),
+      email:       form.email.value.trim(),
+      puhelin:     form.puhelin.value.trim(),
+      koulu:       form.koulu.value.trim(),
+      kunta:       form.kunta.value.trim(),
+      oppilasmaara: form.oppilasmaara.value,
+      tilaustyyppi,
+      lisatiedot:  form.lisatiedot.value.trim(),
+    };
 
     try {
-      const res = await fetch('https://formspree.io/f/xbdbendl', {
+      const res = await fetch('https://app.digiopo.fi/api/tilaus', {
         method: 'POST',
-        body: data,
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       });
 
-      if (res.ok) {
+      const json = await res.json();
+
+      if (res.ok && json.ok) {
         form.style.display = 'none';
         document.getElementById('successMsg').style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        const json = await res.json();
-        console.error('Formspree error:', json);
+        console.error('Tilausvirhe:', json);
         btn.textContent = 'Lähetys epäonnistui – yritä uudelleen';
         btn.disabled = false;
       }
