@@ -228,7 +228,7 @@
   db.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session) {
       // Ohjaa kirjautuneen käyttäjän sovellukseen
-      window.location.href = '/app';
+      window.location.href = 'https://app.digiopo.fi';
     }
   });
 
@@ -253,9 +253,9 @@
       email,
       options: {
         // Käyttäjä ohjataan tänne linkin klikkauksen jälkeen
-        emailRedirectTo: `${window.location.origin}/app`,
-        // Ei luoda uutta käyttäjää jos sähköpostia ei löydy
-        shouldCreateUser: false,
+        emailRedirectTo: 'https://app.digiopo.fi',
+        // Luodaan auth-käyttäjä tarvittaessa – lisenssi tarkistetaan backendissä
+        shouldCreateUser: true,
       },
     });
 
