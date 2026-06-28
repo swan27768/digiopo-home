@@ -104,6 +104,41 @@ function sahkoposti_koululle(etunimi, koodi, voimassa_asti) {
 </html>`;
 }
 
+function sahkoposti_opettajalle(etunimi, email, voimassa_asti) {
+  const pvm = new Date(voimassa_asti).toLocaleDateString('fi-FI', {
+    day: 'numeric', month: 'long', year: 'numeric',
+  });
+  return `<!DOCTYPE html>
+<html lang="fi">
+<body style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;padding:32px 20px;color:#0f2540;background:#f8fbff">
+  <div style="text-align:center;margin-bottom:28px">
+    <span style="font-size:26px;font-weight:700;color:#1a3f6f">Digi<span style="color:#2d9e6b">Opo</span></span>
+  </div>
+  <h2 style="color:#1a3f6f;margin-bottom:10px">Hei ${etunimi}!</h2>
+  <p style="line-height:1.6;margin-bottom:24px">Kiitos DigiOpo-opettajalisenssin tilauksesta. Henkilökohtainen lisenssisi on nyt aktivoitu ja sidottu sähköpostiosoitteeseesi.</p>
+  <div style="background:#ddeaf7;border-radius:14px;padding:28px;text-align:center;margin-bottom:28px">
+    <p style="margin:0 0 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#3a5a7a">KIRJAUTUMISSÄHKÖPOSTISI</p>
+    <p style="font-size:20px;font-weight:700;color:#1a3f6f;margin:0">${email}</p>
+    <p style="margin:12px 0 0;font-size:13px;color:#3a5a7a">Lisenssi voimassa ${pvm} asti</p>
+  </div>
+  <p style="line-height:1.6;margin-bottom:8px"><strong>Näin kirjaudut sisään:</strong></p>
+  <ol style="line-height:1.8;padding-left:20px;margin-bottom:28px">
+    <li>Mene osoitteeseen <strong>app.digiopo.fi</strong></li>
+    <li>Syötä tämä sähköpostiosoite kirjautumisruutuun</li>
+    <li>Saat kirjautumislinkin sähköpostiisi – klikkaa sitä</li>
+    <li>Olet sisällä</li>
+  </ol>
+  <div style="background:#fef9e0;border:1px solid #f5c842;border-radius:10px;padding:16px 20px;margin-bottom:28px;font-size:13.5px;color:#7a5c00;line-height:1.6">
+    <strong>Huomio:</strong> Tämä on henkilökohtainen lisenssi. Kirjautumislinkki toimii vain tällä sähköpostiosoitteella, eikä sitä voi jakaa eteenpäin.
+  </div>
+  <div style="text-align:center;margin-bottom:32px">
+    <a href="https://app.digiopo.fi/kirjaudu" style="background:#1a3f6f;color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">Kirjaudu DigiOpoon →</a>
+  </div>
+  <p style="font-size:13px;color:#7a9ab5;line-height:1.6">Kysyttävää? Vastaa suoraan tähän sähköpostiin.</p>
+</body>
+</html>`;
+}
+
 function sahkoposti_adminille(t, koodi, voimassa_asti) {
   const pvm = new Date(voimassa_asti).toLocaleDateString('fi-FI');
   const rivi = (nimi, arvo) =>
@@ -162,37 +197,62 @@ export default async function handler(req, res) {
   voimassa.setFullYear(voimassa.getFullYear() + 1);
   const voimassa_asti = voimassa.toISOString().split('T')[0];
 
-  // Lisenssin luonti – yritetään 3 kertaa kooditörmäyksen varalta
-  let koodi;
-  for (let yritys = 0; yritys < 3; yritys++) {
-    koodi = generoi_koodi(koulu);
+  const emailNorm = email.trim().toLowerCase();
+  const henkilö = `${etunimi.trim()} ${sukunimi.trim()}`;
+  let koodi = null;
+
+  if (tilaustyyppi === 'opettajalisenssi') {
+    // Opettajalisenssi: ei jaettavaa koodia – email on avain
     try {
       await lisaa_supabaseen({
-        koodi,
         koulu: koulu.trim(),
-        yhteyshenkilö: `${etunimi.trim()} ${sukunimi.trim()}`,
-        email: email.trim().toLowerCase(),
-        tyyppi: 'vuosi',
+        yhteyshenkilö: henkilö,
+        email: emailNorm,
+        tyyppi: 'opettaja',
         voimassa_asti,
         aktiivinen: true,
       });
-      break; // onnistui
     } catch (err) {
-      if (yritys === 2) {
-        console.error('Supabase insert epäonnistui:', err.message);
-        return res.status(500).json({ ok: false, virhe: 'Palvelinvirhe – yritä uudelleen' });
-      }
-      // Todennäköisesti kooditörmäys, yritetään uudella koodilla
+      console.error('Supabase insert epäonnistui:', err.message);
+      return res.status(500).json({ ok: false, virhe: 'Palvelinvirhe – yritä uudelleen' });
     }
-  }
 
-  // Sähköpostit – lähetetään rinnakkain, virhe ei kaada vastausta
-  await Promise.allSettled([
-    laheta_sahkoposti(email, 'DigiOpo – koulukoodisi on valmis', sahkoposti_koululle(etunimi, koodi, voimassa_asti)),
-    ADMIN_EMAIL && laheta_sahkoposti(ADMIN_EMAIL, `Uusi DigiOpo-tilaus: ${koulu}`, sahkoposti_adminille(
-      { etunimi, sukunimi, email, puhelin, koulu, kunta, oppilasmaara, tilaustyyppi, lisatiedot }, koodi, voimassa_asti
-    )),
-  ]);
+    await Promise.allSettled([
+      laheta_sahkoposti(emailNorm, 'DigiOpo – opettajalisenssisi on aktivoitu', sahkoposti_opettajalle(etunimi, emailNorm, voimassa_asti)),
+      ADMIN_EMAIL && laheta_sahkoposti(ADMIN_EMAIL, `Uusi DigiOpo-tilaus: ${koulu}`, sahkoposti_adminille(
+        { etunimi, sukunimi, email: emailNorm, puhelin, koulu, kunta, oppilasmaara, tilaustyyppi, lisatiedot }, '(opettajalisenssi – ei koodia)', voimassa_asti
+      )),
+    ]);
+  } else {
+    // Koululisenssi: generoidaan jaettava koodi, yritetään 3 kertaa törmäyksen varalta
+    for (let yritys = 0; yritys < 3; yritys++) {
+      koodi = generoi_koodi(koulu);
+      try {
+        await lisaa_supabaseen({
+          koodi,
+          koulu: koulu.trim(),
+          yhteyshenkilö: henkilö,
+          email: emailNorm,
+          tyyppi: 'vuosi',
+          voimassa_asti,
+          aktiivinen: true,
+        });
+        break;
+      } catch (err) {
+        if (yritys === 2) {
+          console.error('Supabase insert epäonnistui:', err.message);
+          return res.status(500).json({ ok: false, virhe: 'Palvelinvirhe – yritä uudelleen' });
+        }
+      }
+    }
+
+    await Promise.allSettled([
+      laheta_sahkoposti(emailNorm, 'DigiOpo – koulukoodisi on valmis', sahkoposti_koululle(etunimi, koodi, voimassa_asti)),
+      ADMIN_EMAIL && laheta_sahkoposti(ADMIN_EMAIL, `Uusi DigiOpo-tilaus: ${koulu}`, sahkoposti_adminille(
+        { etunimi, sukunimi, email: emailNorm, puhelin, koulu, kunta, oppilasmaara, tilaustyyppi, lisatiedot }, koodi, voimassa_asti
+      )),
+    ]);
+  }
 
   return res.status(200).json({ ok: true });
 }

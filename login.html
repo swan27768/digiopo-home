@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kirjaudu – DigiOpo.fi</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue-deep:  #1a3f6f;
+    --blue-mid:   #2563a8;
+    --blue-pale:  #ddeaf7;
+    --green-mid:  #2d9e6b;
+    --yellow:     #f5c842;
+    --text-dark:  #0f2540;
+    --text-mid:   #3a5a7a;
+    --text-light: #7a9ab5;
+    --white:      #f8fbff;
+    --off-white:  #eef5fb;
+    --error:      #dc2626;
+  }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--white);
+    color: var(--text-dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid rgba(107,163,216,0.2);
+    border-radius: 24px;
+    padding: 48px 44px;
+    box-shadow: 0 4px 32px rgba(26,63,111,0.07);
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .logo {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 26px; font-weight: 700;
+    color: var(--blue-deep);
+    text-align: center;
+    margin-bottom: 32px;
+    text-decoration: none;
+    display: block;
+  }
+  .logo span { color: var(--green-mid); }
+  .logo .dot { color: var(--yellow); }
+
+  h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 22px; font-weight: 800;
+    color: var(--blue-deep);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .subtitle {
+    font-size: 14px; color: var(--text-mid);
+    text-align: center; line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  label {
+    display: block;
+    font-size: 13.5px; font-weight: 500;
+    color: var(--text-dark); margin-bottom: 7px;
+  }
+  input[type="email"] {
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--text-dark);
+    background: var(--white);
+    border: 1.5px solid rgba(107,163,216,0.35);
+    border-radius: 10px;
+    padding: 13px 16px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input[type="email"]:focus {
+    border-color: var(--blue-mid);
+    box-shadow: 0 0 0 3px rgba(37,99,168,0.1);
+  }
+  input[type="email"]::placeholder { color: var(--text-light); }
+  input[type="email"].virhe { border-color: var(--error); }
+
+  .btn {
+    width: 100%; margin-top: 16px;
+    background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid));
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15.5px; font-weight: 700;
+    padding: 14px;
+    border-radius: 10px;
+    border: none; cursor: pointer;
+    box-shadow: 0 6px 24px rgba(26,63,111,0.22);
+    transition: all 0.25s;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(26,63,111,0.3); }
+  .btn:disabled { opacity: 0.65; transform: none; cursor: not-allowed; }
+
+  .virhe-teksti {
+    display: none;
+    color: var(--error);
+    font-size: 13px;
+    margin-top: 6px;
+  }
+
+  /* Onnistumisnäkymä */
+  .success {
+    display: none;
+    text-align: center;
+  }
+  .success-icon {
+    font-size: 48px; margin-bottom: 16px;
+  }
+  .success h2 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 20px; font-weight: 800;
+    color: var(--blue-deep); margin-bottom: 10px;
+  }
+  .success p {
+    font-size: 14.5px; color: var(--text-mid);
+    line-height: 1.65;
+  }
+  .success .email-highlight {
+    display: inline-block;
+    background: var(--blue-pale);
+    color: var(--blue-deep);
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin: 8px 0;
+    font-size: 14px;
+  }
+  .success .note {
+    margin-top: 20px;
+    font-size: 12.5px; color: var(--text-light);
+    line-height: 1.6;
+  }
+  .btn-retry {
+    margin-top: 20px;
+    background: none;
+    border: 1.5px solid rgba(107,163,216,0.4);
+    color: var(--text-mid);
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-retry:hover { border-color: var(--blue-mid); color: var(--blue-deep); }
+
+  .footer-link {
+    text-align: center; margin-top: 24px;
+    font-size: 13px; color: var(--text-light);
+  }
+  .footer-link a { color: var(--blue-mid); text-decoration: none; }
+  .footer-link a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <a href="index.html" class="logo">Digi<span>Opo</span><span class="dot">·</span>fi</a>
+
+  <!-- Kirjautumislomake -->
+  <div id="loginView">
+    <h1>Kirjaudu sisään</h1>
+    <p class="subtitle">Syötä sähköpostiosoitteesi, johon opettajalisenssisi on sidottu.<br>Lähetämme sinulle kirjautumislinkin.</p>
+
+    <form id="loginForm" novalidate>
+      <label for="email">Sähköposti</label>
+      <input type="email" id="email" placeholder="sinun@koulu.fi" autocomplete="email" required>
+      <div class="virhe-teksti" id="virheTeksti">Syötä kelvollinen sähköpostiosoite.</div>
+      <button type="submit" class="btn" id="submitBtn">Lähetä kirjautumislinkki →</button>
+    </form>
+  </div>
+
+  <!-- Onnistuminen -->
+  <div class="success" id="successView">
+    <div class="success-icon">📬</div>
+    <h2>Linkki lähetetty!</h2>
+    <p>Kirjautumislinkki on lähetetty osoitteeseen</p>
+    <span class="email-highlight" id="sentEmail"></span>
+    <p>Avaa sähköpostisi ja klikkaa linkkiä kirjautuaksesi sisään. Linkki on voimassa 15 minuuttia.</p>
+    <p class="note">Eikö linkki tullut? Tarkista roskapostikansio.<br>Varmista myös, että sähköpostiosoitteesi on sama kuin tilauksessa käytetty.</p>
+    <button class="btn-retry" id="retryBtn">Yritä uudelleen eri osoitteella</button>
+  </div>
+</div>
+
+<div class="footer-link">
+  Ei vielä lisenssiä? <a href="tilauslomake.html">Tilaa opettajalisenssi</a>
+</div>
+
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  // ── Konfiguraatio ──────────────────────────────────────────────────────────
+  // Korvaa nämä omilla Supabase-projektin arvoilla.
+  // HUOM: tässä käytetään anon-avainta (julkinen) – ei service_role-avainta.
+  const SUPABASE_URL  = 'https://SINUN-PROJEKTI.supabase.co';
+  const SUPABASE_ANON = 'SINUN-ANON-AVAIN';
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  const form       = document.getElementById('loginForm');
+  const emailInput = document.getElementById('email');
+  const submitBtn  = document.getElementById('submitBtn');
+  const virheTeksti = document.getElementById('virheTeksti');
+  const loginView  = document.getElementById('loginView');
+  const successView = document.getElementById('successView');
+  const sentEmail  = document.getElementById('sentEmail');
+  const retryBtn   = document.getElementById('retryBtn');
+
+  // Jos käyttäjä palaa magic link -klikkauksesta, Supabase hoitaa session automaattisesti.
+  // Tässä voidaan ohjata suojattuun näkymään.
+  db.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      // Ohjaa kirjautuneen käyttäjän sovellukseen
+      window.location.href = '/app';
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = emailInput.value.trim();
+
+    // Validointi
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      emailInput.classList.add('virhe');
+      virheTeksti.style.display = 'block';
+      return;
+    }
+    emailInput.classList.remove('virhe');
+    virheTeksti.style.display = 'none';
+
+    submitBtn.textContent = 'Lähetetään...';
+    submitBtn.disabled = true;
+
+    const { error } = await db.auth.signInWithOtp({
+      email,
+      options: {
+        // Käyttäjä ohjataan tänne linkin klikkauksen jälkeen
+        emailRedirectTo: `${window.location.origin}/app`,
+        // Ei luoda uutta käyttäjää jos sähköpostia ei löydy
+        shouldCreateUser: false,
+      },
+    });
+
+    if (error) {
+      console.error('Magic link -virhe:', error.message);
+      submitBtn.textContent = 'Virhe – yritä uudelleen';
+      submitBtn.disabled = false;
+      return;
+    }
+
+    // Näytetään onnistumisviesti
+    sentEmail.textContent = email;
+    loginView.style.display = 'none';
+    successView.style.display = 'block';
+  });
+
+  retryBtn.addEventListener('click', () => {
+    emailInput.value = '';
+    submitBtn.textContent = 'Lähetä kirjautumislinkki →';
+    submitBtn.disabled = false;
+    successView.style.display = 'none';
+    loginView.style.display = 'block';
+    emailInput.focus();
+  });
+</script>
+</body>
+</html>
