@@ -32,14 +32,14 @@ const HINTA = {
 const ALV = 0.135;
 
 // ─── Laskuttajan tiedot ───────────────────────────────────────────────────────
-const MYYJÄ = {
+const LASKUTTAJA = {
   nimi:        'DigiOpo Palvelut',
   ytunnus:     '3540305-3',
   osoite:      'Herttuantie 1',
   postiosoite: '01520 Vantaa',
   iban:        'FI12 7997 7996 9947 81',
   bic:         'HOLVFIHH',
-  maksuaika:   14,  // päivää
+  maksuaika:   14,
 };
 
 function laske_hinta(tilaustyyppi, lisenssikausi, oppilasmaara) {
@@ -99,7 +99,7 @@ function muotoile_viitenumero(viitenro) {
 // Eräpäivä: tänään + maksuaika päiviä
 function luo_erapaiva() {
   const d = new Date();
-  d.setDate(d.getDate() + MYYJÄ.maksuaika);
+  d.setDate(d.getDate() + LASKUTTAJA.maksuaika);
   return d;
 }
 
@@ -303,10 +303,10 @@ function sahkoposti_lasku(tilaus, hintatiedot, laskunumero, erapaiva) {
       <td style="vertical-align:top;width:50%">
         <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7a9ab5;margin-bottom:8px">LASKUTTAJA</div>
         <div style="font-size:13.5px;line-height:1.85;color:#0f2540">
-          <strong>${MYYJÄ.nimi}</strong><br>
-          Y-tunnus: ${MYYJÄ.ytunnus}<br>
-          ${MYYJÄ.osoite}<br>
-          ${MYYJÄ.postiosoite}
+          <strong>${LASKUTTAJA.nimi}</strong><br>
+          Y-tunnus: ${LASKUTTAJA.ytunnus}<br>
+          ${LASKUTTAJA.osoite}<br>
+          ${LASKUTTAJA.postiosoite}
         </div>
       </td>
       <td style="vertical-align:top;padding-left:24px">
@@ -315,7 +315,7 @@ function sahkoposti_lasku(tilaus, hintatiedot, laskunumero, erapaiva) {
           <tr><td style="color:#3a5a7a;padding-right:14px">Laskunumero</td><td><strong>${laskunroNaytto}</strong></td></tr>
           <tr><td style="color:#3a5a7a">Laskupäivä</td><td>${laskupvm}</td></tr>
           <tr><td style="color:#3a5a7a">Eräpäivä</td><td><strong>${erapvmNaytto}</strong></td></tr>
-          <tr><td style="color:#3a5a7a">Maksuehto</td><td>${MYYJÄ.maksuaika} pv netto</td></tr>
+          <tr><td style="color:#3a5a7a">Maksuehto</td><td>${LASKUTTAJA.maksuaika} pv netto</td></tr>
         </table>
       </td>
     </tr>
@@ -377,9 +377,9 @@ function sahkoposti_lasku(tilaus, hintatiedot, laskunumero, erapaiva) {
   <div style="background:#ddeaf7;border-radius:12px;padding:20px 24px;margin-bottom:28px">
     <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#3a5a7a;margin-bottom:12px">MAKSUTIEDOT</div>
     <table cellpadding="0" cellspacing="0" style="font-size:13.5px;line-height:2.1;width:100%">
-      <tr><td style="color:#3a5a7a;width:130px">Maksunsaaja</td><td><strong>${MYYJÄ.nimi}</strong></td></tr>
-      <tr><td style="color:#3a5a7a">Tilinumero</td><td><strong>${MYYJÄ.iban}</strong></td></tr>
-      <tr><td style="color:#3a5a7a">BIC</td><td>${MYYJÄ.bic}</td></tr>
+      <tr><td style="color:#3a5a7a;width:130px">Maksunsaaja</td><td><strong>${LASKUTTAJA.nimi}</strong></td></tr>
+      <tr><td style="color:#3a5a7a">Tilinumero</td><td><strong>${LASKUTTAJA.iban}</strong></td></tr>
+      <tr><td style="color:#3a5a7a">BIC</td><td>${LASKUTTAJA.bic}</td></tr>
       <tr><td style="color:#3a5a7a">Viitenumero</td><td><strong style="font-size:15px;letter-spacing:1px">${viitenroNaytto}</strong></td></tr>
       <tr><td style="color:#3a5a7a">Eräpäivä</td><td><strong>${erapvmNaytto}</strong></td></tr>
       <tr><td style="color:#3a5a7a">Summa</td><td><strong>${muotoile_euro(hintatiedot.brutto)}</strong></td></tr>
