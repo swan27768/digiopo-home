@@ -1,3 +1,7 @@
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
 // DigiOpo – Tilausten automaattinen käsittely
 // POST /api/tilaus
 // Body: { etunimi, sukunimi, email, puhelin, koulu, kunta, oppilasmaara, tilaustyyppi, lisenssikausi, lisatiedot }
@@ -139,18 +143,20 @@ async function lisaa_supabaseen(data) {
   }
 }
 
-async function laheta_sahkoposti(to, subject, html) {
+async function laheta_sahkoposti(to, subject, html, attachments = []) {
   if (!RESEND_API_KEY) {
     console.warn('RESEND_API_KEY puuttuu – sähköposti ohitettu');
     return;
   }
+  const payload = { from: `DigiOpo <${FROM_EMAIL}>`, to: [to], subject, html };
+  if (attachments.length > 0) payload.attachments = attachments;
   const vastaus = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${RESEND_API_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ from: `DigiOpo <${FROM_EMAIL}>`, to: [to], subject, html }),
+    body: JSON.stringify(payload),
   });
   if (!vastaus.ok) {
     // Kirjataan virhe mutta ei kaada tilausta – lisenssi on jo luotu
@@ -401,6 +407,21 @@ function sahkoposti_lasku(tilaus, hintatiedot, laskunumero, erapaiva) {
 </html>`;
 }
 
+// Luetaan pikaohjeet-PDF kerran per käynnistys (cached muistiin)
+let pikaohjeBase64 = null;
+async function hae_pikaohjeet_base64() {
+  if (pikaohjeBase64) return pikaohjeBase64;
+  try {
+    const pdfPolku = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'DigiOpo_opettajan_pikaohjeet.pdf');
+    const buf = await readFile(pdfPolku);
+    pikaohjeBase64 = buf.toString('base64');
+  } catch (err) {
+    console.warn('Pikaohjeet-PDF puuttuu – liitettä ei lähetetä:', err.message);
+    pikaohjeBase64 = null;
+  }
+  return pikaohjeBase64;
+}
+
 export default async function handler(req, res) {
   // CORS
   const origin = req.headers.origin || '';
@@ -491,8 +512,12 @@ export default async function handler(req, res) {
     }
 
     const tilausData = { etunimi, sukunimi, email: emailNorm, puhelin, koulu, kunta, oppilasmaara, tilaustyyppi, lisenssikausi, lisatiedot };
+    const pdfB64 = await hae_pikaohjeet_base64();
+    const pdfLiite = pdfB64
+      ? [{ filename: 'DigiOpo_opettajan_pikaohjeet.pdf', content: pdfB64 }]
+      : [];
     await Promise.allSettled([
-      laheta_sahkoposti(emailNorm, 'DigiOpo – koulukoodisi on valmis', sahkoposti_koululle(etunimi, koodi, voimassa_asti)),
+      laheta_sahkoposti(emailNorm, 'DigiOpo – koulukoodisi on valmis', sahkoposti_koululle(etunimi, koodi, voimassa_asti), pdfLiite),
       laheta_sahkoposti(emailNorm, `DigiOpo – lasku nro ${String(laskunumero).slice(0,4)}-${String(laskunumero).slice(4)}`, sahkoposti_lasku(tilausData, hintatiedot, laskunumero, erapaiva)),
       ADMIN_EMAIL && laheta_sahkoposti(ADMIN_EMAIL, `Uusi DigiOpo-tilaus: ${koulu}`, sahkoposti_adminille(tilausData, koodi, voimassa_asti, hintatiedot)),
     ]);
