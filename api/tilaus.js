@@ -182,12 +182,12 @@ function sahkoposti_koululle(etunimi, koodi, voimassa_asti) {
     <li>Pääsevät suoraan sisältöön</li>
   </ol>
   <div style="background:#fef9e0;border:1px solid #f5c842;border-radius:10px;padding:16px 20px;margin-bottom:28px">
-    <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#7a5c00">💡 Vinkki: haluatko järjestää osiot ensin?</p>
-    <p style="margin:0;font-size:13px;color:#7a5c00;line-height:1.6">
-      Älä jaa koodia oppilaille vielä — avaa ensin DigiOpo itse, aseta <strong>Sivun hallinta</strong> (alareunasta) ja järjestä osiot haluamaasi järjestykseen.<br><br>
-      Sen jälkeen jaa oppilaille tämä linkki: <strong>app.digiopo.fi/liity.html</strong><br>
-      Oppilas syöttää siellä koulukoodin <strong>${koodi}</strong> sekä sinun ryhmäkoodisi → pääsee suoraan oikealle sivulle sinun järjestyksessäsi.
-    </p>
+    <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#7a5c00">💡 Miten jaat linkin oppilaille?</p>
+    <p style="margin:0 0 6px;font-size:13px;color:#7a5c00;line-height:1.6"><strong>Vaihtoehto 1 – Yksinkertainen:</strong><br>
+      Jaa osoite <strong>app.digiopo.fi</strong> ja koulukoodi <strong>${koodi}</strong>. Oppilas kirjautuu koulukoodilla ja näkee oletusrakenteen.</p>
+    <p style="margin:0 0 6px;font-size:13px;color:#7a5c00;line-height:1.6"><strong>Vaihtoehto 2 – Opettajan järjestys (suositeltava):</strong><br>
+      Avaa ensin DigiOpo itse → aseta <strong>Sivun hallinta</strong> (sivun alareunasta) → järjestä osiot → kopioi suora ryhmälinkki paneelista ja jaa se oppilaille. Oppilas syöttää vain koulukoodin ${koodi} ja näkee heti sinun järjestyksesi.</p>
+    <p style="margin:10px 0 0;font-size:13px;color:#7a5c00;line-height:1.6;border-top:1px solid #f5c842;padding-top:10px">📖 Tutustu opettajan pikaohjeeseen, joka on tämän sähköpostin liitteenä.</p>
   </div>
   <div style="text-align:center;margin-bottom:32px">
     <a href="https://app.digiopo.fi" style="background:#1a3f6f;color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">Avaa DigiOpo →</a>
