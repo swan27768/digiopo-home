@@ -176,11 +176,19 @@ function sahkoposti_koululle(etunimi, koodi, voimassa_asti) {
     <p style="margin:12px 0 0;font-size:13px;color:#3a5a7a">Voimassa ${pvm} asti</p>
   </div>
   <p style="line-height:1.6;margin-bottom:8px"><strong>Näin jaat koodin oppilaille:</strong></p>
-  <ol style="line-height:1.8;padding-left:20px;margin-bottom:28px">
+  <ol style="line-height:1.8;padding-left:20px;margin-bottom:24px">
     <li>Oppilaat menevät osoitteeseen <strong>app.digiopo.fi</strong></li>
     <li>Syöttävät koulukoodin kirjautumisruutuun</li>
     <li>Pääsevät suoraan sisältöön</li>
   </ol>
+  <div style="background:#fef9e0;border:1px solid #f5c842;border-radius:10px;padding:16px 20px;margin-bottom:28px">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#7a5c00">💡 Vinkki: haluatko järjestää osiot ensin?</p>
+    <p style="margin:0;font-size:13px;color:#7a5c00;line-height:1.6">
+      Älä jaa koodia oppilaille vielä — avaa ensin DigiOpo itse, aseta <strong>Sivun hallinta</strong> (alareunasta) ja järjestä osiot haluamaasi järjestykseen.<br><br>
+      Sen jälkeen jaa oppilaille tämä linkki: <strong>app.digiopo.fi/liity.html</strong><br>
+      Oppilas syöttää siellä koulukoodin <strong>${koodi}</strong> sekä sinun ryhmäkoodisi → pääsee suoraan oikealle sivulle sinun järjestyksessäsi.
+    </p>
+  </div>
   <div style="text-align:center;margin-bottom:32px">
     <a href="https://app.digiopo.fi" style="background:#1a3f6f;color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">Avaa DigiOpo →</a>
   </div>

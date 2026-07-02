@@ -163,6 +163,17 @@
   }
   .order-type-desc { font-size: 12px; color: var(--text-mid); }
 
+  /* Hinta-arvio */
+  .hinta-arvio {
+    background: var(--off-white); border: 1px solid rgba(107,163,216,0.25);
+    border-radius: 12px; padding: 18px 20px; margin-top: 4px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .hinta-arvio-label { font-size: 12.5px; color: var(--text-mid); }
+  .hinta-arvio-summa { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; font-weight: 800; color: var(--blue-deep); }
+  .hinta-arvio-summa small { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; color: var(--text-light); }
+  .hinta-arvio-min { font-size: 11.5px; color: #7a5c00; background: var(--yellow-pale); border: 1px solid #f5c842; padding: 3px 10px; border-radius: 12px; }
+
   /* Submit */
   .submit-area { margin-top: 36px; }
   .btn-submit {
@@ -285,13 +296,34 @@
         <label class="order-type">
           <input type="radio" name="tilaustyyppi" value="opettajalisenssi" checked>
           <span class="order-type-title">Opettajalisenssi</span>
-          <span class="order-type-desc">Henkilökohtainen lisenssi – sidottu sähköpostiisi</span>
+          <span class="order-type-desc">Henkilökohtainen lisenssi – sidottu sähköpostiisi – 49 €/vuosi</span>
         </label>
         <label class="order-type">
           <input type="radio" name="tilaustyyppi" value="koululisenssi">
           <span class="order-type-title">Koululisenssi</span>
           <span class="order-type-desc">Koko koululle – oppilasmäärän mukaan</span>
         </label>
+      </div>
+
+      <div id="lisenssikausiWrap" style="display: none;">
+        <div class="order-types" style="margin-top: 12px;">
+          <label class="order-type">
+            <input type="radio" name="lisenssikausi" value="vuosi" checked>
+            <span class="order-type-title">Vuosilisenssi</span>
+            <span class="order-type-desc">5,90 €/oppilas/lukuvuosi (min. 120 €/v)</span>
+          </label>
+          <label class="order-type">
+            <input type="radio" name="lisenssikausi" value="3vuotta">
+            <span class="order-type-title">3 vuoden lisenssi</span>
+            <span class="order-type-desc">14,90 €/oppilas/3 v ≈ 4,97 €/v (min. 360 €/3 v)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="hinta-arvio" id="hintaArvio" style="display: none;">
+        <span class="hinta-arvio-label">Arvioitu hinta (alv 0 %)</span>
+        <span class="hinta-arvio-summa" id="hintaArvioSumma">–</span>
+        <span class="hinta-arvio-min" id="hintaArvioMin" style="display: none;">Minimitilaus käytössä</span>
       </div>
 
       <div class="field" style="margin-top: 20px;">
@@ -324,6 +356,60 @@
 <script>
   const form = document.getElementById('tilausForm');
   const btn = form.querySelector('.btn-submit');
+
+  // ─── Hinnasto (pidä synkassa hinnasto.html:n kanssa) ──────────────────────
+  const HINTA = {
+    vuosi:     { hinta: 5.90,  minimi: 120 },
+    '3vuotta': { hinta: 14.90, minimi: 360 },
+    opettaja:  { hinta: 49,    minimi: 0 },
+  };
+  const ALV = 0.135;
+
+  const lisenssikausiWrap = document.getElementById('lisenssikausiWrap');
+  const hintaArvio = document.getElementById('hintaArvio');
+  const hintaArvioSumma = document.getElementById('hintaArvioSumma');
+  const hintaArvioMin = document.getElementById('hintaArvioMin');
+
+  function muotoileEuro(n) {
+    return n.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  }
+
+  function paivitaHintaArvio() {
+    const tilaustyyppi = form.querySelector('input[name="tilaustyyppi"]:checked')?.value;
+    const onKoululisenssi = tilaustyyppi === 'koululisenssi';
+    lisenssikausiWrap.style.display = onKoululisenssi ? 'block' : 'none';
+
+    if (!onKoululisenssi) {
+      const { hinta } = HINTA.opettaja;
+      hintaArvio.style.display = 'flex';
+      hintaArvioSumma.innerHTML = `${muotoileEuro(hinta)} <small>+ alv 13,5 % = ${muotoileEuro(hinta * (1 + ALV))} sis. alv</small>`;
+      hintaArvioMin.style.display = 'none';
+      return;
+    }
+
+    const lisenssikausi = form.querySelector('input[name="lisenssikausi"]:checked')?.value || 'vuosi';
+    const oppilasmaara = parseInt(form.oppilasmaara.value, 10);
+
+    if (!oppilasmaara || oppilasmaara < 1) {
+      hintaArvio.style.display = 'none';
+      return;
+    }
+
+    const { hinta, minimi } = HINTA[lisenssikausi];
+    const netto = Math.max(oppilasmaara * hinta, minimi);
+    const brutto = netto * (1 + ALV);
+    const kausiTeksti = lisenssikausi === '3vuotta' ? '/ 3 v' : '/ v';
+
+    hintaArvio.style.display = 'flex';
+    hintaArvioSumma.innerHTML = `${muotoileEuro(netto)} <small>${kausiTeksti} + alv 13,5 % = ${muotoileEuro(brutto)} sis. alv</small>`;
+    hintaArvioMin.style.display = netto > oppilasmaara * hinta ? 'inline-block' : 'none';
+  }
+
+  form.querySelectorAll('input[name="tilaustyyppi"], input[name="lisenssikausi"]').forEach(el => {
+    el.addEventListener('change', paivitaHintaArvio);
+  });
+  form.oppilasmaara.addEventListener('input', paivitaHintaArvio);
+  paivitaHintaArvio();
 
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -362,6 +448,9 @@
 
     // Kerätään kenttien arvot JSON-objektiin
     const tilaustyyppi = form.querySelector('input[name="tilaustyyppi"]:checked')?.value || 'yksittainen';
+    const lisenssikausi = tilaustyyppi === 'koululisenssi'
+      ? (form.querySelector('input[name="lisenssikausi"]:checked')?.value || 'vuosi')
+      : undefined;
     const data = {
       etunimi:     form.etunimi.value.trim(),
       sukunimi:    form.sukunimi.value.trim(),
@@ -371,6 +460,7 @@
       kunta:       form.kunta.value.trim(),
       oppilasmaara: form.oppilasmaara.value,
       tilaustyyppi,
+      lisenssikausi,
       lisatiedot:  form.lisatiedot.value.trim(),
     };
 
