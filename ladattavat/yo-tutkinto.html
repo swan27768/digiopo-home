@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YO-tutkinto tutuksi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F6F7FB;
+    --card: #FFFFFF;
+    --ink: #1B2A4A;
+    --ink-soft: #47526B;
+    --navy: #1B2A4A;
+    --teal: #0FA3A3;
+    --teal-soft: #E3F7F6;
+    --coral: #FF6F59;
+    --coral-soft: #FFEDE9;
+    --sun: #FFC93C;
+    --sun-soft: #FFF6DE;
+    --violet: #7C6FF0;
+    --violet-soft: #EFECFF;
+    --line: #E3E6EF;
+    --radius: 18px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Lexend', system-ui, sans-serif;
+    line-height: 1.6;
+    font-size: 18px;
+  }
+
+  .wrap{
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* HERO */
+  header.hero{
+    background: linear-gradient(135deg, var(--navy) 0%, #2B3E6E 100%);
+    color: #fff;
+    padding: 64px 24px 56px;
+    border-radius: 0 0 32px 32px;
+    margin-bottom: 12px;
+  }
+  header.hero .hero-inner{
+    max-width: 780px;
+    margin: 0 auto;
+  }
+  .eyebrow{
+    display:inline-block;
+    background: rgba(255,255,255,0.14);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: .04em;
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  h1{
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1.15;
+    margin: 0 0 12px;
+  }
+  .hero p.lead{
+    font-size: 19px;
+    color: #D9DEF2;
+    max-width: 56ch;
+    margin: 0;
+  }
+  .source-tag{
+    margin-top: 28px;
+    font-size: 14px;
+    color: #AEB7DA;
+  }
+  .source-tag a{ color: #fff; }
+
+  /* SECTIONS */
+  section{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    margin-top: 24px;
+  }
+
+  .step-tag{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .step-num{
+    flex: 0 0 auto;
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: var(--teal-soft);
+    color: var(--teal);
+    font-weight: 800;
+    font-size: 18px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  h2{
+    font-size: 23px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  p { color: var(--ink-soft); margin: 0 0 14px; }
+  p:last-child{ margin-bottom: 0; }
+  strong{ color: var(--ink); }
+
+  ul, ol{ color: var(--ink-soft); padding-left: 22px; margin: 0 0 14px;}
+  li{ margin-bottom: 8px; }
+
+  .callout{
+    background: var(--sun-soft);
+    border-left: 5px solid var(--sun);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin: 18px 0;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .callout.teal{ background: var(--teal-soft); border-color: var(--teal); }
+  .callout.coral{ background: var(--coral-soft); border-color: var(--coral); }
+  .callout.violet{ background: var(--violet-soft); border-color: var(--violet); }
+
+  /* 1+3+1 DIAGRAM */
+  .formula{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 14px;
+    font-weight: 800;
+    font-size: 26px;
+    color: var(--navy);
+    margin: 22px 0 6px;
+    flex-wrap: wrap;
+  }
+  .formula .plus{ color: var(--coral); }
+
+  .diagram{
+    display:flex;
+    gap: 10px;
+    margin: 26px 0 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .block{
+    border-radius: 14px;
+    padding: 16px 10px;
+    text-align:center;
+    font-weight: 600;
+    font-size: 14.5px;
+    color: #fff;
+    flex: 1 1 100px;
+    min-width: 100px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .block.pakollinen{ background: var(--navy); flex-basis: 130px; }
+  .block.group{ background: var(--teal); }
+  .block.group:nth-child(3){ background: #14B8B0; }
+  .block.group:nth-child(4){ background: #19C1B6; }
+  .block.group:nth-child(5){ background: #1FCABB; }
+  .block.taide{ background: var(--coral); }
+
+  .diagram-caption{
+    display:flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-weight: 600;
+    margin-top: 6px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .diagram-caption span{ flex: 1; text-align: center; }
+  .diagram-caption span:first-child{ text-align:left; }
+  .diagram-caption span:last-child{ text-align:right; }
+
+  .badge-new{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background: var(--coral);
+    color:#fff;
+    font-weight:700;
+    font-size: 13px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+
+  .tip-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 18px;
+  }
+  .tip{
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .tip .emoji{ font-size: 22px; display:block; margin-bottom:6px; }
+  .tip strong{ display:block; margin-bottom: 4px; font-size: 15.5px; }
+  .tip p{ font-size: 14.5px; margin:0; }
+
+  @media (max-width: 560px){
+    h1{ font-size: 30px; }
+    .tip-grid{ grid-template-columns: 1fr; }
+    header.hero{ padding: 48px 20px 44px; }
+    section{ padding: 26px 20px; }
+    .diagram-caption{ display:none; }
+    .formula{ font-size: 21px; }
+  }
+
+  footer{
+    text-align:center;
+    margin-top: 36px;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+  footer a{ color: var(--teal); font-weight: 600; text-decoration: none; }
+
+  /* QUIZ */
+  .quiz-progress{
+    display:flex;
+    gap: 8px;
+    margin: 4px 0 24px;
+  }
+  .quiz-dot{
+    flex:1;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--line);
+    transition: background .25s ease;
+  }
+  .quiz-dot.done{ background: var(--teal); }
+  .quiz-dot.current{ background: var(--sun); }
+
+  .quiz-question{
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 18px;
+  }
+
+  .quiz-options{
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .quiz-option{
+    text-align:left;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--bg);
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, transform .1s ease;
+  }
+  .quiz-option:hover:not(:disabled){
+    border-color: var(--teal);
+    background: var(--teal-soft);
+  }
+  .quiz-option:disabled{ cursor: default; }
+  .quiz-option.correct{
+    border-color: var(--teal);
+    background: var(--teal-soft);
+    color: var(--teal);
+    font-weight: 700;
+  }
+  .quiz-option.incorrect{
+    border-color: var(--coral);
+    background: var(--coral-soft);
+    color: var(--coral);
+  }
+  .quiz-option .mark{ float:right; font-weight:800; }
+
+  .quiz-feedback{
+    background: var(--sun-soft);
+    border-left: 5px solid var(--sun);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 18px;
+    display:none;
+  }
+  .quiz-feedback.show{ display:block; }
+
+  .quiz-next-btn, .quiz-retry-btn{
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--navy);
+    border: none;
+    border-radius: 12px;
+    padding: 13px 22px;
+    cursor: pointer;
+    display:none;
+  }
+  .quiz-next-btn.show, .quiz-retry-btn.show{ display:inline-block; }
+  .quiz-next-btn:hover, .quiz-retry-btn:hover{ background: #2B3E6E; }
+
+  .quiz-result{
+    display:none;
+    text-align:center;
+    padding: 12px 0 4px;
+  }
+  .quiz-result.show{ display:block; }
+  .quiz-result .big-emoji{ font-size: 44px; display:block; margin-bottom: 10px; }
+  .quiz-result h3{ font-size: 21px; margin: 0 0 8px; }
+  .quiz-result p{ margin-bottom: 20px; }
+
+  .quiz-body{ display:block; }
+  .quiz-body.hidden{ display:none; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <span class="eyebrow">SELKOKIELINEN OPAS · 9.-LUOKKALAISILLE</span>
+    <h1>YO-tutkinto tutuksi</h1>
+    <p class="lead">Tietoa sinulle, joka mietit lukio-opintoja. Tässä oppaassa kerromme selkeästi, mitä ylioppilastutkinto tarkoittaa ja mitä siitä kannattaa jo nyt tietää.</p>
+    <p class="source-tag">Lähde: Ylioppilastutkintolautakunta · <a href="https://www.ylioppilastutkinto.fi/fi">ylioppilastutkinto.fi</a></p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <div class="step-tag"><div class="step-num">1</div><h2>Mikä YO-tutkinto on?</h2></div>
+    <p>YO-tutkinto tarkoittaa <strong>ylioppilastutkintoa</strong>.</p>
+    <p>Sen suorittaa lukion lopussa. Tutkinnossa on kokeita eri aineissa. Kokeet kertovat, mitä olet oppinut lukiossa.</p>
+    <p>YO-tutkinto on tärkeä. Se avaa oven jatko-opintoihin, esimerkiksi ammattikorkeakouluun tai yliopistoon.</p>
+    <div class="callout teal">💡 <strong>Muista tämä:</strong> se, mitä opiskelet lukiossa, näkyy suoraan yo-kokeissa. Sen takia lukiovalinnat kannattaa miettiä jo nyt.</div>
+  </section>
+
+  <section>
+    <div class="step-tag"><div class="step-num">2</div><h2>Kuinka monta koetta pitää kirjoittaa?</h2></div>
+    <p>Sinun täytyy kirjoittaa <strong>vähintään viisi koetta</strong>.</p>
+    <p>Yksi koe on aina sama kaikille:</p>
+    <ul>
+      <li><strong>Äidinkieli ja kirjallisuus</strong></li>
+    </ul>
+    <p>Sen jälkeen valitset lisää kokeita. Kerromme siitä tarkemmin seuraavaksi.</p>
+  </section>
+
+  <section>
+    <div class="step-tag"><div class="step-num">3</div><h2>Näin tutkinto rakentuu</h2></div>
+    <p>Ajattele tutkintoa kuin palapeliä, jossa on kolme osaa.</p>
+
+    <div class="formula">1 <span class="plus">+</span> 3 <span class="plus">+</span> 1</div>
+
+    <div class="diagram">
+      <div class="block pakollinen">Äidinkieli ja kirjallisuus</div>
+      <div class="block group">Matematiikka</div>
+      <div class="block group">Toinen kotimainen kieli</div>
+      <div class="block group">Vieras kieli</div>
+      <div class="block group">Reaaliaine</div>
+      <div class="block taide">Taito- ja taideaine</div>
+    </div>
+    <div class="diagram-caption">
+      <span>↑ pakollinen</span>
+      <span>↑ valitse 3 ryhmästä 5</span>
+      <span>viides koe: ihan mikä vain →</span>
+    </div>
+
+    <div class="callout">
+      <p style="margin:0"><strong>Osa 1 – yksi pakollinen koe:</strong> kaikki kirjoittavat äidinkielen ja kirjallisuuden kokeen.</p>
+    </div>
+    <div class="callout teal">
+      <p style="margin:0 0 10px"><strong>Osa 2 – kolme koetta viidestä ryhmästä:</strong></p>
+      <ol style="margin-bottom:0">
+        <li>Matematiikka</li>
+        <li>Toinen kotimainen kieli (esim. ruotsi)</li>
+        <li>Vieras kieli (esim. englanti)</li>
+        <li>Reaaliaine (esim. historia, biologia, fysiikka)</li>
+        <li>Taito- ja taideaine (kuvataide, musiikki tai liikunta)</li>
+      </ol>
+      <p style="margin-top:10px">Valitse näistä <strong>kolme</strong> ryhmää. Yhden ryhmän saa jättää kokonaan pois.</p>
+    </div>
+    <div class="callout coral">
+      <p style="margin:0"><strong>Osa 3 – yksi vapaa koe:</strong> viimeisen kokeen voit valita ihan miten haluat. Se voi olla toinen koe jo valitsemastasi ryhmästä, tai jotain muuta.</p>
+    </div>
+
+    <p><strong>Yksi sääntö lisää:</strong> yhden kokeista pitää olla niin sanottu <strong>pitkän oppimäärän koe</strong>. Sellaisia on tarjolla matematiikassa ja kielissä. Se tarkoittaa, että olet opiskellut ainetta lukiossa enemmän kuin peruskurssin verran.</p>
+  </section>
+
+  <section>
+    <span class="badge-new">✨ UUTTA</span>
+    <div class="step-tag"><div class="step-num">4</div><h2>Taito- ja taideaineet ovat mukana!</h2></div>
+    <p>Jos aloitat lukion <strong>1.8.2027 tai sen jälkeen</strong>, tämä koskee juuri sinua.</p>
+    <p>Aiemmin kuvataidetta, musiikkia tai liikuntaa ei ole voinut kirjoittaa yo-kokeena. Nyt tämä muuttuu!</p>
+
+    <p><strong>Mikä muuttuu?</strong></p>
+    <ul>
+      <li>Voit valita kuvataiteen, musiikin tai liikunnan yhdeksi yo-kokeeksesi.</li>
+      <li>Ensimmäiset kokeet järjestetään <strong>syksyllä 2029</strong>.</li>
+      <li>Koe on kaksiosainen:
+        <ol>
+          <li>Ensin teet <strong>näytön</strong> – näytät osaamisesi käytännössä (esim. soitat, maalaat tai liikut).</li>
+          <li>Sen jälkeen on vielä varsinainen koe.</li>
+        </ol>
+      </li>
+      <li>Ennen koetta pitää opiskella aineen pakolliset kurssit: musiikki 2 opintopistettä, kuvataide 2 opintopistettä tai liikunta 4 opintopistettä.</li>
+    </ul>
+
+    <div class="callout coral">🎨 <strong>Mitä tämä tarkoittaa sinulle?</strong> Jos olet hyvä esimerkiksi kuvataiteessa tai musiikissa, voit nyt näyttää sen myös yo-kokeessa – et pelkästään lukiodiplomilla, kuten ennen.</div>
+
+    <p style="font-size:14.5px; font-style:italic; margin-top:14px;">Huom! Kaikki yksityiskohdat eivät ole vielä valmiit. Kysy lisää opinto-ohjaajalta lähempänä omaa lukioaikaasi.</p>
+  </section>
+
+  <section>
+    <div class="step-tag"><div class="step-num">5</div><h2>Miksi kannattaa miettiä tätä jo nyt?</h2></div>
+    <p style="font-size:14.5px; margin-bottom:20px;">Sama järjestys kuin tutkinnon viidessä ryhmässä (kohta 3) – näin näet suoraan, mitä kannattaa miettiä jokaisesta ryhmästä.</p>
+    <div class="tip-grid">
+      <div class="tip">
+        <span class="emoji">🔢</span>
+        <strong>1. Matematiikka</strong>
+        <p>Pitkä vai lyhyt? Pitkä matematiikka voi olla tarpeen, jos haaveilet esim. tekniikan tai luonnontieteen alasta.</p>
+      </div>
+      <div class="tip">
+        <span class="emoji">🇸🇪</span>
+        <strong>2. Toinen kotimainen kieli</strong>
+        <p>Ruotsia opiskellaan eri tasoilla. Jos haluat kirjoittaa sen pitkänä, sitä pitää opiskella tarpeeksi lukiossa.</p>
+      </div>
+      <div class="tip">
+        <span class="emoji">🗣️</span>
+        <strong>3. Vieras kieli</strong>
+        <p>Esim. englanti, saksa tai espanja. Sama juttu: pitkä oppimäärä vaatii enemmän opiskelua lukiossa.</p>
+      </div>
+      <div class="tip">
+        <span class="emoji">📚</span>
+        <strong>4. Reaaliaineet</strong>
+        <p>Biologia, historia, fysiikka, psykologia ja monta muuta. Valitse aineita, jotka voisivat kiinnostaa myös yo-kokeena.</p>
+      </div>
+      <div class="tip" style="grid-column: 1 / -1;">
+        <span class="emoji">🎨</span>
+        <strong>5. Taito- ja taideaineet</strong>
+        <p>Jos aloitat lukion 2027 tai myöhemmin, myös kuvataide, musiikki tai liikunta voivat olla yksi vaihtoehto (katso kohta 4).</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="step-tag"><div class="step-num">6</div><h2>Käytännön asioita lyhyesti</h2></div>
+    <ul>
+      <li>Yo-kokeet järjestetään <strong>kaksi kertaa vuodessa</strong>: keväällä ja syksyllä.</li>
+      <li>Kokeita ei tarvitse kirjoittaa kaikkia kerralla. Voit jakaa ne enintään kolmelle eri kirjoituskerralle.</li>
+      <li>Saadaksesi ylioppilastodistuksen sinun pitää suorittaa sekä yo-kokeet että koko lukion oppimäärä.</li>
+      <li>Viisi ensimmäistä koetta ovat sinulle ilmaisia. Jos kirjoitat enemmän, ylimääräiset kokeet maksavat.</li>
+    </ul>
+  </section>
+
+  <section>
+    <span class="badge-new" style="background: var(--violet);">🧠 PIKATESTI</span>
+    <div class="step-tag"><div class="step-num">7</div><h2>Testaa tietosi!</h2></div>
+    <p style="margin-bottom:20px;">Vastaa viiteen kysymykseen ja katso, mitä muistat. Ei kiirettä – jokaisen vastauksen jälkeen kerromme heti oikean vastauksen.</p>
+
+    <div class="quiz-progress" id="quizProgress"></div>
+
+    <div class="quiz-body" id="quizBody">
+      <div class="quiz-question" id="quizQuestion"></div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <button class="quiz-next-btn" id="quizNextBtn">Seuraava kysymys →</button>
+    </div>
+
+    <div class="quiz-result" id="quizResult">
+      <span class="big-emoji">🎉</span>
+      <h3>Hienoa, kävit koko testin läpi!</h3>
+      <p id="quizResultText">Nyt tiedät jo paljon YO-tutkinnosta. Voit palata tähän oppaaseen aina, kun tarvitset muistutusta.</p>
+      <button class="quiz-retry-btn show" id="quizRetryBtn">Yritä uudelleen</button>
+    </div>
+  </section>
+
+  <section style="background: linear-gradient(135deg, var(--violet-soft), var(--teal-soft)); border: none;">
+    <div class="step-tag"><div class="step-num" style="background:#fff; color:var(--violet);">8</div><h2>Muista tämä!</h2></div>
+    <ul style="list-style:none; padding-left:0;">
+      <li>👉 Lukion kurssivalinnat kannattaa miettiä sen mukaan, mitä haluat kirjoittaa yo-kokeissa.</li>
+      <li>👉 Et joudu päättämään kaikkea heti – mutta suunta kannattaa hahmottaa ajoissa.</li>
+      <li>👉 Opinto-ohjaaja auttaa sinua mielellään näissä valinnoissa. Kysy rohkeasti!</li>
+    </ul>
+  </section>
+
+  <footer>
+    Lisätietoa: <a href="https://www.ylioppilastutkinto.fi/fi">ylioppilastutkinto.fi</a>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var questions = [
+    {
+      q: "Kuinka monta koetta yo-tutkintoon pitää vähintään kuulua?",
+      options: ["3", "4", "5", "6"],
+      correct: 2,
+      explain: "Oikea vastaus on 5. Yksi koe on aina äidinkieli ja kirjallisuus, ja sen lisäksi kirjoitetaan neljä muuta koetta."
+    },
+    {
+      q: "Mikä koe on kaikille pakollinen?",
+      options: ["Matematiikka", "Äidinkieli ja kirjallisuus", "Vieras kieli", "Reaaliaine"],
+      correct: 1,
+      explain: "Äidinkieli ja kirjallisuus (tai suomi toisena kielenä) on ainoa koe, jonka kaikki kirjoittavat."
+    },
+    {
+      q: "Montako ryhmää pitää valita niistä viidestä ryhmästä, kun rakennetaan \"+3 koetta\" -osaa?",
+      options: ["2 ryhmää", "3 ryhmää", "4 ryhmää", "Kaikki 5 ryhmää"],
+      correct: 1,
+      explain: "Valitaan kolme ryhmää viidestä (matematiikka, toinen kotimainen kieli, vieras kieli, reaaliaine, taito- ja taideaine). Yhden ryhmän saa jättää kokonaan pois."
+    },
+    {
+      q: "Milloin taito- ja taideaineen voi ensimmäistä kertaa kirjoittaa yo-kokeena?",
+      options: ["Syksyllä 2027", "Keväällä 2028", "Syksyllä 2029", "Ei koskaan"],
+      correct: 2,
+      explain: "Ensimmäiset taito- ja taideaineiden yo-kokeet järjestetään syksyllä 2029. Tämä koskee niitä, jotka aloittavat lukion 1.8.2027 tai sen jälkeen."
+    },
+    {
+      q: "Kuinka monta kertaa vuodessa yo-kokeet järjestetään?",
+      options: ["Kerran", "Kaksi kertaa", "Kolme kertaa", "Neljä kertaa"],
+      correct: 1,
+      explain: "Yo-kokeet järjestetään kaksi kertaa vuodessa: keväällä ja syksyllä."
+    }
+  ];
+
+  var current = 0;
+  var correctCount = 0;
+  var answered = false;
+
+  var progressEl = document.getElementById('quizProgress');
+  var questionEl = document.getElementById('quizQuestion');
+  var optionsEl = document.getElementById('quizOptions');
+  var feedbackEl = document.getElementById('quizFeedback');
+  var nextBtn = document.getElementById('quizNextBtn');
+  var retryBtn = document.getElementById('quizRetryBtn');
+  var quizBody = document.getElementById('quizBody');
+  var quizResult = document.getElementById('quizResult');
+  var quizResultText = document.getElementById('quizResultText');
+
+  function renderProgress(){
+    progressEl.innerHTML = '';
+    for (var i = 0; i < questions.length; i++){
+      var dot = document.createElement('div');
+      dot.className = 'quiz-dot';
+      if (i < current) dot.className += ' done';
+      else if (i === current) dot.className += ' current';
+      progressEl.appendChild(dot);
+    }
+  }
+
+  function renderQuestion(){
+    answered = false;
+    feedbackEl.className = 'quiz-feedback';
+    feedbackEl.textContent = '';
+    nextBtn.className = 'quiz-next-btn';
+    nextBtn.textContent = (current === questions.length - 1) ? 'Näytä tulos →' : 'Seuraava kysymys →';
+
+    renderProgress();
+
+    var item = questions[current];
+    questionEl.textContent = (current + 1) + '/' + questions.length + '  ' + item.q;
+    optionsEl.innerHTML = '';
+
+    item.options.forEach(function(optionText, idx){
+      var btn = document.createElement('button');
+      btn.className = 'quiz-option';
+      btn.type = 'button';
+      btn.textContent = optionText;
+      btn.addEventListener('click', function(){ handleAnswer(idx, btn); });
+      optionsEl.appendChild(btn);
+    });
+  }
+
+  function handleAnswer(idx, btn){
+    if (answered) return;
+    answered = true;
+
+    var item = questions[current];
+    var allButtons = optionsEl.querySelectorAll('.quiz-option');
+    allButtons.forEach(function(b){ b.disabled = true; });
+
+    if (idx === item.correct){
+      correctCount++;
+      btn.className = 'quiz-option correct';
+      btn.innerHTML = btn.textContent + '<span class="mark">✓</span>';
+    } else {
+      btn.className = 'quiz-option incorrect';
+      btn.innerHTML = btn.textContent + '<span class="mark">·</span>';
+      allButtons[item.correct].className = 'quiz-option correct';
+      allButtons[item.correct].innerHTML = allButtons[item.correct].textContent + '<span class="mark">✓</span>';
+    }
+
+    feedbackEl.textContent = '💡 ' + item.explain;
+    feedbackEl.className = 'quiz-feedback show';
+    nextBtn.className = 'quiz-next-btn show';
+  }
+
+  nextBtn.addEventListener('click', function(){
+    current++;
+    if (current >= questions.length){
+      showResult();
+    } else {
+      renderQuestion();
+    }
+  });
+
+  function showResult(){
+    quizBody.className = 'quiz-body hidden';
+    renderProgress();
+    var dots = progressEl.querySelectorAll('.quiz-dot');
+    dots.forEach(function(d){ d.className = 'quiz-dot done'; });
+
+    quizResultText.textContent = 'Vastasit oikein ' + correctCount + '/' + questions.length + ' kysymykseen. Nyt tiedät jo paljon YO-tutkinnosta! Voit palata tähän oppaaseen aina, kun tarvitset muistutusta.';
+    quizResult.className = 'quiz-result show';
+  }
+
+  retryBtn.addEventListener('click', function(){
+    current = 0;
+    correctCount = 0;
+    quizResult.className = 'quiz-result';
+    quizBody.className = 'quiz-body';
+    renderQuestion();
+  });
+
+  renderQuestion();
+})();
+</script>
+
+</body>
+</html>
