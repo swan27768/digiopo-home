@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laiva Toivonpurje – ryhmäytystehtävä | Tehtäväpankki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy-deep: #142229;
+    --navy: #223B44;
+    --parchment: #E9E0C7;
+    --parchment-dim: #C9BE9E;
+    --paper: #F2EAD3;
+    --paper-line: #D8CBA0;
+    --brass: #A97C34;
+    --brass-bright: #CB9F49;
+    --rope: #8C7355;
+    --ink: #221B12;
+    --ink-strong: #1A140D;
+    --teal: #2F5E63;
+    --storm: #7A3B32;
+    --muted-text: #6B6350;
+
+    --dawn-sky-top: #ffdca8; --dawn-sky-bot: #ff9d76; --dawn-sea-top: #7a4a63; --dawn-sea-bot: #3c2a4d;
+    --day-sky-top: #8ecae6; --day-sky-bot: #cdeaf5; --day-sea-top: #2a6f97; --day-sea-bot: #17415a;
+    --eve-sky-top: #f4a261; --eve-sky-bot: #7b4b6a; --eve-sea-top: #4a3b52; --eve-sea-bot: #241d30;
+    --night-sky-top: #0d1b2a; --night-sky-bot: #16324a; --night-sea-top: #0a1420; --night-sea-bot: #0d1b2a;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(31,46,53,0.035) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, rgba(31,46,53,0.035) 0 1px, transparent 1px 28px),
+      var(--paper);
+    font-family: 'Archivo', sans-serif;
+    color: var(--ink);
+  }
+
+  a { color: var(--teal); }
+
+  .topbar {
+    background: var(--navy-deep);
+    color: var(--parchment-dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 12.5px;
+    padding: 10px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .topbar a { color: var(--brass-bright); text-decoration: none; }
+  .topbar a:hover { text-decoration: underline; }
+
+  .hero {
+    position: relative;
+    background: var(--navy-deep);
+    color: var(--parchment);
+    padding: 48px 24px 40px;
+    text-align: center;
+    overflow: hidden;
+  }
+  .hero-chart {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    z-index: 0;
+  }
+  .hero-inner { position: relative; z-index: 1; }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+
+  .wheel { width: 40px; height: 40px; margin: 0 auto 12px; opacity: 0.9; }
+
+  .eyebrow {
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: var(--brass-bright);
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+  }
+  .eyebrow::before, .eyebrow::after { content: ""; height: 1px; width: 40px; background: var(--rope); }
+
+  h1.title {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: clamp(28px, 5vw, 46px);
+    margin: 12px 0 10px;
+  }
+
+  .hero p.lede {
+    max-width: 640px;
+    margin: 0 auto;
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: var(--parchment-dim);
+  }
+
+  .meta-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+
+  .meta-chip {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(199,154,63,0.35);
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 12.5px;
+    font-family: 'Space Mono', monospace;
+    color: var(--parchment);
+  }
+  .meta-chip b { color: var(--brass-bright); }
+
+  main {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  section { margin-bottom: 56px; }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 11.5px;
+    color: var(--teal);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after { content: ""; flex: 1; height: 1px; background: var(--paper-line); }
+
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 26px;
+    margin: 0 0 18px;
+    color: var(--navy);
+  }
+
+  .steps {
+    counter-reset: step;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+  }
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 46px;
+    line-height: 1.6;
+    font-size: 15px;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 0;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--navy-deep);
+    color: var(--brass-bright);
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+
+  .callout {
+    background: #fff;
+    border: 1px solid var(--paper-line);
+    border-left: 4px solid var(--brass);
+    border-radius: 8px;
+    padding: 16px 18px;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-top: 18px;
+  }
+  .callout b { color: var(--navy); }
+
+  /* --- tool card (reused component) --- */
+  .tool-card {
+    background:
+      radial-gradient(ellipse at 20% -10%, rgba(255,255,255,0.06), transparent 45%),
+      linear-gradient(180deg, var(--navy-deep) 0%, var(--navy) 60%, var(--navy-deep) 100%);
+    border-radius: 16px;
+    padding: 30px clamp(16px, 4vw, 40px) 36px;
+    color: var(--parchment);
+    overflow: hidden;
+  }
+
+  .mode-toggle { display: flex; justify-content: center; gap: 8px; margin: 4px 0 22px; flex-wrap: wrap; }
+  .mode-btn {
+    border: 1.5px solid rgba(199,154,63,0.35);
+    background: transparent; color: var(--parchment-dim);
+  }
+  .mode-btn.active {
+    background: var(--brass);
+    color: var(--ink-strong); border-color: transparent;
+  }
+  .mode-desc { text-align: center; font-size: 12.5px; color: var(--parchment-dim); max-width: 560px; margin: 0 auto 20px; line-height: 1.5; }
+
+  .grid { display: grid; grid-template-columns: minmax(230px, 320px) 1fr; gap: 24px; align-items: start; min-width: 0; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+
+  .panel { background: rgba(255,255,255,0.035); border: 1px solid rgba(199,154,63,0.25); border-radius: 12px; padding: 18px 18px 20px; min-width: 0; overflow: hidden; }
+  .panel h3 { font-family: 'Fraunces', serif; font-size: 15px; margin: 0 0 4px; color: var(--brass-bright); font-weight: 600; }
+  .panel p.hint { margin: 0 0 12px; font-size: 12px; color: var(--parchment-dim); line-height: 1.5; }
+
+  textarea {
+    width: 100%; min-height: 200px; resize: vertical;
+    background: var(--navy-deep); border: 1px solid rgba(199,154,63,0.3); border-radius: 8px;
+    color: var(--parchment); font-family: 'Space Mono', monospace; font-size: 13px; padding: 12px; line-height: 1.7;
+  }
+  textarea:focus { outline: 2px solid var(--brass-bright); outline-offset: 1px; }
+
+  .count-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 11.5px; color: var(--parchment-dim); font-family: 'Space Mono', monospace; }
+  .count-row span.n { color: var(--brass-bright); font-weight: 700; }
+
+  .btn-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  button {
+    font-family: 'Space Mono', monospace; font-weight: 700; font-size: 11.5px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    border-radius: 2px; padding: 12px 18px; border: none; cursor: pointer;
+    clip-path: polygon(7px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 7px 100%, 0 calc(100% - 7px), 0 7px);
+    transition: transform 0.12s ease, filter 0.12s ease;
+  }
+  button:active { transform: translateY(1px); }
+  button:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 2px; }
+  li.row:focus-visible, .role-pill:focus-visible, .bg-toggle-link:focus-visible,
+  a:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--brass-bright); outline-offset: 2px;
+  }
+  li.row[role="button"], .role-pill[role="button"] { cursor: pointer; }
+  .btn-primary { background: var(--brass); color: var(--ink-strong); flex: 1; min-width: 150px; }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-secondary { background: transparent; color: var(--parchment); border: 1.5px solid rgba(242,232,208,0.35); }
+  .btn-secondary:hover { border-color: var(--brass-bright); color: var(--brass-bright); }
+
+  .manifest-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 44px 16px; color: var(--parchment-dim); font-size: 13px; line-height: 1.6; min-height: 200px; }
+  .manifest-empty .icon { font-size: 24px; margin-bottom: 8px; opacity: 0.7; }
+
+  ul.roster { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+  li.row {
+    display: grid; grid-template-columns: 24px 1fr auto 1fr; align-items: center; gap: 9px;
+    background: var(--navy-deep); border: 1px solid rgba(199,154,63,0.18); border-radius: 8px; padding: 9px 11px; cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  li.row:hover { border-color: rgba(199,154,63,0.5); }
+  li.row.selected { border-color: var(--brass-bright); background: rgba(199,154,63,0.12); }
+  .idx { font-family: 'Space Mono', monospace; font-size: 10.5px; color: var(--parchment-dim); text-align: right; }
+  .role-name { font-family: 'Fraunces', serif; font-size: 14px; color: var(--brass-bright); font-weight: 600; }
+  .arrow { color: var(--parchment-dim); font-size: 12px; }
+  .student-name { font-family: 'Archivo', sans-serif; font-size: 13.5px; color: var(--parchment); font-weight: 600; }
+  .student-name.shuffling { color: var(--parchment-dim); font-style: italic; }
+  .swap-hint { font-size: 11px; color: var(--parchment-dim); margin-top: 10px; text-align: center; }
+  .swap-hint b { color: var(--brass-bright); }
+
+  .queue-strip { display: flex; gap: 7px; overflow-x: auto; padding: 4px 2px 10px; margin-bottom: 4px; max-width: 100%; }
+  .queue-chip {
+    flex: 0 0 auto; font-family: 'Space Mono', monospace; font-size: 11.5px;
+    padding: 6px 11px; border-radius: 4px; border: 1px solid rgba(199,154,63,0.3);
+    color: var(--parchment-dim); background: var(--navy-deep); white-space: nowrap;
+  }
+  .queue-chip.current { border-color: var(--brass); color: var(--ink-strong); background: var(--brass); font-weight: 700; }
+  .queue-chip.done { opacity: 0.4; text-decoration: line-through; }
+
+  .picker-banner { text-align: center; padding: 12px; margin-bottom: 14px; border: 1px dashed rgba(199,154,63,0.4); border-radius: 10px; background: rgba(199,154,63,0.06); }
+  .picker-banner .label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--parchment-dim); }
+  .picker-banner .name { font-family: 'Fraunces', serif; font-size: 20px; color: var(--brass-bright); margin-top: 2px; }
+
+  .role-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 7px; max-width: 100%; }
+  .role-pill {
+    font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600;
+    padding: 11px 9px; border-radius: 8px; text-align: center; cursor: pointer;
+    background: var(--navy-deep); border: 1px solid rgba(199,154,63,0.3); color: var(--parchment);
+    transition: border-color 0.12s ease, background 0.12s ease;
+    min-height: 42px; display: flex; align-items: center; justify-content: center;
+  }
+  .role-pill:hover:not(.taken) { border-color: var(--brass-bright); color: var(--brass-bright); }
+  .role-pill.taken { cursor: default; opacity: 0.55; background: rgba(255,255,255,0.02); }
+  .role-pill.taken .taken-name { display: block; font-family: 'Space Mono', monospace; font-size: 10px; margin-top: 3px; color: var(--teal); }
+
+  /* --- story section --- */
+  .story-card {
+    background: #fff;
+    border: 1px solid var(--paper-line);
+    border-radius: 12px;
+    padding: 30px clamp(18px, 4vw, 44px);
+  }
+  .story-card.locked { color: var(--muted-text); text-align: center; padding: 50px 20px; font-size: 14px; }
+  .story-card p { line-height: 1.85; font-size: 15.5px; margin: 0 0 18px; }
+  .story-card p:last-of-type { margin-bottom: 0; }
+  .story-card strong { color: var(--navy); border-bottom: 2px solid var(--brass); padding-bottom: 1px; }
+  .story-title { font-family: 'Fraunces', serif; font-size: 20px; color: var(--navy); margin: 0 0 6px; }
+  .story-sub { font-family: 'Space Mono', monospace; font-size: 11.5px; color: var(--teal); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 20px; }
+  .story-actions { margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .story-actions button { background: var(--navy-deep); color: var(--parchment); }
+  .story-actions button:hover { background: var(--navy); }
+
+  /* role table (fallback / print reference) */
+  table.roletable { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.roletable th, table.roletable td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--paper-line); }
+  table.roletable th { font-family: 'Space Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal); }
+  table.roletable td.role { font-family: 'Fraunces', serif; color: var(--navy); font-weight: 600; }
+
+  /* --- muistokortit: ledger-slip look --- */
+  .cards-wrap.locked {
+    color: var(--muted-text); text-align: center; padding: 50px 20px; font-size: 14px;
+    background: var(--paper); border: 1px solid var(--paper-line); border-radius: 4px;
+  }
+  .cards-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 14px;
+  }
+  @media (min-width: 620px) { .cards-grid { grid-template-columns: repeat(3, 1fr); } }
+  .card {
+    position: relative;
+    border: 1.5px solid var(--paper-line);
+    border-radius: 2px;
+    padding: 22px 14px 18px;
+    text-align: center;
+    background: var(--paper);
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    break-inside: avoid;
+    box-shadow: 1px 2px 0 rgba(34,27,18,0.08);
+  }
+  .card:nth-child(odd) { transform: rotate(-0.5deg); }
+  .card:nth-child(even) { transform: rotate(0.5deg); }
+  .card::before {
+    content: "";
+    position: absolute; top: 9px; left: 9px;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--navy-deep);
+    box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--rope);
+  }
+  .card .wheel-mini { width: 24px; height: 24px; margin-bottom: 2px; opacity: 0.85; transform: rotate(-4deg); }
+  .card .card-eyebrow {
+    font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--teal);
+  }
+  .card .card-role { font-family: 'Fraunces', serif; font-weight: 700; font-size: 18px; color: var(--navy); margin: 3px 0 2px; }
+  .card .card-name { font-family: 'Archivo', sans-serif; font-size: 13.5px; color: #4a4436; }
+  .card .card-name b { color: var(--navy); }
+  .card .name-blank {
+    display: inline-block; min-width: 130px; border-bottom: 1.5px solid var(--rope);
+    margin-left: 4px; height: 1.1em;
+  }
+  .cards-actions { margin-top: 20px; }
+  .cards-actions button {
+    background: var(--navy-deep); color: var(--parchment);
+  }
+  .cards-actions button:hover { background: var(--navy); }
+
+  footer {
+    background: var(--navy-deep);
+    color: var(--parchment-dim);
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 11.5px;
+    padding: 24px;
+  }
+
+  .bg-toggle-wrap { margin: 8px 0 56px; }
+  .bg-toggle-link {
+    font-family: 'Space Mono', monospace; font-size: 12.5px; letter-spacing: 0.06em;
+    color: var(--teal); text-decoration: none; border: none; border-bottom: 1px dashed var(--teal);
+    padding: 0 0 2px; background: none; cursor: pointer;
+  }
+  .bg-toggle-link:hover { color: var(--navy); border-color: var(--navy); }
+  .bg-toggle-panel {
+    display: none; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--paper-line);
+  }
+  .bg-toggle-panel.open { display: block; }
+  .bg-toggle-panel section { margin-bottom: 40px; }
+  .bg-toggle-panel h2 { font-size: 20px; margin-bottom: 16px; }
+
+  @media print {
+    .topbar, .hero, .tool-card, .steps, .section-label, footer, h2, .callout { display: none !important; }
+    main { padding: 0; }
+    section { margin-bottom: 0; }
+    .story-card { border: none; padding: 0; }
+    .story-card strong { border-bottom: none; }
+    .bg-toggle-wrap { display: none !important; }
+    #movieOverlay { display: none !important; }
+    .movie-gate, .movie-gate-ready { display: none !important; }
+    body:not([data-printing="story"]) #tarina { display: none !important; }
+    body:not([data-printing="cards"]) #kortitBlock { display: none !important; }
+    #kortitBlock #cardsToggleLink { display: none !important; }
+    #kortitBlock #cardsTogglePanel { display: block !important; }
+    .cards-grid { grid-template-columns: repeat(3, 1fr); }
+    .cards-actions { display: none !important; }
+  }
+
+  /* ================= ELOKUVA (Vaihe 4) ================= */
+  #movieOverlay {
+    display: none; position: fixed; inset: 0; z-index: 500;
+    flex-direction: column; background: #000; color: var(--parchment);
+    font-family: 'Archivo', sans-serif;
+  }
+  #movieOverlay .letterbox { flex: 0 0 auto; height: 5.5vh; background: #000; }
+  #movieOverlay .screen { flex: 1 1 auto; position: relative; overflow: hidden; }
+
+  .movie-close {
+    position: absolute; top: 14px; right: 16px; z-index: 60;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(0,0,0,0.5); border: 1px solid rgba(242,232,208,0.4);
+    color: var(--parchment); font-size: 15px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .movie-close:hover { border-color: var(--brass-bright); color: var(--brass-bright); }
+
+  .movie-gate.locked {
+    color: var(--muted-text); text-align: center; padding: 40px 20px; font-size: 14px;
+    background: var(--paper); border: 1px solid var(--paper-line); border-radius: 4px;
+  }
+  .movie-gate-ready {
+    text-align: center; padding: 30px 20px; background: #fff;
+    border: 1px solid var(--paper-line); border-radius: 12px;
+  }
+  .movie-gate-ready p { font-size: 13.5px; color: #4a4436; margin: 0 0 16px; }
+  #openMovieBtn {
+    background: var(--brass); color: var(--ink-strong);
+    font-size: 13px; padding: 14px 28px;
+  }
+  #openMovieBtn:hover { filter: brightness(1.1); }
+
+  .titlecard {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: linear-gradient(180deg, var(--navy-deep), var(--navy) 60%, var(--navy-deep));
+    z-index: 40; opacity: 0; animation: titleIn 700ms ease forwards; transition: opacity 500ms ease;
+  }
+  .titlecard.fading { opacity: 0 !important; }
+  @keyframes titleIn { from { opacity: 0; } to { opacity: 1; } }
+  .titlecard .wheel-logo { width: 54px; height: 54px; margin: 0 auto 14px; animation: rock 3.2s ease-in-out infinite alternate; }
+  @keyframes rock { from { transform: rotate(-8deg);} to { transform: rotate(8deg);} }
+  .titlecard h1 { font-family: 'Fraunces', serif; font-size: clamp(30px, 6vw, 52px); margin: 14px 0 4px; color: var(--parchment); }
+  .titlecard .sub { font-family: 'Space Mono', monospace; letter-spacing: 0.25em; text-transform: uppercase; font-size: 12px; color: var(--brass-bright); margin-bottom: 26px; }
+  #titleStartBtn {
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px;
+    background: var(--brass); color: var(--ink-strong);
+    border: none; border-radius: 3px; padding: 13px 30px; cursor: pointer;
+  }
+  #titleStartBtn:hover { filter: brightness(1.1); }
+
+  #movieOverlay .scene { position: absolute; inset: 0; opacity: 0; transition: opacity 900ms ease; pointer-events: none; }
+  #movieOverlay .scene.active { opacity: 1; pointer-events: auto; }
+  #movieOverlay .sky { position: absolute; inset: 0 0 42% 0; }
+  #movieOverlay .sea { position: absolute; inset: 58% 0 0 0; }
+  .scene[data-time="dawn"] .sky   { background: linear-gradient(180deg, var(--dawn-sky-top), var(--dawn-sky-bot)); }
+  .scene[data-time="dawn"] .sea   { background: linear-gradient(180deg, var(--dawn-sea-top), var(--dawn-sea-bot)); }
+  .scene[data-time="day"] .sky    { background: linear-gradient(180deg, var(--day-sky-top), var(--day-sky-bot)); }
+  .scene[data-time="day"] .sea    { background: linear-gradient(180deg, var(--day-sea-top), var(--day-sea-bot)); }
+  .scene[data-time="evening"] .sky{ background: linear-gradient(180deg, var(--eve-sky-top), var(--eve-sky-bot)); }
+  .scene[data-time="evening"] .sea{ background: linear-gradient(180deg, var(--eve-sea-top), var(--eve-sea-bot)); }
+  .scene[data-time="night"] .sky, .scene[data-time="storm"] .sky { background: linear-gradient(180deg, var(--night-sky-top), var(--night-sky-bot)); }
+  .scene[data-time="night"] .sea, .scene[data-time="storm"] .sea { background: linear-gradient(180deg, var(--night-sea-top), var(--night-sea-bot)); }
+
+  .celestial { position: absolute; width: 64px; height: 64px; border-radius: 50%; box-shadow: 0 0 40px 14px rgba(255,255,255,0.25); }
+  .scene[data-time="dawn"] .celestial { background: #fff3d0; top: 30%; left: 12%; box-shadow: 0 0 50px 18px rgba(255,220,160,0.35); }
+  .scene[data-time="day"] .celestial { background: #fff7d6; top: 12%; left: 50%; transform: translateX(-50%); box-shadow: 0 0 60px 20px rgba(255,247,214,0.4); }
+  .scene[data-time="evening"] .celestial { background: #ffd9a0; top: 26%; left: 82%; }
+  .scene[data-time="night"] .celestial, .scene[data-time="storm"] .celestial { background: #e8e4d0; top: 14%; left: 76%; box-shadow: 0 0 30px 10px rgba(232,228,208,0.3); width: 46px; height: 46px; }
+
+  #movieOverlay .stars { position: absolute; inset: 0 0 42% 0; opacity: 0; }
+  .scene[data-time="night"] .stars, .scene[data-time="storm"] .stars { opacity: 1; }
+  #movieOverlay .star { position: absolute; width: 2.5px; height: 2.5px; background: var(--parchment); border-radius: 50%; animation: twinkle 2.6s ease-in-out infinite; }
+  @keyframes twinkle { 0%,100% { opacity: 0.25; } 50% { opacity: 1; } }
+
+  #movieOverlay .lightning { position: absolute; inset: 0 0 42% 0; background: #fff; opacity: 0; }
+  .scene[data-time="storm"] .lightning { animation: flash 3.2s steps(1) infinite; }
+  @keyframes flash { 0%, 92%, 100% { opacity: 0; } 93% { opacity: 0.55; } 94% { opacity: 0.05; } 95% { opacity: 0.4; } 96% { opacity: 0; } }
+
+  #movieOverlay .wave-layer { position: absolute; left: 0; bottom: 0; width: 220%; height: 60%; opacity: 0.55; }
+  #movieOverlay .wave-layer.w2 { opacity: 0.35; bottom: -4%; }
+  #movieOverlay .wave-layer path { fill: rgba(255,255,255,0.10); }
+  .scene[data-time="night"] .wave-layer path, .scene[data-time="storm"] .wave-layer path { fill: rgba(255,255,255,0.06); }
+  #movieOverlay .wave-anim { animation: waveMove 9s linear infinite; }
+  #movieOverlay .wave-anim.w2 { animation-duration: 14s; animation-direction: reverse; }
+  @keyframes waveMove { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .scene[data-time="storm"] .wave-anim { animation-duration: 3.2s; }
+
+  #movieOverlay .parallax {
+    position: absolute; inset: -6% -6% -6% -6%; transform-origin: center center;
+    animation: kenburns 22s ease-in-out infinite alternate;
+  }
+  @keyframes kenburns {
+    from { transform: var(--kb-from, scale(1) translate(0,0)); }
+    to   { transform: var(--kb-to,   scale(1.08) translate(-1.5%, -1%)); }
+  }
+
+  #movieOverlay .ship-wrap { position: absolute; left: 50%; bottom: 30%; transform: translate(-50%, 0); transition: left 700ms ease, bottom 700ms ease, transform 700ms ease; }
+  #movieOverlay .ship { display: block; width: 230px; height: auto; animation: bob 3.6s ease-in-out infinite; filter: drop-shadow(0 10px 14px rgba(0,0,0,0.3)); }
+  @keyframes bob { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-8px) rotate(1.5deg); } }
+  .scene[data-time="storm"] .ship { animation: bobStorm 1.4s ease-in-out infinite; }
+  @keyframes bobStorm { 0%,100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-14px) rotate(5deg); } }
+
+  #movieOverlay .spotlight {
+    position: absolute; left: 50%; top: 14%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    animation: spotlightIn 650ms cubic-bezier(.2,1.4,.4,1) both;
+  }
+  @keyframes spotlightIn { 0% { opacity: 0; transform: translateX(-50%) scale(0.5) translateY(-10px); } 100% { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); } }
+  #movieOverlay .spotlight .icon-circle {
+    width: 92px; height: 92px; border-radius: 50%; background: var(--brass);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 40px; color: var(--ink-strong);
+    box-shadow: 0 8px 26px rgba(0,0,0,0.35), inset 0 0 0 3px rgba(20,34,41,0.2);
+  }
+  #movieOverlay .spotlight .role-label {
+    font-family: 'Space Mono', monospace; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brass-bright);
+    background: rgba(13,27,42,0.55); padding: 4px 12px; border-radius: 4px; border: 1px solid rgba(199,154,63,0.4);
+  }
+
+  #movieOverlay .caption-bar {
+    position: absolute; left: 0; right: 0; bottom: 64px;
+    background: linear-gradient(0deg, rgba(0,0,0,0.82), rgba(0,0,0,0));
+    padding: 56px 6% 22px; display: flex; align-items: flex-end; justify-content: center;
+    min-height: 30vh; box-sizing: border-box;
+  }
+  #movieOverlay .caption-text {
+    font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(15px, 2.2vw, 23px);
+    line-height: 1.42; max-width: 880px; margin: 0 auto; text-align: center; text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  }
+  #movieOverlay .caption-text.long { font-size: clamp(13px, 1.8vw, 19px); line-height: 1.38; }
+  #movieOverlay .caption-text.xlong { font-size: clamp(12px, 1.55vw, 17px); line-height: 1.34; }
+  #movieOverlay .caption-text strong { color: var(--brass-bright); border-bottom: 2px solid var(--brass-bright); padding-bottom: 1px; }
+
+  #movieOverlay .hud {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 64px;
+    display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 0 3%;
+    background: #000; z-index: 30;
+  }
+  #movieOverlay .hud-nav {
+    font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 14px; padding: 11px 20px; border-radius: 4px; cursor: pointer;
+    background: transparent; color: var(--parchment); border: 1px solid rgba(242,232,208,0.35);
+  }
+  #movieOverlay .hud-nav:hover:not(:disabled) { border-color: var(--brass-bright); color: var(--brass-bright); }
+  #movieOverlay .hud-nav.primary { background: var(--brass); color: var(--ink-strong); border: none; }
+  #movieOverlay .hud-nav.primary:hover:not(:disabled) { filter: brightness(1.1); color: var(--ink-strong); }
+  #movieOverlay .hud-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+  #movieOverlay .hud-counter { font-family: 'Space Mono', monospace; font-size: 11.5px; color: var(--parchment-dim); flex: 0 0 auto; white-space: nowrap; }
+
+  .credits-wrap { position: absolute; inset: 0; background: var(--navy-deep); display: none; overflow: hidden; z-index: 20; }
+  .credits-wrap.active { display: block; }
+  .credits-roll { position: absolute; left: 0; right: 0; top: 100%; text-align: center; animation: rollUp linear forwards; }
+  @keyframes rollUp { to { transform: translateY(-100%); } }
+  .credits-roll h2 { font-family: 'Fraunces', serif; font-size: 26px; color: var(--brass-bright); margin: 0 0 30px; letter-spacing: 0.05em; }
+  .credits-line { font-family: 'Archivo', sans-serif; font-size: 16px; margin: 0 0 14px; color: var(--parchment); }
+  .credits-line b { color: var(--brass-bright); font-family: 'Fraunces', serif; }
+
+  #movieOverlay .endcard {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+    background: var(--navy-deep); z-index: 25; text-align: center; padding: 24px;
+  }
+  #movieOverlay .endcard.active { display: flex; }
+  #movieOverlay .endcard h2 { font-family: 'Fraunces', serif; font-size: clamp(28px, 5vw, 40px); margin: 0; letter-spacing: 0.05em; color: var(--parchment); }
+  #movieOverlay .endcard p { color: var(--parchment-dim); font-size: 13.5px; max-width: 420px; margin: 0; }
+  #movieOverlay .endcard-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+  #movieOverlay .endcard-btns button { font-family: 'Archivo', sans-serif; font-weight: 600; font-size: 13.5px; border-radius: 4px; padding: 11px 22px; border: none; cursor: pointer; }
+  #movieOverlay .btn-replay { background: var(--brass); color: var(--ink-strong); }
+  #movieOverlay .btn-close-end { background: transparent; color: var(--parchment); border: 1px solid rgba(242,232,208,0.35) !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    #movieOverlay .ship, #movieOverlay .wave-anim, #movieOverlay .star, .titlecard .wheel-logo, #movieOverlay .spotlight { animation: none !important; opacity: 1 !important; transform: none !important; }
+    #movieOverlay .parallax { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="a11yStatus" class="sr-only" role="status" aria-live="polite"></div>
+<div class="topbar">
+  <span>Tehtäväpankki · Ryhmäytyminen</span>
+  <a href="digiopo-home.html">← Takaisin tehtäväpankkiin</a>
+</div>
+
+<div class="hero">
+  <svg class="hero-chart" viewBox="0 0 900 320" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <pattern id="chartGrid" width="60" height="60" patternUnits="userSpaceOnUse">
+        <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#CB9F49" stroke-width="0.5" opacity="0.18"/>
+      </pattern>
+    </defs>
+    <rect width="900" height="320" fill="url(#chartGrid)"/>
+    <circle cx="700" cy="80" r="130" fill="none" stroke="#CB9F49" stroke-width="1" opacity="0.35"/>
+    <circle cx="700" cy="80" r="90" fill="none" stroke="#CB9F49" stroke-width="0.6" opacity="0.25"/>
+    <g stroke="#CB9F49" stroke-width="1" opacity="0.35">
+      <line x1="700" y1="-40" x2="700" y2="200"/>
+      <line x1="490" y1="80" x2="910" y2="80"/>
+      <line x1="620" y1="0" x2="780" y2="160"/>
+      <line x1="620" y1="160" x2="780" y2="0"/>
+    </g>
+    <path d="M 40 260 C 180 200, 320 300, 480 210 S 760 140, 860 150" fill="none" stroke="#CB9F49" stroke-width="1.4" stroke-dasharray="2 7" stroke-linecap="round" opacity="0.55"/>
+    <g transform="translate(455,205) rotate(-8)" opacity="0.6">
+      <path d="M -16 6 L 16 6 L 11 14 L -11 14 Z" fill="#CB9F49"/>
+      <rect x="-1" y="-14" width="2" height="20" fill="#CB9F49"/>
+      <path d="M 1 -10 L 13 4 L 1 4 Z" fill="#CB9F49"/>
+    </g>
+    <circle cx="90" cy="255" r="2.5" fill="#CB9F49" opacity="0.6"/>
+    <circle cx="330" cy="222" r="2.5" fill="#CB9F49" opacity="0.6"/>
+    <circle cx="705" cy="152" r="2.5" fill="#CB9F49" opacity="0.6"/>
+  </svg>
+  <div class="hero-inner">
+  <svg class="wheel" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+    <circle cx="24" cy="24" r="19" stroke="#CB9F49" stroke-width="2.2"/>
+    <circle cx="24" cy="24" r="4.2" fill="#CB9F49"/>
+    <g stroke="#CB9F49" stroke-width="2.2" stroke-linecap="round">
+      <line x1="24" y1="5" x2="24" y2="12"/>
+      <line x1="24" y1="36" x2="24" y2="43"/>
+      <line x1="5" y1="24" x2="12" y2="24"/>
+      <line x1="36" y1="24" x2="43" y2="24"/>
+      <line x1="10.9" y1="10.9" x2="15.6" y2="15.6"/>
+      <line x1="32.4" y1="32.4" x2="37.1" y2="37.1"/>
+      <line x1="10.9" y1="37.1" x2="15.6" y2="32.4"/>
+      <line x1="32.4" y1="15.6" x2="37.1" y2="10.9"/>
+    </g>
+  </svg>
+  <div class="eyebrow">Ryhmäytystehtävä</div>
+  <h1 class="title">Laiva Toivonpurje</h1>
+  <p class="lede">Koko luokka pestautuu laiva Toivonpurjeen miehistöksi. Jokainen oppilas saa oman, tärkeän ja myönteisen roolin. Lopuksi opettaja lukee tarinan ääneen, ja siinä ovat mukana luokan omat nimet.</p>
+  <div class="meta-row">
+    <span class="meta-chip"><b>Ikäryhmä:</b> 12–13-vuotiaille</span>
+    <span class="meta-chip"><b>Kesto:</b> n. 20–35 min</span>
+    <span class="meta-chip"><b>Ryhmäkoko:</b> 15–25 oppilasta</span>
+    <span class="meta-chip"><b>Tavoite:</b> ryhmäytyminen, positiivinen huomio jokaiselle</span>
+  </div>
+  </div>
+</div>
+
+<main>
+
+  <section id="ohjeet">
+    <div class="section-label">Ohjeet opettajalle</div>
+    <h2>Näin toteutat tehtävän</h2>
+    <ol class="steps">
+      <li>Tulosta muistokortit etukäteen (alla) – yksi jokaista 25 roolia varten.</li>
+      <li>Kirjoita oppilaiden nimet Vaihe 1:n työkaluun. Valitse sitten tapa, jolla roolit jaetaan. <b>"Arvo koko miehistö"</b> antaa jokaiselle roolin suoraan arpomalla. <b>"Arvo vuorot, oppilaat valitsevat"</b> arpoo vain sen, missä järjestyksessä oppilaat valitsevat. Silloin jokainen valitsee itse oman roolinsa vuorollaan jäljellä olevista. Tämä tapa vie hieman enemmän aikaa.</li>
+      <li>Anna jokaiselle oppilaalle hänen roolinsa kortti, ja pyydä kirjoittamaan oma nimi kortin NIMI-kohtaan.</li>
+      <li>Katso ja lue tarina ääneen koko luokalle Vaihe 2:ssa – tekstinä tai animoituna elokuvana.</li>
+    </ol>
+    <div class="callout">
+      <b>Miksi tämä toimii ryhmäyttämisessä?</b> Jokainen rooli on kirjoitettu tärkeäksi ja myönteiseksi – kukaan ei jää "vähemmän tärkeään" rooliin. Oman nimen kuuleminen osana yhteistä tarinaa on monelle oppilaalle yllättävän vaikuttava kokemus.
+    </div>
+
+    <div id="kortitBlock" style="margin-top:30px;">
+      <h3 style="font-family:'Fraunces',serif; font-size:17px; color:var(--navy); margin:0 0 6px;">Tulosta muistokortit etukäteen</h3>
+      <p style="font-size:14.5px; line-height:1.6; color:#4a4436; max-width:640px; margin:0 0 16px;">
+        25 valmista korttia, yksi jokaiselle roolille. NIMI-kohta on tarkoituksella tyhjä – oppilas kirjoittaa oman nimensä siihen itse, kun hänen roolinsa on jaettu.
+      </p>
+      <button type="button" class="bg-toggle-link" id="cardsToggleLink" aria-expanded="false" aria-controls="cardsTogglePanel">Näytä muistokortit ▾</button>
+      <div class="bg-toggle-panel" id="cardsTogglePanel">
+        <div class="cards-wrap" id="cardsWrap"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tyokalu">
+    <div class="section-label">Vaihe 1</div>
+    <h2>Jaa roolit</h2>
+    <div class="tool-card">
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeAbtn">Arvo koko miehistö</button>
+        <button class="mode-btn" id="modeBbtn">Arvo vuorot, oppilaat valitsevat</button>
+      </div>
+      <p class="mode-desc" id="modeDesc">Tietokone arpoo jokaiselle nimelle roolin suoraan. Voit vielä vaihtaa pareja jälkikäteen napauttamalla.</p>
+
+      <div class="grid">
+        <div class="panel">
+          <h3 id="namesInputLabel">Miehistön nimet</h3>
+          <p class="hint" id="namesInputHint">Yksi nimi per rivi. Jos nimiä on vähemmän kuin rooleja (25), käytetään vain osa rooleista.</p>
+          <textarea id="namesInput" aria-labelledby="namesInputLabel" aria-describedby="namesInputHint" placeholder="Aino
+Elias
+Nea
+Onni"></textarea>
+          <div class="count-row">
+            <span><span class="n" id="nameCount">0</span> nimeä</span>
+            <span><span class="n" id="roleCount">25</span> roolia käytössä</span>
+          </div>
+
+          <div id="modeAButtons">
+            <div class="btn-row"><button class="btn-primary" id="drawBtn">Arvo roolit</button></div>
+            <div class="btn-row">
+              <button class="btn-secondary" id="reshuffleBtn" style="display:none;">Arvo uudelleen</button>
+            </div>
+          </div>
+
+          <div id="modeBButtons" style="display:none;">
+            <div class="btn-row"><button class="btn-primary" id="drawOrderBtn">Arvo vuorojärjestys</button></div>
+            <div class="btn-row">
+              <button class="btn-secondary" id="resetOrderBtn" style="display:none;">Aloita alusta</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3 id="resultTitle">Miehistöluettelo</h3>
+          <div id="resultArea">
+            <div class="manifest-empty">
+              <div class="icon">&#9875;</div>
+              Miehistöluettelo ilmestyy tähän.
+            </div>
+          </div>
+          <div class="swap-hint" id="swapHint" style="display:none;">
+            Napauta kahta riviä <b>vaihtaaksesi</b> niiden nimet keskenään.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tarina">
+    <div class="section-label">Vaihe 2</div>
+    <h2>Katso ja lue tarina ääneen koko luokalle</h2>
+    <div class="story-card locked" id="storyCard">
+      Tarina ilmestyy tähän automaattisesti, kun kaikki roolit on jaettu yllä olevassa työkalussa.
+    </div>
+    <div class="movie-gate locked" id="movieGate" style="margin-top:16px;">
+      Elokuva avautuu tähän, kun kaikki roolit on jaettu yllä olevassa työkalussa.
+    </div>
+  </section>
+
+  <div class="bg-toggle-wrap">
+    <button type="button" class="bg-toggle-link" id="bgToggleLink" aria-expanded="false" aria-controls="bgTogglePanel">Roolit ja käsikirjoitus ▾</button>
+    <div class="bg-toggle-panel" id="bgTogglePanel">
+      <section id="roolit">
+        <h2>Kaikki 25 roolia</h2>
+        <table class="roletable">
+          <thead><tr><th>#</th><th>Rooli</th><th>Kuvaus lyhyesti</th></tr></thead>
+          <tbody id="roleTableBody"></tbody>
+        </table>
+      </section>
+      <section id="kasikirjoitus">
+        <h2>Käsikirjoitus (malli, ilman nimiä)</h2>
+        <div class="story-card" id="scriptTemplateCard"></div>
+      </section>
+    </div>
+  </div>
+
+</main>IVONPURJE · MERIMATKA 001 · RYHMÄYTYSTEHTÄVÄ</footer>
+
+<div class="cinema" id="movieOverlay">
+  <button class="movie-close" id="closeMovieBtn" aria-label="Sulje elokuva">✕</button>
+  <div class="letterbox top"></div>
+  <div class="screen">
+
+    <div class="titlecard" id="titlecard" style="display:none;">
+      <svg class="wheel-logo" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+        <circle cx="24" cy="24" r="19" stroke="#CB9F49" stroke-width="2.2"/>
+        <circle cx="24" cy="24" r="4.2" fill="#CB9F49"/>
+        <g stroke="#CB9F49" stroke-width="2.2" stroke-linecap="round">
+          <line x1="24" y1="5" x2="24" y2="12"/><line x1="24" y1="36" x2="24" y2="43"/>
+          <line x1="5" y1="24" x2="12" y2="24"/><line x1="36" y1="24" x2="43" y2="24"/>
+          <line x1="10.9" y1="10.9" x2="15.6" y2="15.6"/><line x1="32.4" y1="32.4" x2="37.1" y2="37.1"/>
+          <line x1="10.9" y1="37.1" x2="15.6" y2="32.4"/><line x1="32.4" y1="15.6" x2="37.1" y2="10.9"/>
+        </g>
+      </svg>
+      <h1>Laiva Toivonpurje</h1>
+      <div class="sub">Merimatka 001</div>
+      <button id="titleStartBtn">▶ Aloita</button>
+    </div>
+
+    <div id="sceneStage" style="display:none; position:absolute; inset:0;"></div>
+
+    <div class="credits-wrap" id="creditsWrap">
+      <div class="credits-roll" id="creditsRoll"></div>
+    </div>
+
+    <div class="endcard" id="endcard">
+      <h2>LOPPU</h2>
+      <p>Kiitos, että purjehdit mukana! Voit katsoa elokuvan uudelleen tai sulkea tämän näkymän.</p>
+      <div class="endcard-btns">
+        <button class="btn-replay" id="replayBtn">↻ Katso uudelleen</button>
+        <button class="btn-close-end" id="closeEndBtn">Sulje</button>
+      </div>
+    </div>
+
+    <div class="hud" id="hud" style="display:none;">
+      <button class="hud-nav" id="prevBtn">◀ Edellinen</button>
+      <div class="hud-counter" id="hudCounter">KOHTAUS 1/27</div>
+      <button class="hud-nav primary" id="nextBtn">Jatka ▶</button>
+    </div>
+
+  </div>
+  <div class="letterbox bottom"></div>
+</div>
+
+<script>
+  const ROLE_DEFS = [
+    ["Kapteeni", "johtaa laivaa rauhallisesti ja luotettavasti"],
+    ["Perämies", "kapteenin luotettavin apulainen"],
+    ["Navigaattori", "laskee reitin tarkasti"],
+    ["Tähystäjä", "huomaa asiat, joita muut eivät huomaa"],
+    ["Kokki", "taikoo herkkuja koko miehistölle"],
+    ["Kokin apulainen", "auttaa keittiössä ja pitää hommat sujuvina"],
+    ["Laivalääkäri", "lohduttaa ja auttaa, kun jotakuta sattuu"],
+    ["Purjemestari", "säätää purjeet tuulen mukaan täydellisesti"],
+    ["Köysimestari", "varmistaa, että jokainen solmu pitää"],
+    ["Ankkurinvartija", "laskee ankkurin juuri oikealla hetkellä"],
+    ["Kannen kapteeni", "pitää kannen siistinä ja turvallisena"],
+    ["Karttamestari", "piirtää uudet kartat löydetyistä paikoista"],
+    ["Säätieteilijä", "osaa ennustaa sään muutokset"],
+    ["Aarrekartan vartija", "pitää huolta tärkeimmästä esineestä"],
+    ["Soittoniekka", "soittaa iloisia sävelmiä väsyneelle miehistölle"],
+    ["Tarinankertoja", "kertoo jännittäviä tarinoita, jotka rohkaisevat"],
+    ["Majakanvahti", "näyttää turvallisen reitin pimeässä"],
+    ["Kalastaja", "tuo tuoretta ruokaa koko miehistölle"],
+    ["Yövahti", "valvoo, kun muut nukkuvat"],
+    ["Ilonpitäjä", "keksii pelejä ja pitää tunnelman hyvänä"],
+    ["Varastonhoitaja", "pitää tarkkaa kirjaa tarvikkeista"],
+    ["Ensiapuvastaava", "rauhoittaa ja lohduttaa pelästyneitä"],
+    ["Lippumestari", "nostaa lipun mastoon joka aamu ylpeänä"],
+    ["Rohkeuden airut", "muistuttaa: me pystymme tähän yhdessä"],
+    ["Kunniavieras", "tuo mukanaan onnea koko matkalle"]
+  ];
+  const ROLES = ROLE_DEFS.map(function(r){ return r[0]; });
+
+  const STORY_TEMPLATE = [
+    "Eräänä aamuna satamassa kimalteli aurinko, kun laiva nimeltä Toivonpurje valmistautui lähtemään merille. Koko miehistö oli koolla kannella, jännittyneenä ja innoissaan tulevasta seikkailusta.",
+    "Laivan komennossa seisoi {{Kapteeni}}, jonka rauhallinen ja luotettava olemus sai koko miehistön tuntemaan olonsa turvalliseksi. \u201dTänään lähdemme etsimään kadonnutta aarrekarttaa – mutta tärkeintä on, että pidämme huolta toisistamme matkalla\u201d, kapteeni julisti.",
+    "Vieressä seisoi {{Perämies}}, joka oli kapteenin luotettavin apulainen ja piti langat käsissään aina, kun jotain piti järjestää nopeasti.",
+    "{{Navigaattori}} levitti ison kartan pöydälle ja alkoi laskea reittiä. Ilman häntä laiva olisi voinut eksyä aivan väärään suuntaan, mutta hänen tarkkuutensa ansiosta kurssi oli aina selvä.",
+    "Mastossa korkealla istui {{Tähystäjä}}, jonka terävät silmät huomasivat asioita, joita kukaan muu ei olisi huomannut. \u201dNäen linnun taivaalla – se tietää hyvää säätä!\u201d hän huusi alas.",
+    "Keittiöstä kantautui herkullinen tuoksu, kun {{Kokki}} ja hänen luotettava apulaisensa {{Kokin apulainen}} valmistivat aamiaista koko miehistölle. Ilman heidän taikojaan kukaan ei olisi jaksanut soutaa pitkää matkaa.",
+    "Kun yksi merimiehistä satutti sormensa köyteen, paikalle riensi heti {{Laivalääkäri}}, joka osasi aina lohduttaa ja auttaa, kun jotakuta sattui.",
+    "{{Purjemestari}} kiipesi ketterästi purjeiden luo ja säätti ne tuulen mukaan täydellisesti, jotta laiva kulkisi nopeasti mutta turvallisesti.",
+    "{{Köysimestari}} varmisti, että jokainen solmu piti – hänen taitonsa pitivät koko laivan kasassa, kirjaimellisesti.",
+    "Kun oli aika pysähtyä, {{Ankkurinvartija}} laski ankkurin mereen juuri oikealla hetkellä, tarkasti ja varmasti.",
+    "{{Kannen kapteeni}} piti huolen siitä, että kansi pysyi siistinä ja turvallisena kulkea – kukaan ei kompastunut, kun hän oli hommissa.",
+    "{{Karttamestari}} piirsi uusia karttoja jokaisesta uudesta saaresta, jonka he löysivät, jotta tulevatkin matkustajat löytäisivät perille.",
+    "Kun taivaalle alkoi kerääntyä pilviä, {{Säätieteilijä}} tarkkaili tuulta ja pilviä ja osasi ennustaa, milloin oli aika hakea sadetakit esiin.",
+    "Syvällä laivan ruumassa {{Aarrekartan vartija}} piti huolta tärkeimmästä esineestä koko matkalla – vanhasta, arvokkaasta kartasta, joka johtaisi heidät aarteen luo.",
+    "Illalla, kun aurinko laski, {{Soittoniekka}} otti esiin soittimensa ja soitti iloisia sävelmiä, jotka saivat koko miehistön hymyilemään väsymyksestä huolimatta.",
+    "{{Tarinankertoja}} kokosi väen ympärilleen ja kertoi jännittäviä tarinoita menneistä matkoista – hänen sanoillaan oli taika, joka sai kaikki unohtamaan pelot.",
+    "Kaukana rannikolla loisti majakka, jota valvoi {{Majakanvahti}}. Hänen valonsa näytti Toivonpurjeelle turvallisen reitin pimeässä yössä.",
+    "{{Kalastaja}} heitti verkkonsa mereen ja toi laivalle tuoretta kalaa, josta riitti ruokaa koko miehistölle.",
+    "Kun yö saapui, {{Yövahti}} valvoi hereillä, kun muut nukkuivat, ja piti huolen siitä, että kaikki olivat turvassa aamuun asti.",
+    "Vaikka matka oli välillä raskas, {{Ilonpitäjä}} keksi aina jonkin pelin tai laulun, joka sai koko miehistön nauramaan ja jaksamaan eteenpäin.",
+    "{{Varastonhoitaja}} piti tarkkaa kirjaa siitä, mitä laivassa oli – ruokaa, vettä ja tarvikkeita riitti aina, koska hän suunnitteli kaiken huolella.",
+    "Kun joku miehistöstä pelästyi ukkosta, {{Ensiapuvastaava}} oli aina paikalla lohduttamassa ja rauhoittamassa.",
+    "{{Lippumestari}} nosti laivan lipun mastoon joka aamu ylpeänä – se muistutti kaikkia siitä, että he olivat yhtä joukkuetta.",
+    "Kun matka tuntui pitkältä ja väsyttävältä, {{Rohkeuden airut}} muistutti kaikkia: \u201dMe pystymme tähän yhdessä!\u201d Ja hänen sanansa antoivat voimaa jatkaa.",
+    "Ja mukana matkalla oli myös {{Kunniavieras}}, jonka läsnäolo toi laivalle onnea – kaikki olivat iloisia, että juuri hän oli mukana tällä seikkailulla.",
+    "Monen päivän purjehtimisen jälkeen, kun aurinko paistoi kirkkaana taivaalla, Toivonpurjeen miehistö näki vihdoin edessään saaren, jonne kartta johti. Yhdessä – jokainen omalla taidollaan ja panoksellaan – he olivat selvinneet matkasta ja löytäneet sen, mitä etsivät: ei vain aarteen, vaan myös sen, että he olivat nyt aidosti yksi vahva joukkue.",
+    "Ja niin Toivonpurjeen miehistö purjehti kohti seuraavaa seikkailua – tietäen, että mikään ei olisi mahdotonta, kun he tekivät sen yhdessä."
+  ];
+
+  const namesInput = document.getElementById('namesInput');
+  const nameCountEl = document.getElementById('nameCount');
+  const roleCountEl = document.getElementById('roleCount');
+  const resultArea = document.getElementById('resultArea');
+  const resultTitle = document.getElementById('resultTitle');
+  const swapHint = document.getElementById('swapHint');
+  const modeDesc = document.getElementById('modeDesc');
+  const storyCard = document.getElementById('storyCard');
+  const cardsWrap = document.getElementById('cardsWrap');
+
+  const modeAbtn = document.getElementById('modeAbtn');
+  const modeBbtn = document.getElementById('modeBbtn');
+  const modeAButtons = document.getElementById('modeAButtons');
+  const modeBButtons = document.getElementById('modeBButtons');
+
+  const drawBtn = document.getElementById('drawBtn');
+  const reshuffleBtn = document.getElementById('reshuffleBtn');
+  const drawOrderBtn = document.getElementById('drawOrderBtn');
+  const resetOrderBtn = document.getElementById('resetOrderBtn');
+
+  let mode = 'A';
+  let currentAssignment = [];
+  let selectedIndex = null;
+  let assignedMap = null;
+
+  function announceStatus(message) {
+    const el = document.getElementById('a11yStatus');
+    if (el) el.textContent = message;
+  }
+
+  function capitalizeName(name) {
+    return name.split(/(\s|-)/).map(function(part) {
+      if (part === ' ' || part === '-' || part.length === 0) return part;
+      return part.charAt(0).toUpperCase() + part.slice(1);
+    }).join('');
+  }
+
+  let queue = [];
+  let pickedRoles = {};
+  let currentPickIdx = 0;
+
+  function getNames() {
+    return namesInput.value.split('\n').map(function(n){ return n.trim(); }).filter(function(n){ return n.length > 0; });
+  }
+
+  function updateCounts() {
+    const names = getNames();
+    nameCountEl.textContent = names.length;
+    roleCountEl.textContent = Math.min(names.length, ROLES.length);
+  }
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function resetResultEmpty() {
+    resultArea.innerHTML = '<div class="manifest-empty"><div class="icon">&#9875;</div>Miehistöluettelo ilmestyy tähän.</div>';
+    renderStory(null);
+  }
+
+  function setMode(newMode) {
+    mode = newMode;
+    selectedIndex = null;
+    swapHint.style.display = 'none';
+    if (mode === 'A') {
+      modeAbtn.classList.add('active'); modeBbtn.classList.remove('active');
+      modeAButtons.style.display = 'block'; modeBButtons.style.display = 'none';
+      modeDesc.textContent = 'Tietokone arpoo jokaiselle nimelle roolin suoraan. Voit vielä vaihtaa pareja jälkikäteen napauttamalla.';
+      resultTitle.textContent = 'Miehistöluettelo';
+    } else {
+      modeAbtn.classList.remove('active'); modeBbtn.classList.add('active');
+      modeAButtons.style.display = 'none'; modeBButtons.style.display = 'block';
+      modeDesc.textContent = 'Tietokone arpoo vain sen, missä järjestyksessä oppilaat saavat valita. Jokainen valitsee vuorollaan itse mieleisensä roolin jäljellä olevista.';
+      resultTitle.textContent = 'Vuorot ja valinnat';
+    }
+    resetResultEmpty();
+  }
+
+  modeAbtn.addEventListener('click', function(){ setMode('A'); });
+  modeBbtn.addEventListener('click', function(){ setMode('B'); });
+
+  function renderRowsA(assignment, shuffling) {
+    const ul = document.createElement('ul');
+    ul.className = 'roster';
+    assignment.forEach(function(item, i) {
+      const li = document.createElement('li');
+      li.className = 'row';
+      li.innerHTML =
+        '<span class="idx">' + String(i + 1).padStart(2, '0') + '</span>' +
+        '<span class="role-name">' + item.role + '</span>' +
+        '<span class="arrow" aria-hidden="true">\u2192</span>' +
+        '<span class="student-name ' + (shuffling ? 'shuffling' : '') + '">' + item.name + '</span>';
+      if (!shuffling) {
+        li.tabIndex = 0;
+        li.setAttribute('role', 'button');
+        li.setAttribute('aria-label', 'Rooli ' + item.role + ', nimi ' + item.name + '. Napauta tai paina Enter vaihtaaksesi tämän nimen toisen rivin kanssa.');
+        li.addEventListener('click', function(){ onRowClickA(i); });
+        li.addEventListener('keydown', function(e){
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRowClickA(i); }
+        });
+        if (i === selectedIndex) {
+          li.classList.add('selected');
+          li.setAttribute('aria-pressed', 'true');
+        }
+      }
+      ul.appendChild(li);
+    });
+    resultArea.innerHTML = '';
+    resultArea.appendChild(ul);
+  }
+
+  function onRowClickA(i) {
+    if (selectedIndex === null) {
+      selectedIndex = i;
+    } else if (selectedIndex === i) {
+      selectedIndex = null;
+    } else {
+      const tmp = currentAssignment[selectedIndex].name;
+      currentAssignment[selectedIndex].name = currentAssignment[i].name;
+      currentAssignment[i].name = tmp;
+      selectedIndex = null;
+    }
+    renderRowsA(currentAssignment, false);
+    renderStoryFromMapA();
+  }
+
+  function renderStoryFromMapA() {
+    const map = {};
+    currentAssignment.forEach(function(item){ map[item.role] = item.name; });
+    renderStory(map);
+  }
+
+  function drawRoles() {
+    const names = getNames();
+    if (names.length === 0) return;
+    const usedRoleCount = Math.min(names.length, ROLES.length);
+    const chosenRoles = shuffle(ROLES).slice(0, usedRoleCount);
+    const shuffledNames = shuffle(names).slice(0, usedRoleCount);
+
+    selectedIndex = null;
+    drawBtn.disabled = true;
+    swapHint.style.display = 'none';
+
+    let ticks = 0;
+    const maxTicks = 14;
+    const interval = setInterval(function() {
+      const fakeAssignment = chosenRoles.map(function(role, idx){
+        return { role: role, name: shuffle(names)[idx % names.length] };
+      });
+      renderRowsA(fakeAssignment, true);
+      ticks++;
+      if (ticks >= maxTicks) {
+        clearInterval(interval);
+        currentAssignment = chosenRoles.map(function(role, idx){ return { role: role, name: capitalizeName(shuffledNames[idx]) }; });
+        renderRowsA(currentAssignment, false);
+        drawBtn.disabled = false;
+        reshuffleBtn.style.display = 'inline-block';
+        swapHint.style.display = 'block';
+        renderStoryFromMapA();
+        announceStatus('Roolit arvottu ' + currentAssignment.length + ' oppilaalle. Tarina ja elokuva ovat nyt valmiit.');
+      }
+    }, 70);
+  }
+
+  drawBtn.addEventListener('click', drawRoles);
+  reshuffleBtn.addEventListener('click', drawRoles);
+
+  function drawOrder() {
+    const names = getNames();
+    if (names.length === 0) return;
+    const usedCount = Math.min(names.length, ROLES.length);
+    queue = shuffle(names).slice(0, usedCount);
+    pickedRoles = {};
+    currentPickIdx = 0;
+    resetOrderBtn.style.display = 'inline-block';
+    renderModeB();
+    renderStory(null);
+  }
+
+  function renderModeB() {
+    resultArea.innerHTML = '';
+
+    const strip = document.createElement('div');
+    strip.className = 'queue-strip';
+    strip.setAttribute('aria-hidden', 'true');
+    queue.forEach(function(name, i) {
+      const chip = document.createElement('span');
+      chip.className = 'queue-chip' + (i === currentPickIdx ? ' current' : '') + (i < currentPickIdx ? ' done' : '');
+      chip.textContent = (i + 1) + '. ' + name;
+      strip.appendChild(chip);
+    });
+    resultArea.appendChild(strip);
+
+    if (currentPickIdx < queue.length) {
+      const banner = document.createElement('div');
+      banner.className = 'picker-banner';
+      banner.setAttribute('aria-live', 'polite');
+      banner.innerHTML = '<div class="label">Vuorossa</div><div class="name">' + queue[currentPickIdx] + '</div>';
+      resultArea.appendChild(banner);
+
+      const board = document.createElement('div');
+      board.className = 'role-board';
+      board.setAttribute('role', 'group');
+      board.setAttribute('aria-label', 'Valitse rooli oppilaalle ' + queue[currentPickIdx]);
+      const usedRoles = ROLES.slice(0, queue.length);
+      usedRoles.forEach(function(role) {
+        const takenBy = pickedRoles[role];
+        const pill = document.createElement('div');
+        pill.className = 'role-pill' + (takenBy ? ' taken' : '');
+        pill.innerHTML = takenBy ? (role + '<span class="taken-name">' + takenBy + '</span>') : role;
+        if (!takenBy) {
+          pill.tabIndex = 0;
+          pill.setAttribute('role', 'button');
+          pill.setAttribute('aria-label', 'Valitse rooli ' + role + ' oppilaalle ' + queue[currentPickIdx]);
+          const pick = function() {
+            pickedRoles[role] = capitalizeName(queue[currentPickIdx]);
+            currentPickIdx++;
+            renderModeB();
+            if (currentPickIdx >= queue.length) {
+              renderStory(pickedRoles);
+              announceStatus('Kaikki roolit valittu. Tarina ja elokuva ovat nyt valmiit.');
+            }
+          };
+          pill.addEventListener('click', pick);
+          pill.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); }
+          });
+        } else {
+          pill.setAttribute('aria-disabled', 'true');
+        }
+        board.appendChild(pill);
+      });
+      resultArea.appendChild(board);
+    } else {
+      const done = document.createElement('div');
+      done.style.textAlign = 'center'; done.style.padding = '6px 0 14px';
+      done.style.color = 'var(--brass-bright)'; done.style.fontFamily = "'Fraunces', serif"; done.style.fontSize = '15px';
+      done.textContent = 'Kaikki roolit valittu!';
+      resultArea.appendChild(done);
+
+      const ul = document.createElement('ul');
+      ul.className = 'roster';
+      const usedRoles = ROLES.slice(0, queue.length);
+      usedRoles.forEach(function(role, i) {
+        const li = document.createElement('li');
+        li.className = 'row'; li.style.cursor = 'default';
+        li.innerHTML =
+          '<span class="idx">' + String(i + 1).padStart(2, '0') + '</span>' +
+          '<span class="role-name">' + role + '</span>' +
+          '<span class="arrow">\u2192</span>' +
+          '<span class="student-name">' + pickedRoles[role] + '</span>';
+        ul.appendChild(li);
+      });
+      resultArea.appendChild(ul);
+    }
+  }
+
+  drawOrderBtn.addEventListener('click', drawOrder);
+  resetOrderBtn.addEventListener('click', drawOrder);
+
+  function printSection(kind) {
+    document.body.setAttribute('data-printing', kind);
+    window.print();
+  }
+  window.addEventListener('afterprint', function() {
+    document.body.removeAttribute('data-printing');
+  });
+
+  const WHEEL_MINI_SVG = '<svg class="wheel-mini" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">' +
+    '<circle cx="24" cy="24" r="19" stroke="#A97C34" stroke-width="2.4"/>' +
+    '<circle cx="24" cy="24" r="4.2" fill="#A97C34"/>' +
+    '<g stroke="#A97C34" stroke-width="2.4" stroke-linecap="round">' +
+    '<line x1="24" y1="5" x2="24" y2="12"/><line x1="24" y1="36" x2="24" y2="43"/>' +
+    '<line x1="5" y1="24" x2="12" y2="24"/><line x1="36" y1="24" x2="43" y2="24"/>' +
+    '<line x1="10.9" y1="10.9" x2="15.6" y2="15.6"/><line x1="32.4" y1="32.4" x2="37.1" y2="37.1"/>' +
+    '<line x1="10.9" y1="37.1" x2="15.6" y2="32.4"/><line x1="32.4" y1="15.6" x2="37.1" y2="10.9"/>' +
+    '</g></svg>';
+
+  function renderStaticCards() {
+    let html = '<div class="cards-grid">';
+    ROLES.forEach(function(role) {
+      html +=
+        '<div class="card">' +
+          WHEEL_MINI_SVG +
+          '<div class="card-eyebrow">Minä olin Toivonpurjeella</div>' +
+          '<div class="card-role">' + role + '</div>' +
+          '<div class="card-name">Nimi: <span class="name-blank">&nbsp;</span></div>' +
+        '</div>';
+    });
+    html += '</div>';
+    html += '<div class="cards-actions"><button onclick="printSection(\'cards\')">Tulosta muistokortit</button></div>';
+    cardsWrap.className = 'cards-wrap';
+    cardsWrap.innerHTML = html;
+  }
+
+  function renderScriptTemplate() {
+    const card = document.getElementById('scriptTemplateCard');
+    let html = '<div class="story-title">Laiva Toivonpurjeen matka</div>' +
+      '<div class="story-sub">Malliteksti — roolien nimet, ei oppilaiden nimiä</div>';
+    STORY_TEMPLATE.forEach(function(paragraph) {
+      const filled = paragraph.replace(/\{\{([^}]+)\}\}/g, function(_, role) {
+        return '<strong>' + role + '</strong>';
+      });
+      html += '<p>' + filled + '</p>';
+    });
+    card.innerHTML = html;
+  }
+
+  function renderStory(map) {
+    assignedMap = map;
+    renderMovieGate(map);
+    if (!map) {
+      storyCard.className = 'story-card locked';
+      storyCard.innerHTML = 'Tarina ilmestyy tähän automaattisesti, kun kaikki roolit on jaettu yllä olevassa työkalussa.';
+      return;
+    }
+    const usedRoles = Object.keys(map);
+    const allAssigned = usedRoles.length > 0 && usedRoles.every(function(r){ return map[r]; });
+    if (!allAssigned) {
+      storyCard.className = 'story-card locked';
+      storyCard.innerHTML = 'Tarina ilmestyy tähän, kun kaikki roolit on jaettu.';
+      return;
+    }
+    let html = '<div class="story-title">Laiva Toivonpurjeen matka</div>' +
+      '<div class="story-sub">Lue ääneen koko luokalle</div>';
+    STORY_TEMPLATE.forEach(function(paragraph) {
+      const filled = paragraph.replace(/\{\{([^}]+)\}\}/g, function(_, role) {
+        const name = map[role];
+        return '<strong>' + (name || role) + '</strong>';
+      });
+      html += '<p>' + filled + '</p>';
+    });
+    html += '<div class="story-actions"><button onclick="printSection(\'story\')">Tulosta tarina</button></div>';
+    storyCard.className = 'story-card';
+    storyCard.innerHTML = html;
+  }
+
+
+  function renderRoleTable() {
+    const tbody = document.getElementById('roleTableBody');
+    ROLE_DEFS.forEach(function(def, i) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + (i + 1) + '</td><td class="role">' + def[0] + '</td><td>' + def[1] + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  namesInput.addEventListener('input', updateCounts);
+  updateCounts();
+  renderRoleTable();
+  renderStaticCards();
+  renderScriptTemplate();
+
+  const bgToggleLink = document.getElementById('bgToggleLink');
+  const bgTogglePanel = document.getElementById('bgTogglePanel');
+  bgToggleLink.addEventListener('click', function() {
+    const open = bgTogglePanel.classList.toggle('open');
+    bgToggleLink.textContent = open ? 'Roolit ja käsikirjoitus ▴' : 'Roolit ja käsikirjoitus ▾';
+    bgToggleLink.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  const cardsToggleLink = document.getElementById('cardsToggleLink');
+  const cardsTogglePanel = document.getElementById('cardsTogglePanel');
+  cardsToggleLink.addEventListener('click', function() {
+    const open = cardsTogglePanel.classList.toggle('open');
+    cardsToggleLink.textContent = open ? 'Näytä muistokortit ▴' : 'Näytä muistokortit ▾';
+    cardsToggleLink.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  /* ================= ELOKUVA (Vaihe 4) ================= */
+  const SCENES = [
+    { time: "dawn", text: "Eräänä aamuna satamassa kimalteli aurinko, kun laiva nimeltä Toivonpurje valmistautui lähtemään merille. Koko miehistö oli koolla kannella, jännittyneenä ja innoissaan tulevasta seikkailusta." },
+    { time: "day", role: "Kapteeni", text: "Laivan komennossa seisoi {{Kapteeni}}, jonka rauhallinen ja luotettava olemus sai koko miehistön tuntemaan olonsa turvalliseksi. \u201dTänään lähdemme etsimään kadonnutta aarrekarttaa – mutta tärkeintä on, että pidämme huolta toisistamme matkalla\u201d, kapteeni julisti." },
+    { time: "day", role: "Perämies", text: "Vieressä seisoi {{Perämies}}, joka oli kapteenin luotettavin apulainen ja piti langat käsissään aina, kun jotain piti järjestää nopeasti." },
+    { time: "day", role: "Navigaattori", text: "{{Navigaattori}} levitti ison kartan pöydälle ja alkoi laskea reittiä. Ilman häntä laiva olisi voinut eksyä aivan väärään suuntaan, mutta hänen tarkkuutensa ansiosta kurssi oli aina selvä." },
+    { time: "day", role: "Tähystäjä", text: "Mastossa korkealla istui {{Tähystäjä}}, jonka terävät silmät huomasivat asioita, joita kukaan muu ei olisi huomannut. \u201dNäen linnun taivaalla – se tietää hyvää säätä!\u201d hän huusi alas." },
+    { time: "day", role: "Kokki", text: "Keittiöstä kantautui herkullinen tuoksu, kun {{Kokki}} ja hänen luotettava apulaisensa {{Kokin apulainen}} valmistivat aamiaista koko miehistölle. Ilman heidän taikojaan kukaan ei olisi jaksanut soutaa pitkää matkaa." },
+    { time: "day", role: "Laivalääkäri", text: "Kun yksi merimiehistä satutti sormensa köyteen, paikalle riensi heti {{Laivalääkäri}}, joka osasi aina lohduttaa ja auttaa, kun jotakuta sattui." },
+    { time: "day", role: "Purjemestari", text: "{{Purjemestari}} kiipesi ketterästi purjeiden luo ja säätti ne tuulen mukaan täydellisesti, jotta laiva kulkisi nopeasti mutta turvallisesti." },
+    { time: "day", role: "Köysimestari", text: "{{Köysimestari}} varmisti, että jokainen solmu piti – hänen taitonsa pitivät koko laivan kasassa, kirjaimellisesti." },
+    { time: "day", role: "Ankkurinvartija", text: "Kun oli aika pysähtyä, {{Ankkurinvartija}} laski ankkurin mereen juuri oikealla hetkellä, tarkasti ja varmasti." },
+    { time: "day", role: "Kannen kapteeni", text: "{{Kannen kapteeni}} piti huolen siitä, että kansi pysyi siistinä ja turvallisena kulkea – kukaan ei kompastunut, kun hän oli hommissa." },
+    { time: "day", role: "Karttamestari", text: "{{Karttamestari}} piirsi uusia karttoja jokaisesta uudesta saaresta, jonka he löysivät, jotta tulevatkin matkustajat löytäisivät perille." },
+    { time: "day", role: "Säätieteilijä", text: "Kun taivaalle alkoi kerääntyä pilviä, {{Säätieteilijä}} tarkkaili tuulta ja pilviä ja osasi ennustaa, milloin oli aika hakea sadetakit esiin." },
+    { time: "evening", role: "Aarrekartan vartija", text: "Syvällä laivan ruumassa {{Aarrekartan vartija}} piti huolta tärkeimmästä esineestä koko matkalla – vanhasta, arvokkaasta kartasta, joka johtaisi heidät aarteen luo." },
+    { time: "evening", role: "Soittoniekka", text: "Illalla, kun aurinko laski, {{Soittoniekka}} otti esiin soittimensa ja soitti iloisia sävelmiä, jotka saivat koko miehistön hymyilemään väsymyksestä huolimatta." },
+    { time: "evening", role: "Tarinankertoja", text: "{{Tarinankertoja}} kokosi väen ympärilleen ja kertoi jännittäviä tarinoita menneistä matkoista – hänen sanoillaan oli taika, joka sai kaikki unohtamaan pelot." },
+    { time: "night", role: "Majakanvahti", text: "Kaukana rannikolla loisti majakka, jota valvoi {{Majakanvahti}}. Hänen valonsa näytti Toivonpurjeelle turvallisen reitin pimeässä yössä." },
+    { time: "night", role: "Kalastaja", text: "{{Kalastaja}} heitti verkkonsa mereen ja toi laivalle tuoretta kalaa, josta riitti ruokaa koko miehistölle." },
+    { time: "night", role: "Yövahti", text: "Kun yö saapui, {{Yövahti}} valvoi hereillä, kun muut nukkuivat, ja piti huolen siitä, että kaikki olivat turvassa aamuun asti." },
+    { time: "night", role: "Ilonpitäjä", text: "Vaikka matka oli välillä raskas, {{Ilonpitäjä}} keksi aina jonkin pelin tai laulun, joka sai koko miehistön nauramaan ja jaksamaan eteenpäin." },
+    { time: "night", role: "Varastonhoitaja", text: "{{Varastonhoitaja}} piti tarkkaa kirjaa siitä, mitä laivassa oli – ruokaa, vettä ja tarvikkeita riitti aina, koska hän suunnitteli kaiken huolella." },
+    { time: "storm", role: "Ensiapuvastaava", text: "Kun joku miehistöstä pelästyi ukkosta, {{Ensiapuvastaava}} oli aina paikalla lohduttamassa ja rauhoittamassa." },
+    { time: "dawn", role: "Lippumestari", text: "{{Lippumestari}} nosti laivan lipun mastoon joka aamu ylpeänä – se muistutti kaikkia siitä, että he olivat yhtä joukkuetta." },
+    { time: "day", role: "Rohkeuden airut", text: "Kun matka tuntui pitkältä ja väsyttävältä, {{Rohkeuden airut}} muistutti kaikkia: \u201dMe pystymme tähän yhdessä!\u201d Ja hänen sanansa antoivat voimaa jatkaa." },
+    { time: "day", role: "Kunniavieras", text: "Ja mukana matkalla oli myös {{Kunniavieras}}, jonka läsnäolo toi laivalle onnea – kaikki olivat iloisia, että juuri hän oli mukana tällä seikkailulla." },
+    { time: "day", text: "Monen päivän purjehtimisen jälkeen, kun aurinko paistoi kirkkaana taivaalla, Toivonpurjeen miehistö näki vihdoin edessään saaren, jonne kartta johti. Yhdessä – jokainen omalla taidollaan ja panoksellaan – he olivat selvinneet matkasta ja löytäneet sen, mitä etsivät: ei vain aarteen, vaan myös sen, että he olivat nyt aidosti yksi vahva joukkue." },
+    { time: "dawn", text: "Ja niin Toivonpurjeen miehistö purjehti kohti seuraavaa seikkailua – tietäen, että mikään ei olisi mahdotonta, kun he tekivät sen yhdessä." }
+  ];
+
+  const movieGate = document.getElementById('movieGate');
+  const movieOverlay = document.getElementById('movieOverlay');
+  const closeMovieBtn = document.getElementById('closeMovieBtn');
+  const titlecard = document.getElementById('titlecard');
+  const titleStartBtn = document.getElementById('titleStartBtn');
+  const sceneStage = document.getElementById('sceneStage');
+  const hud = document.getElementById('hud');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const hudCounter = document.getElementById('hudCounter');
+  const creditsWrap = document.getElementById('creditsWrap');
+  const creditsRoll = document.getElementById('creditsRoll');
+  const endcard = document.getElementById('endcard');
+  const replayBtn = document.getElementById('replayBtn');
+  const closeEndBtn = document.getElementById('closeEndBtn');
+
+  let movieIdx = 0;
+
+  function renderMovieGate(map) {
+    const usedRoles = map ? Object.keys(map) : [];
+    const allAssigned = map && usedRoles.length > 0 && usedRoles.every(function(r){ return map[r]; });
+    if (!allAssigned) {
+      movieGate.className = 'movie-gate locked';
+      movieGate.innerHTML = 'Elokuva avautuu tähän, kun kaikki roolit on jaettu yllä olevassa työkalussa.';
+      return;
+    }
+    movieGate.className = 'movie-gate-ready';
+    movieGate.innerHTML = '<p>Roolit on jaettu — elokuva on valmis katsottavaksi.</p><button id="openMovieBtn">▶ Avaa elokuva</button>';
+    document.getElementById('openMovieBtn').addEventListener('click', openMovie);
+  }
+
+  function openMovie() {
+    movieOverlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    movieIdx = 0;
+    titlecard.classList.remove('fading');
+    titlecard.style.display = 'flex';
+    sceneStage.style.display = 'none';
+    hud.style.display = 'none';
+    creditsWrap.classList.remove('active');
+    endcard.classList.remove('active');
+  }
+
+  function closeMovie() {
+    movieOverlay.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  closeMovieBtn.addEventListener('click', closeMovie);
+  closeEndBtn.addEventListener('click', closeMovie);
+
+  titleStartBtn.addEventListener('click', function() {
+    titlecard.classList.add('fading');
+    setTimeout(function() {
+      titlecard.style.display = 'none';
+      sceneStage.style.display = 'block';
+      hud.style.display = 'flex';
+      movieIdx = 0;
+      showMovieScene(0);
+    }, 500);
+  });
+
+  function buildWaveSVG(extraClass) {
+    return '<svg class="wave-layer wave-anim ' + (extraClass||'') + '" viewBox="0 0 2000 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">' +
+      '<path d="M0,150 C 250,220 450,80 700,150 C 950,220 1150,80 1400,150 C 1650,220 1850,80 2000,150 L2000,300 L0,300 Z"/></svg>';
+  }
+
+  function starsMarkup() {
+    let out = '';
+    for (let i = 0; i < 40; i++) {
+      const top = Math.random() * 90;
+      const left = Math.random() * 100;
+      const delay = (Math.random() * 2.6).toFixed(2);
+      out += '<span class="star" style="top:' + top + '%; left:' + left + '%; animation-delay:' + delay + 's;"></span>';
+    }
+    return out;
+  }
+
+  function captionLengthClass(text) {
+    const words = text.replace(/\{\{[^}]+\}\}/g, function(_, r){ return r; }).split(/\s+/).length;
+    if (words > 34) return 'xlong';
+    if (words > 22) return 'long';
+    return '';
+  }
+
+  function renderMovieCaption(scene) {
+    if (scene.role) {
+      return scene.text.replace(/\{\{([^}]+)\}\}/g, function(_, r) {
+        const n = (assignedMap && assignedMap[r]) || r;
+        return '<strong>' + n + '</strong>';
+      });
+    }
+    return scene.text;
+  }
+
+  const KEN_BURNS = [
+    { from: 'scale(1.08) translate(1%, 0%)',  to: 'scale(1)    translate(0%, -1.5%)' },
+    { from: 'scale(1)    translate(-1%, 1%)', to: 'scale(1.1)  translate(1.5%, -1%)' },
+    { from: 'scale(1.1)  translate(-2%, -1%)',to: 'scale(1)    translate(1.5%, 1%)'  },
+    { from: 'scale(1)    translate(2%, -1%)', to: 'scale(1.08) translate(-2%, 1%)'   },
+    { from: 'scale(1.06) translate(0%, 1%)',  to: 'scale(1)    translate(-1.5%, -1%)'}
+  ];
+
+  const SHIP_LAYOUTS = [
+    { left: '50%', bottom: '30%', scale: 1.00 },
+    { left: '36%', bottom: '25%', scale: 0.88 },
+    { left: '64%', bottom: '34%', scale: 1.08 },
+    { left: '50%', bottom: '20%', scale: 0.82 },
+    { left: '44%', bottom: '33%', scale: 1.16 },
+    { left: '58%', bottom: '27%', scale: 0.95 }
+  ];
+
+  function shipSVG() {
+    return '<img class="ship" src="../images/purjelaiva_siniset_aallot.png" alt="" aria-hidden="true">';
+  }
+
+  function showMovieScene(i) {
+    if (i >= SCENES.length) { showMovieCredits(); return; }
+    const scene = SCENES[i];
+    const layout = SHIP_LAYOUTS[i % SHIP_LAYOUTS.length];
+    const kb = KEN_BURNS[i % KEN_BURNS.length];
+
+    const el = document.createElement('div');
+    el.className = 'scene';
+    el.dataset.time = scene.time;
+    el.innerHTML =
+      '<div class="parallax">' +
+        '<div class="sky"></div>' +
+        '<div class="stars">' + (scene.time === 'night' || scene.time === 'storm' ? starsMarkup() : '') + '</div>' +
+        '<div class="celestial"></div>' +
+        (scene.time === 'storm' ? '<div class="lightning"></div>' : '') +
+        '<div class="sea">' + buildWaveSVG('') + buildWaveSVG('w2') + '</div>' +
+        '<div class="ship-wrap" style="left:' + layout.left + '; bottom:' + layout.bottom + '; transform:translate(-50%,0) scale(' + layout.scale + ');">' + shipSVG() + '</div>' +
+      '</div>' +
+      (scene.role ? '<div class="spotlight"><div class="icon-circle">' + scene.role.charAt(0) + '</div><div class="role-label">' + scene.role + '</div></div>' : '') +
+      '<div class="caption-bar"><div class="caption-text ' + captionLengthClass(scene.text) + '">' + renderMovieCaption(scene) + '</div></div>';
+
+    sceneStage.querySelectorAll('.scene').forEach(function(s){ s.remove(); });
+    sceneStage.appendChild(el);
+
+    const px = el.querySelector('.parallax');
+    px.style.setProperty('--kb-from', kb.from);
+    px.style.setProperty('--kb-to', kb.to);
+
+    requestAnimationFrame(function() { el.classList.add('active'); });
+
+    hudCounter.textContent = 'KOHTAUS ' + (i + 1) + '/' + SCENES.length;
+    prevBtn.disabled = (i === 0);
+    nextBtn.textContent = (i === SCENES.length - 1) ? 'Lopputekstit ▶' : 'Jatka ▶';
+  }
+
+  nextBtn.addEventListener('click', function() {
+    movieIdx++;
+    showMovieScene(movieIdx);
+  });
+
+  prevBtn.addEventListener('click', function() {
+    if (movieIdx > 0) {
+      movieIdx--;
+      showMovieScene(movieIdx);
+    }
+  });
+
+  function showMovieCredits() {
+    hud.style.display = 'none';
+    sceneStage.style.display = 'none';
+    creditsWrap.classList.add('active');
+
+    let html = '<h2>MIEHISTÖ</h2>';
+    ROLES.forEach(function(role) {
+      if (assignedMap && assignedMap[role]) {
+        html += '<div class="credits-line">' + role + ' — <b>' + assignedMap[role] + '</b></div>';
+      }
+    });
+    creditsRoll.innerHTML = html;
+
+    const lineCount = (assignedMap ? Object.keys(assignedMap).length : 0) + 1;
+    const duration = Math.min(20000, Math.max(9000, lineCount * 850));
+    creditsRoll.style.animationDuration = duration + 'ms';
+
+    setTimeout(function() {
+      creditsWrap.classList.remove('active');
+      endcard.classList.add('active');
+    }, duration + 400);
+  }
+
+  replayBtn.addEventListener('click', function() {
+    endcard.classList.remove('active');
+    sceneStage.style.display = 'block';
+    hud.style.display = 'flex';
+    movieIdx = 0;
+    showMovieScene(0);
+  });
+</script>
+
+</body>
+</html>
