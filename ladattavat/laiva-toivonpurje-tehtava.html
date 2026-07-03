@@ -356,6 +356,10 @@
     text-transform: uppercase; color: var(--teal);
   }
   .card .card-role { font-family: 'Fraunces', serif; font-weight: 700; font-size: 18px; color: var(--navy); margin: 3px 0 2px; }
+  .card .card-motto {
+    font-family: 'Fraunces', serif; font-style: italic; font-size: 12px; color: var(--teal);
+    line-height: 1.4; margin: 2px 0 10px; padding: 0 4px;
+  }
   .card .card-name { font-family: 'Archivo', sans-serif; font-size: 13.5px; color: #4a4436; }
   .card .card-name b { color: var(--navy); }
   .card .name-blank {
@@ -1145,6 +1149,34 @@ Onni"></textarea>
     '<line x1="10.9" y1="37.1" x2="15.6" y2="32.4"/><line x1="32.4" y1="15.6" x2="37.1" y2="10.9"/>' +
     '</g></svg>';
 
+  const ROLE_MOTTOS = {
+    "Kapteeni": "Rauhallisuus tarttuu – näytät suuntaa muille.",
+    "Perämies": "Luotettava käsi on aina lähellä.",
+    "Navigaattori": "Tarkkuutesi pitää kaikki oikealla kurssilla.",
+    "Tähystäjä": "Huomaat sen, minkä muut ohittavat.",
+    "Kokki": "Hyvä ruoka pitää koko miehistön yhdessä.",
+    "Kokin apulainen": "Pienikin apu on suuri apu.",
+    "Laivalääkäri": "Lohdutus parantaa yhtä paljon kuin laastari.",
+    "Purjemestari": "Osaat säätää suunnan, kun tuuli vaihtuu.",
+    "Köysimestari": "Pidät langat käsissäsi – kirjaimellisesti.",
+    "Ankkurinvartija": "Tiedät, milloin on aika pysähtyä.",
+    "Kannen kapteeni": "Järjestys syntyy pienistä teoista.",
+    "Karttamestari": "Piirrät polun, jota muut voivat seurata.",
+    "Säätieteilijä": "Näet muutokset ennen kuin ne tapahtuvat.",
+    "Aarrekartan vartija": "Jotkin asiat kannattaa pitää turvassa.",
+    "Soittoniekka": "Musiikkisi tuo hymyn väsyneellekin.",
+    "Tarinankertoja": "Sanoillasi on voima rohkaista.",
+    "Majakanvahti": "Valosi näkyy pimeässäkin.",
+    "Kalastaja": "Kärsivällisyys tuo aina palkkion.",
+    "Yövahti": "Muiden turva nukkuu, koska sinä valvot.",
+    "Ilonpitäjä": "Nauru kantaa pitkän matkan.",
+    "Varastonhoitaja": "Hyvä suunnittelu näkyy vasta kun sitä tarvitaan.",
+    "Ensiapuvastaava": "Rauhallinen ääni voi olla parasta apua.",
+    "Lippumestari": "Ylpeys näkyy pienissäkin eleissä.",
+    "Rohkeuden airut": "Sanasi antavat muille voimaa jatkaa.",
+    "Kunniavieras": "Läsnäolosi itsessään on lahja."
+  };
+
   function renderStaticCards() {
     let html = '<div class="cards-grid">';
     ROLES.forEach(function(role) {
@@ -1153,6 +1185,7 @@ Onni"></textarea>
           WHEEL_MINI_SVG +
           '<div class="card-eyebrow">Minä olin Toivonpurjeella</div>' +
           '<div class="card-role">' + role + '</div>' +
+          '<div class="card-motto">\u201d' + ROLE_MOTTOS[role] + '\u201d</div>' +
           '<div class="card-name">Nimi: <span class="name-blank">&nbsp;</span></div>' +
         '</div>';
     });
