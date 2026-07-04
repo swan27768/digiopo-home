@@ -160,8 +160,26 @@ async function laheta_sahkoposti(to, subject, html, attachments = []) {
     body: JSON.stringify(payload),
   });
   if (!vastaus.ok) {
-    // Kirjataan virhe mutta ei kaada tilausta – lisenssi on jo luotu
-    console.error('Resend-virhe:', await vastaus.text());
+    // HUOM: heitetään poikkeus (ei vain kirjata console.erroriin) – ilman tätä
+    // Promise.allSettled näkisi lähetyksen "onnistuneena" vaikka Resend palautti
+    // virheen, eikä epäonnistuminen näkyisi missään (ei edes api_virheet-taulussa).
+    const teksti = await vastaus.text();
+    throw new Error(`Resend-virhe (${vastaus.status}) vastaanottajalle ${to}, aihe "${subject}": ${teksti}`);
+  }
+}
+
+// Ajaa sähköpostien lähetykset rinnakkain (yksi epäonnistunut ei estä muita),
+// mutta kirjaa jokaisen epäonnistumisen api_virheet-tauluun sen sijaan että
+// se katoaisi hiljaa Promise.allSettled-kutsun sisään. Tilaus/lisenssi on jo
+// tallennettu tässä vaiheessa, joten sähköpostivirhe ei koskaan estä vastausta
+// asiakkaalle – mutta se pitää silti näkyä admin-paneelissa.
+async function laheta_sahkopostit_ja_kirjaa(endpoint, lisatiedot, emailPromiset) {
+  const tulokset = await Promise.allSettled(emailPromiset);
+  for (const tulos of tulokset) {
+    if (tulos.status === 'rejected') {
+      console.error(`${endpoint} – sähköpostin lähetys epäonnistui:`, tulos.reason?.message || tulos.reason);
+      await kirjaaVirhe(endpoint, tulos.reason, lisatiedot);
+    }
   }
 }
 
@@ -485,11 +503,15 @@ export default async function handler(req, res) {
     }
 
     const tilausData = { etunimi, sukunimi, email: emailNorm, puhelin, koulu, kunta, oppilasmaara, tilaustyyppi, lisenssikausi, lisatiedot };
-    await Promise.allSettled([
-      laheta_sahkoposti(emailNorm, 'DigiOpo – opettajalisenssisi on aktivoitu', sahkoposti_opettajalle(etunimi, emailNorm, voimassa_asti)),
-      laheta_sahkoposti(emailNorm, `DigiOpo – lasku nro ${String(laskunumero).slice(0,4)}-${String(laskunumero).slice(4)}`, sahkoposti_lasku(tilausData, hintatiedot, laskunumero, erapaiva)),
-      ADMIN_EMAIL && laheta_sahkoposti(ADMIN_EMAIL, `Uusi DigiOpo-tilaus: ${koulu}`, sahkoposti_adminille(tilausData, '(opettajalisenssi – ei koodia)', voimassa_asti, hintatiedot)),
-    ]);
+    await laheta_sahkopostit_ja_kirjaa(
+      'tilaus opettajalisenssi sahkoposti',
+      { koulu, email: emailNorm, tilaustyyppi },
+      [
+        laheta_sahkoposti(emailNorm, 'DigiOpo – opettajalisenssisi on aktivoitu', sahkoposti_opettajalle(etunimi, emailNorm, voimassa_asti)),
+        laheta_sahkoposti(emailNorm, `DigiOpo – lasku nro ${String(laskunumero).slice(0,4)}-${String(laskunumero).slice(4)}`, sahkoposti_lasku(tilausData, hintatiedot, laskunumero, erapaiva)),
+        ADMIN_EMAIL && laheta_sahkoposti(ADMIN_EMAIL, `Uusi DigiOpo-tilaus: ${koulu}`, sahkoposti_adminille(tilausData, '(opettajalisenssi – ei koodia)', voimassa_asti, hintatiedot)),
+      ]
+    );
   } else {
     // Koululisenssi: generoidaan jaettava koodi, yritetään 3 kertaa törmäyksen varalta
     for (let yritys = 0; yritys < 3; yritys++) {
@@ -519,11 +541,15 @@ export default async function handler(req, res) {
     const pdfLiite = pdfB64
       ? [{ filename: 'DigiOpo_opettajan_pikaohjeet.pdf', content: pdfB64 }]
       : [];
-    await Promise.allSettled([
-      laheta_sahkoposti(emailNorm, 'DigiOpo – koulukoodisi on valmis', sahkoposti_koululle(etunimi, koodi, voimassa_asti), pdfLiite),
-      laheta_sahkoposti(emailNorm, `DigiOpo – lasku nro ${String(laskunumero).slice(0,4)}-${String(laskunumero).slice(4)}`, sahkoposti_lasku(tilausData, hintatiedot, laskunumero, erapaiva)),
-      ADMIN_EMAIL && laheta_sahkoposti(ADMIN_EMAIL, `Uusi DigiOpo-tilaus: ${koulu}`, sahkoposti_adminille(tilausData, koodi, voimassa_asti, hintatiedot)),
-    ]);
+    await laheta_sahkopostit_ja_kirjaa(
+      'tilaus koululisenssi sahkoposti',
+      { koulu, email: emailNorm, koodi, tilaustyyppi },
+      [
+        laheta_sahkoposti(emailNorm, 'DigiOpo – koulukoodisi on valmis', sahkoposti_koululle(etunimi, koodi, voimassa_asti), pdfLiite),
+        laheta_sahkoposti(emailNorm, `DigiOpo – lasku nro ${String(laskunumero).slice(0,4)}-${String(laskunumero).slice(4)}`, sahkoposti_lasku(tilausData, hintatiedot, laskunumero, erapaiva)),
+        ADMIN_EMAIL && laheta_sahkoposti(ADMIN_EMAIL, `Uusi DigiOpo-tilaus: ${koulu}`, sahkoposti_adminille(tilausData, koodi, voimassa_asti, hintatiedot)),
+      ]
+    );
   }
 
   return res.status(200).json({ ok: true });
