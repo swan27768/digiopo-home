@@ -1,0 +1,7 @@
+admin-paneeli.html
+
+# Ympäristömuuttujat (salaisuudet)
+.env
+.env.*
+node_modules/
+.DS_Store

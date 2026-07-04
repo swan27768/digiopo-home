@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { kirjaaVirhe } from './_lib/virhelogi.js';
 
 // DigiOpo – Tilausten automaattinen käsittely
 // POST /api/tilaus
@@ -479,6 +480,7 @@ export default async function handler(req, res) {
       });
     } catch (err) {
       console.error('Supabase insert epäonnistui:', err.message);
+      await kirjaaVirhe('tilaus opettajalisenssi', err, { koulu, email: emailNorm });
       return res.status(500).json({ ok: false, virhe: 'Palvelinvirhe – yritä uudelleen' });
     }
 
@@ -506,6 +508,7 @@ export default async function handler(req, res) {
       } catch (err) {
         if (yritys === 2) {
           console.error('Supabase insert epäonnistui:', err.message);
+          await kirjaaVirhe('tilaus koululisenssi', err, { koulu, email: emailNorm });
           return res.status(500).json({ ok: false, virhe: 'Palvelinvirhe – yritä uudelleen' });
         }
       }
