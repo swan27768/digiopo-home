@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<title>SIX–SEVEN – oppilaanohjauksen hupitehtävä</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --orange-deco:#ff7a1a;     /* koristeväri, ei tekstin päällä */
+    --orange-text:#a8480a;     /* tummempi, riittävä kontrasti valkoisella tekstillä */
+    --dark:#1b1b2f;
+    --green-deco:#3bb273;
+    --green-text:#1e7a49;      /* tummempi vihreä, riittävä kontrasti */
+    --purple-text:#5d4488;     /* tummempi violetti, riittävä kontrasti */
+    --red-text:#a8283c;        /* tummempi punainen, riittävä kontrasti */
+    --paper:#fffdf7;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', Arial, sans-serif;
+    background:var(--paper);
+    color:var(--dark);
+    line-height:1.65;
+    font-size:18px;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:0 20px 60px;}
+
+  /* Näytön lukijoille tarkoitettu, visuaalisesti piilotettu teksti */
+  .sr-only{
+    position:absolute;
+    width:1px;height:1px;
+    padding:0;margin:-1px;
+    overflow:hidden;
+    clip:rect(0,0,0,0);
+    white-space:nowrap;
+    border:0;
+  }
+
+  /* Ohita valikko / siirry suoraan sisältöön -linkki */
+  .skip-link{
+    position:absolute;
+    left:-999px;
+    top:0;
+    background:var(--dark);
+    color:#fff;
+    padding:12px 18px;
+    z-index:200;
+    border-radius:0 0 8px 0;
+    font-weight:600;
+  }
+  .skip-link:focus{
+    left:0;
+  }
+
+  header{
+    background:var(--dark);
+    color:#fff;
+    padding:50px 20px 40px;
+    text-align:center;
+    border-bottom:8px solid var(--orange-deco);
+  }
+  header h1{
+    font-size:3rem;
+    margin:0 0 6px;
+    letter-spacing:2px;
+  }
+  header h1 .accent{color:#ffb347;}
+  header .hand{
+    display:inline-block;
+    font-size:3rem;
+    animation:wobble 1.4s ease-in-out infinite;
+  }
+  @keyframes wobble{
+    0%,100%{transform:translateY(0) rotate(-8deg);}
+    50%{transform:translateY(-14px) rotate(8deg);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    header .hand{animation:none;}
+  }
+  header p.sub{font-size:1.15rem;margin:10px 0 0;}
+
+  h2{
+    color:var(--dark);
+    border-bottom:4px solid var(--orange-deco);
+    display:inline-block;
+    padding-bottom:4px;
+    margin-top:50px;
+  }
+  h3{margin-top:0;}
+
+  .card{
+    background:#fff;
+    border:2px solid #ddd;
+    border-radius:14px;
+    padding:22px 26px;
+    margin:18px 0;
+    box-shadow:0 4px 14px rgba(0,0,0,.06);
+  }
+  .fact{border-left:6px solid var(--green-deco);}
+  .why{border-left:6px solid var(--purple-text);}
+  .task-card{
+    border:2px dashed var(--orange-text);
+    background:#fff8f0;
+  }
+  .task-card h3{color:var(--orange-text);}
+
+  .badge{
+    display:inline-block;
+    background:var(--dark);
+    color:#fff;
+    font-size:.85rem;
+    padding:3px 10px;
+    border-radius:20px;
+    margin-bottom:10px;
+  }
+
+  .timeline{list-style:disc;padding-left:22px;margin:0;}
+  .timeline li{margin-bottom:10px;}
+
+  .steps{
+    list-style:none;
+    padding:0;
+    margin:20px 0 0;
+    counter-reset:stepcounter;
+  }
+  .steps li{
+    display:flex;
+    align-items:flex-start;
+    gap:16px;
+    margin-bottom:18px;
+    counter-increment:stepcounter;
+  }
+  .steps li::before{
+    content:counter(stepcounter);
+    flex-shrink:0;
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    background:var(--orange-text);
+    color:#fff;
+    font-weight:700;
+    font-size:1.1rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .steps .step-text{padding-top:4px;}
+
+  p, li{max-width:70ch;}
+
+  button{
+    font-family:inherit;
+    font-size:1rem;
+    font-weight:600;
+    cursor:pointer;
+    border:2px solid transparent;
+    border-radius:10px;
+    padding:10px 18px;
+    background:var(--orange-text);
+    color:#fff;
+    margin:6px 6px 0 0;
+  }
+  button.secondary{background:var(--purple-text);}
+  button.correct{background:var(--green-text)!important;}
+  button.wrong{background:var(--red-text)!important;}
+  button:disabled{cursor:default;opacity:.9;}
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible{
+    outline:3px solid #000;
+    outline-offset:2px;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="date"]{
+    padding:9px 12px;
+    border-radius:8px;
+    border:2px solid #999;
+    font-family:inherit;
+    font-size:1rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference){
+    button:hover:not(:disabled){transform:translateY(-2px);}
+  }
+
+  .quiz-q{margin-bottom:26px;}
+  .quiz-q p.q{font-weight:600;margin-bottom:8px;}
+  .quiz-feedback{
+    margin-top:8px;
+    font-weight:600;
+    min-height:22px;
+  }
+
+  label{display:block;font-weight:600;margin-bottom:8px;}
+
+  .task-card h4{
+    margin:20px 0 6px;
+    color:var(--dark);
+    font-size:1.05rem;
+  }
+
+  textarea{
+    width:100%;
+    min-height:70px;
+    border-radius:10px;
+    border:2px solid #999;
+    padding:10px;
+    font-family:inherit;
+    font-size:1rem;
+    resize:vertical;
+  }
+
+  .score-table{width:100%;border-collapse:collapse;margin-top:12px;}
+  .score-table caption{
+    text-align:left;
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .score-table td, .score-table th{
+    border:2px solid #ccc;
+    padding:10px;
+    text-align:left;
+  }
+  .score-table th{background:var(--dark);color:#fff;}
+
+  .noscript-box{
+    border:2px solid var(--red-text);
+    background:#fff4f4;
+    padding:16px 20px;
+    border-radius:10px;
+    margin:16px 0;
+  }
+
+  .code-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:14px;
+    margin-top:16px;
+  }
+  .code-card{
+    border:2px solid var(--dark);
+    border-radius:12px;
+    padding:14px 16px;
+    background:#fff;
+  }
+  .code-card p{margin:0;max-width:none;}
+  .code-letter{
+    display:inline-block;
+    background:var(--dark);
+    color:#fff;
+    font-weight:700;
+    border-radius:50%;
+    width:32px;
+    height:32px;
+    line-height:32px;
+    text-align:center;
+    margin-bottom:8px;
+  }
+
+  .group-tool textarea{min-height:120px;}
+  .group-results{margin-top:16px;}
+  .group-card{
+    border:2px solid var(--green-text);
+    border-radius:10px;
+    padding:12px 16px;
+    margin-bottom:10px;
+    background:#f5fff8;
+  }
+  .group-card h4{margin:0 0 6px;color:var(--green-text);}
+  .group-card p{margin:0;max-width:none;}
+
+  .teacher-toggle{
+    border:2px dashed var(--dark);
+    border-radius:14px;
+    padding:16px 20px;
+    margin:30px 0;
+    background:#fff;
+  }
+  .teacher-toggle summary{
+    cursor:pointer;
+    font-weight:700;
+    font-size:1.15rem;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    padding:4px 0;
+  }
+  .teacher-toggle summary::marker{color:var(--dark);}
+  .teacher-toggle summary .hand-icon{
+    font-size:1.4rem;
+    display:inline-block;
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .teacher-toggle summary:hover .hand-icon,
+    .teacher-toggle summary:focus-visible .hand-icon{
+      animation:wobble 1.2s ease-in-out infinite;
+    }
+  }
+  .teacher-toggle summary .meme-text{
+    color:var(--orange-text);
+    letter-spacing:1px;
+  }
+  .teacher-toggle summary .teacher-tag{
+    background:var(--dark);
+    color:#fff;
+    font-size:.72rem;
+    font-weight:700;
+    letter-spacing:.5px;
+    padding:4px 10px;
+    border-radius:20px;
+    text-transform:uppercase;
+  }
+  .teacher-toggle summary:focus-visible{
+    outline:3px solid #000;
+    outline-offset:4px;
+    border-radius:6px;
+  }
+  .teacher-content{margin-top:22px;}
+
+  footer{
+    font-size:.95rem;
+    color:#555;
+    margin-top:50px;
+    padding-top:20px;
+    border-top:2px solid #ddd;
+  }
+
+  .diploma{
+    border:6px double var(--dark);
+    border-radius:16px;
+    padding:40px 30px;
+    text-align:center;
+    background:linear-gradient(135deg,#fff8ec,#ffffff);
+    margin:20px 0;
+  }
+  .diploma p{max-width:none;margin:0 0 10px;}
+  .diploma-hands{font-size:2.4rem;}
+  .diploma-kicker{color:#555;}
+  .diploma-name{
+    font-size:1.8rem;
+    font-weight:700;
+    color:var(--dark);
+    border-bottom:2px solid var(--orange-deco);
+    display:inline-block;
+    padding:0 20px 8px;
+    margin-bottom:16px;
+  }
+  .diploma-title{
+    font-size:1.6rem;
+    font-weight:800;
+    color:var(--orange-text);
+    letter-spacing:1px;
+    margin-bottom:14px;
+  }
+  .diploma-desc{max-width:60ch;margin:0 auto 16px;}
+  .diploma-score, .diploma-date{font-weight:600;}
+  .diploma-sign{margin-top:26px;font-size:.95rem;}
+
+  .diploma-controls input[type="text"],
+  .diploma-controls input[type="date"]{
+    padding:9px 12px;
+    border-radius:8px;
+    border:2px solid #999;
+    font-family:inherit;
+    font-size:1rem;
+    margin-bottom:6px;
+  }
+
+  .diploma-fyi{
+    font-weight:600;
+    margin-top:30px;
+    padding:14px 18px;
+    border:2px solid var(--orange-deco);
+    border-radius:10px;
+    background:#fff8f0;
+    max-width:none;
+  }
+
+  /* Tulosta vain diplomi: piilota kaikki muu näkyvyydellä, jotta myös
+     details-elementin sisältö (joka on avattu tulostushetkellä) toimii. */
+  @media print{
+    body.printing-diploma *{visibility:hidden;}
+    body.printing-diploma #diplomaCard,
+    body.printing-diploma #diplomaCard *{visibility:visible;}
+    body.printing-diploma #diplomaCard{
+      position:absolute;
+      top:0;
+      left:0;
+      width:100%;
+      border-color:#000;
+    }
+    body.printing-diploma .diploma-name{border-bottom-color:#000;}
+    body.printing-diploma .diploma-title{color:#000;}
+  }
+
+  @media print{
+    header{background:#fff !important; color:#000 !important; border-bottom:2px solid #000;}
+    header h1 .accent{color:#000;}
+    button{display:none;}
+    .skip-link{display:none;}
+    .code-card{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#paasisalto">Siirry suoraan sisältöön</a>
+
+<header>
+  <div class="hand" aria-hidden="true">🤚 6️⃣7️⃣ 🤚</div>
+  <h1>SIX&nbsp;–&nbsp;<span class="accent">SEVEN</span></h1>
+</header>
+
+<main id="paasisalto" class="wrap">
+
+  <p style="margin-top:36px;">
+    Moni sanoo nykyään <strong>"six-seven"</strong>. Sana ei tarkoita mitään erityistä.
+    Sanan kanssa tehdään usein käsiliike: kädet liikkuvat ylös ja alas, vuorotellen.
+  </p>
+  <p>
+    Tässä tehtävässä saat tietää, mistä sana tulee. Saat myös tehdä hauskoja haasteita
+    siitä.
+  </p>
+
+  <section aria-labelledby="stepsHeading">
+    <h2 id="stepsHeading">✅ Näin etenet</h2>
+    <p>Tee asiat tässä järjestyksessä.</p>
+    <ol class="steps">
+      <li>
+        <span class="step-text"><strong>Odota ohjeet opettajalta.</strong> Opettaja
+          kertoo, miten ryhmät muodostetaan.</span>
+      </li>
+      <li>
+        <span class="step-text"><strong>Lue faktat.</strong> Lue osiot "Mistä
+          six-seven tuli?" ja "Miksi tämä leviää niin paljon?".</span>
+      </li>
+      <li>
+        <span class="step-text"><strong>Tee haasteet 1–4 järjestyksessä.</strong>
+          Tee ne ryhmän kanssa. Haaste 2 on visa, jonka pisteet tietokone laskee
+          automaattisesti.</span>
+      </li>
+      <li>
+        <span class="step-text"><strong>Merkitse pisteet taulukkoon.</strong>
+          Kirjoita pisteet Pistetaulukko-osioon. Tietokone laskee loppusumman.</span>
+      </li>
+      <li>
+        <span class="step-text"><strong>Odota tulosta.</strong> Voittaja-joukkue
+          saa Six-Seven mestari -diplomin opettajalta.</span>
+      </li>
+    </ol>
+  </section>
+
+  <section aria-label="Opettajan materiaali: ryhmien muodostus">
+    <details class="teacher-toggle" id="teacherGroupToggle">
+      <summary>
+        <span class="hand-icon" aria-hidden="true">🤚</span>
+        <span class="meme-text">six&nbsp;–&nbsp;seven</span>
+        <span class="hand-icon" aria-hidden="true">🤚</span>
+        <span class="teacher-tag">Ohjeet opettajalle</span>
+      </summary>
+
+      <div class="teacher-content">
+      <h2 id="groupHeading">👥 Näin muodostat ryhmät</h2>
+      <p>Valitse yksi tapa jakaa luokka pieniin ryhmiin. Tee tämä ennen kuin oppilaat
+        aloittavat tehtäväpolun.</p>
+
+      <div class="card">
+        <h3>Vaihtoehto A: Fyysinen ryhmänmuodostus (suositus)</h3>
+      <p>Tässä tavassa oppilaat löytävät ryhmänsä itse, ilman puhumista. Se toimii
+        aivan niin kuin six-seven-käsimerkki toimii oikeasti: ei tarvita sanoja,
+        riittää yhteinen tunnusmerkki. Toimi näin:</p>
+      <ol>
+        <li>Valitse etukäteen niin monta koodia kuin haluat ryhmiä. Alla on 5 valmista
+          koodia.</li>
+        <li>Anna jokaiselle oppilaalle yksi koodilappu salaa. Kukaan ei saa näyttää
+          lappuaan muille.</li>
+        <li>Kerro oppilaille: he saavat 2 minuuttia aikaa liikkua luokassa ja etsiä
+          saman koodin tekevät oppilaat käyttämällä vain liikettä tai äännettä.
+          Puhuminen ei ole sallittua.</li>
+        <li>Oppilaat ovat samassa ryhmässä, kun he tunnistavat toisensa saman koodin
+          perusteella.</li>
+        <li>Ryhmä on valmis, kun kaikki samaa koodia tekevät oppilaat ovat löytäneet
+          toisensa.</li>
+      </ol>
+      <p>Voit tulostaa alla olevat koodikortit (näppäinoikotie Ctrl+P tai Cmd+P) ja
+        leikata ne irti oppilaille jaettavaksi.</p>
+      <div class="code-grid">
+        <div class="code-card">
+          <span class="code-letter" aria-hidden="true">A</span>
+          <p>Tee käsiliike <strong>hitaasti</strong> ja sano "siiiix-seveeen" venyttäen.</p>
+        </div>
+        <div class="code-card">
+          <span class="code-letter" aria-hidden="true">B</span>
+          <p>Tee käsiliike <strong>nopeasti</strong> ja sano "six-seven six-seven"
+            tiuhaan.</p>
+        </div>
+        <div class="code-card">
+          <span class="code-letter" aria-hidden="true">C</span>
+          <p><strong>Kuiskaa</strong> "six-seven" ja nyökkää samalla.</p>
+        </div>
+        <div class="code-card">
+          <span class="code-letter" aria-hidden="true">D</span>
+          <p>Sano "six-seven" ja <strong>iske silmää</strong> käsiliikkeen sijaan.</p>
+        </div>
+        <div class="code-card">
+          <span class="code-letter" aria-hidden="true">E</span>
+          <p><strong>Taputa kerran</strong> ja sano "six-seven" äänekkäästi.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card group-tool">
+      <h3>Vaihtoehto B: Digitaalinen ryhmänarpoja</h3>
+      <p>Jos aikaa on vähän, tietokone arpoo ryhmät valmiiksi.</p>
+      <label for="namesInput">Kirjoita oppilaiden nimet. Yksi nimi per rivi.</label>
+      <textarea id="namesInput" placeholder="Esim.&#10;Aino&#10;Elias&#10;Saana"></textarea>
+      <label for="groupCountInput">Montako ryhmää haluat?</label>
+      <input type="number" id="groupCountInput" min="2" max="10" value="5" style="width:80px;">
+      <div style="margin-top:10px;">
+        <button type="button" id="makeGroupsBtn">🎲 Arvo ryhmät</button>
+        <button type="button" class="secondary" id="clearGroupsBtn">🔄 Tyhjennä</button>
+      </div>
+      <div class="group-results" id="groupResults" role="status" aria-live="polite"></div>
+      <noscript>
+        <div class="noscript-box">
+          <p><strong>Selaimessasi ei ole JavaScriptiä käytössä.</strong> Käytä sen
+            sijaan Vaihtoehtoa A, tai jaa ryhmät itse laskemalla oppilaat esimerkiksi
+            kuuteen tai seitsemään hengen ryhmään.</p>
+        </div>
+      </noscript>
+      </div>
+      </div>
+
+      <div class="teacher-content" id="diplomaBlock">
+        <h2 id="diplomaHeading" class="diploma-heading">🏆 Six-Seven mestari -diplomi</h2>
+        <p class="diploma-intro-text">Kun tehtävä on tehty, voittajaryhmä tai -oppilas saa
+          tämän diplomin. Täytä tiedot ja tulosta.</p>
+
+        <div class="diploma" id="diplomaCard">
+          <p class="diploma-hands" aria-hidden="true">🤚 6️⃣7️⃣ 🤚</p>
+          <p class="diploma-kicker">Tämä diplomi myönnetään</p>
+          <p class="diploma-name" id="diplomaNameDisplay">___________________</p>
+          <p class="diploma-title">SIX–SEVEN MESTARI -arvonimi</p>
+          <p class="diploma-desc">Myönnetty erinomaisesta six-seven-osaamisesta,
+            huumorintajusta ja ryhmähengestä oppilaanohjauksen tunnilla.</p>
+          <p class="diploma-score">Kokonaispisteet: <span id="diplomaScoreDisplay">0</span> / 18</p>
+          <p class="diploma-date" id="diplomaDateDisplay">Päivämäärä: —</p>
+          <p class="diploma-sign">Opettajan allekirjoitus: ______________________</p>
+        </div>
+
+        <div class="card diploma-controls">
+          <label for="diplomaNameInput">Voittajaryhmän tai -oppilaan nimi:</label>
+          <input type="text" id="diplomaNameInput" placeholder="Esim. Ryhmä 3">
+          <label for="diplomaDateInput">Päivämäärä:</label>
+          <input type="date" id="diplomaDateInput">
+          <div style="margin-top:12px;">
+            <button type="button" id="fillDiplomaBtn">✏️ Täytä diplomi</button>
+            <button type="button" class="secondary" id="printDiplomaBtn">🖨️ Tulosta diplomi</button>
+          </div>
+          <noscript>
+            <div class="noscript-box">
+              <p><strong>Selaimessasi ei ole JavaScriptiä käytössä.</strong> Täytä
+                diplomin tiedot käsin yllä olevaan diplomiin ennen tulostusta.</p>
+            </div>
+          </noscript>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section aria-labelledby="factsHeading">
+    <h2 id="factsHeading">🔍 Mistä six-seven tuli?</h2>
+    <div class="card fact">
+      <span class="badge">TAUSTATARINA</span>
+      <ul class="timeline">
+        <li><strong>Joulukuu 2024:</strong> Räppäri Skrilla julkaisi kappaleen
+          <em>"Doot Doot (6 7)"</em>. Kappaleessa toistuu sana "six-seven". Sana ei
+          tarkoita mitään erityistä.</li>
+        <li><strong>Tammikuu 2025:</strong> Joku yhdisti kappaleen videoihin koripalloilija
+          LaMelo Ballista. Ball on 6 jalkaa ja 7 tuumaa pitkä, eli noin 201 senttiä.
+          Numerot sopivat siis sattumalta hänen pituuteensa.</li>
+        <li><strong>Samaan aikaan:</strong> Lukiolainen Taylen Kinney vastasi haastattelussa
+          kysymykseen sanomalla "six-seven". Hän liikutti samalla käsiä ylös ja alas,
+          ikään kuin punnitsisi jotain.</li>
+        <li><strong>Tulos:</strong> Sana ja käsiliike yhdistyivät. Niistä tuli meemi,
+          eli hauska juttu, joka leviää nopeasti netissä. Tammikuussa 2025 videoita
+          oli jo yli 1,4 miljoonaa.</li>
+        <li><strong>Loppuvuosi 2025:</strong> Kaksi isoa sanakirjaa, Merriam-Webster ja
+          Dictionary.com, valitsivat "six-seven":n vuoden sanaksi. Sana ei tarkoita
+          mitään tarkkaa. Juuri se on osa vitsiä.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section aria-labelledby="whyHeading">
+    <h2 id="whyHeading">🤔 Miksi tämä leviää niin paljon?</h2>
+    <div class="card why">
+      <span class="badge">MEDIALUKUTAITO</span>
+      <p>Tutkijat sanovat, että six-seven muistuttaa lasten omia salakieliä. Ennen on
+        ollut muita samanlaisia juttuja, esimerkiksi erikoisia kirjoitustapoja tai
+        käsimerkkejä.</p>
+      <p>Kolme syytä, miksi six-seven levisi näin nopeasti:</p>
+      <ul>
+        <li><strong>Helppo tehdä:</strong> Kuka vain voi sanoa sanan ja tehdä käsiliikkeen.
+          Ei tarvitse ymmärtää, mitä se tarkoittaa.</li>
+        <li><strong>Aikuiset hämmentyvät:</strong> Kun aikuinen kysyy, mitä se tarkoittaa,
+          vastaus "ei mitään" on itsessään vitsi.</li>
+        <li><strong>Sopii moneen tilanteeseen:</strong> Jokainen voi käyttää sanaa omalla
+          tavallaan.</li>
+      </ul>
+      <p>Tämä on hyvä esimerkki siitä, miten asiat leviävät netissä yleensäkin: helppo
+        toistaa, hauska yhdessä, ja aikuisten ihmetys tekee siitä vielä hauskempaa.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="tasksHeading">
+    <h2 id="tasksHeading">🎯 Tehtäväpolku – 4 haastetta</h2>
+    <p>Tee haasteet järjestyksessä: 1, 2, 3 ja 4. Tee haasteet oman pienen ryhmäsi
+      kanssa. Kun ryhmä on tehnyt haasteen, merkitkää pisteet pistetaulukkoon.</p>
+
+    <div class="card task-card">
+      <h3>Haaste 1 — Koreografia (2 pistettä)</h3>
+      <p>Koko ryhmä keksii yhdessä pienen tanssin tai liikesarjan. Käyttäkää kolmea
+        osaa: käsiliike, ilme ja äänte. Kaikkien ryhmän jäsenten pitää olla mukana
+        esityksessä. Näyttäkää tanssi koko luokalle. Saatte bonuspisteen, jos yleisö
+        nauraa.</p>
+      <p><strong>Vinkki:</strong> Suomalainen yhtye KAJ voitti Ruotsin Euroviisukarsinnat
+        biisillä "Bara Bada Bastu" vuonna 2025. Koreografiassa oli yksinkertaisia,
+        helposti toistettavia liikkeitä (esimerkiksi vihtomisliike ja pyyhkeen
+        heilutus), ja juuri se helppous levitti tanssin nopeasti netissä. Ottakaa
+        siitä mallia: yksinkertaiset ja hauskat liikkeet toimivat parhaiten.</p>
+    </div>
+
+    <div class="card task-card">
+      <h3>Haaste 2 — Pikavisa (1 piste per oikea vastaus)</h3>
+      <p>Tietokone laskee tämän haasteen pisteet puolestasi.</p>
+      <p id="quizLiveScore" role="status" aria-live="polite"><strong>Pisteesi visasta: 0/5</strong></p>
+      <div id="quiz"></div>
+      <noscript>
+        <div class="noscript-box">
+          <p><strong>Selaimessasi ei ole JavaScriptiä käytössä.</strong> Tässä kysymykset
+            ja vastaukset suoraan:</p>
+          <ol>
+            <li>Kumman räppärin kappaleesta "six-seven"-lause on alun perin? <strong>Vastaus: Skrilla.</strong></li>
+            <li>Mihin NBA-pelaajaan meemi yhdistettiin hänen pituutensa takia? <strong>Vastaus: LaMelo Ball.</strong></li>
+            <li>Mitä Taylen Kinney vastasi haastattelussa? <strong>Vastaus: "Six-seven".</strong></li>
+            <li>Mikä palvelu valitsi "67":n vuoden 2025 sanaksi? <strong>Vastaus: Dictionary.com.</strong></li>
+            <li>Mikä tekee ilmiön leviämisestä helppoa? <strong>Vastaus: Matala kynnys osallistua ja epäselvä merkitys.</strong></li>
+          </ol>
+        </div>
+      </noscript>
+    </div>
+
+    <div class="card task-card">
+      <h3>Haaste 3 — Ryhmän oma juttu (1 piste / osa, enintään 2)</h3>
+      <p>Tämä haaste vahvistaa ryhmähenkeä. Tehkää nämä kaksi osaa yhdessä, hiljaa
+        keskustellen.</p>
+
+      <h4>Osa 1: Ryhmän nimilyhenne</h4>
+      <p>Ottakaa jokaisen ryhmäläisen nimen ensimmäinen kirjain. Keksikää niistä hassu
+        sana, lause tai ryhmän nimi.</p>
+      <label for="ryhmaLyhenne">Kirjoita ryhmänne nimilyhenne tähän:</label>
+      <textarea id="ryhmaLyhenne" name="ryhmaLyhenne"></textarea>
+
+      <h4>Osa 2: Kolme yhteistä asiaa</h4>
+      <p>Selvittäkää keskustellen kolme asiaa, jotka yhdistävät kaikkia ryhmäläisiä.
+        Se voi olla esimerkiksi harrastus, suosikkiruoka tai kokemus.</p>
+      <label for="ryhmaYhteista">Kirjoita kolme yhteistä asiaa tähän:</label>
+      <textarea id="ryhmaYhteista" name="ryhmaYhteista"></textarea>
+    </div>
+
+    <div class="card task-card">
+      <h3>Haaste 4 — Löytyykö six-seven Suomesta? (1 piste / juttu)</h3>
+      <p>Tutkikaa yhdessä: löytyykö Suomesta jotain hassua, joka liittyy lukuihin 6 ja
+        7? Se voi olla esimerkiksi:</p>
+      <ul>
+        <li>suomalainen urheilija tai julkkis, joka on pituudeltaan 6 jalkaa 7 tuumaa
+          (noin 201 senttiä), niin kuin LaMelo Ball</li>
+        <li>osoite, päivämäärä tai puhelinnumero, jossa luvut 6 ja 7 esiintyvät
+          hauskasti</li>
+        <li>suomalainen sanonta, slangisana tai meemi, joka on levinnyt yhtä nopeasti
+          ja merkityksettömästi kuin six-seven</li>
+      </ul>
+      <p>Saatte <strong>yhden pisteen jokaisesta löydetystä tai keksitystä
+        six-seven-jutusta</strong>. Löytäkää tai keksikää niin monta kuin ehditte —
+        enintään 7 pistettä (six-seven-henkeen sopivasti).</p>
+      <label for="suomiLoyto">Kirjoita löytönne tai keksintönne tähän:</label>
+      <textarea id="suomiLoyto" name="suomiLoyto"></textarea>
+    </div>
+  </section>
+
+  <section aria-labelledby="scoreHeading">
+    <h2 id="scoreHeading">📋 Pistetaulukko</h2>
+    <p>Pisteet lasketaan koko ryhmälle, ei yksittäiselle oppilaalle. Kirjoittakaa
+      ensin ryhmänne nimi.</p>
+    <label for="scoreGroupName">Ryhmän nimi:</label>
+    <input type="text" id="scoreGroupName" placeholder="Esim. Ryhmä 3" style="max-width:260px;">
+    <p>Tietokone laskee visan pisteet automaattisesti ja summaa lopullisen pistemäärän.
+      Haasteissa 1, 3 ja 4 pisteen antaa kaveri, luokka, ryhmä itse tai opettaja —
+      kirjoita luku kenttään, ja tietokone lisää sen loppusummaan.</p>
+    <table class="score-table">
+      <caption>Merkitse pisteet joka haasteesta. Loppusumma lasketaan automaattisesti.</caption>
+      <tr>
+        <th scope="col">Haaste</th>
+        <th scope="col">Pisteet mahdollista</th>
+        <th scope="col">Kuka antaa pisteet</th>
+        <th scope="col">Omat pisteet</th>
+      </tr>
+      <tr>
+        <th scope="row">1. Koreografia</th>
+        <td>2 (+1 bonus)</td>
+        <td>Luokka / opettaja</td>
+        <td>
+          <label class="sr-only" for="score1">Pisteet haasteesta 1, koreografia, enintään 3</label>
+          <input type="number" id="score1" min="0" max="3" value="0" style="width:70px;">
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">2. Pikavisa</th>
+        <td>5</td>
+        <td>Tietokone (automaattinen)</td>
+        <td id="quizScoreCell">0</td>
+      </tr>
+      <tr>
+        <th scope="row">3. Ryhmän oma juttu</th>
+        <td>1 piste / osa, enintään 2</td>
+        <td>Ryhmä itse / opettaja</td>
+        <td>
+          <label class="sr-only" for="score4">Pisteet haasteesta 3, ryhmän oma juttu, 1 piste per osa, enintään 2</label>
+          <input type="number" id="score4" min="0" max="2" value="0" style="width:70px;">
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">4. Löytö Suomesta</th>
+        <td>1 piste / juttu, enintään 7</td>
+        <td>Ryhmä / opettaja</td>
+        <td>
+          <label class="sr-only" for="score5">Pisteet haasteesta 4, löytö Suomesta, 1 piste per juttu, enintään 7</label>
+          <input type="number" id="score5" min="0" max="7" value="0" style="width:70px;">
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">Yhteensä</th>
+        <td>Enintään 17</td>
+        <td>Tietokone laskee</td>
+        <td id="totalScore" role="status" aria-live="polite"><strong>0</strong></td>
+      </tr>
+    </table>
+    <noscript>
+      <div class="noscript-box">
+        <p><strong>Selaimessasi ei ole JavaScriptiä käytössä.</strong> Laske pisteet
+          itse: visasta saa 1 pisteen per oikea vastaus (yhteensä enintään 5), ja
+          muut pisteet kirjataan käsin taulukkoon.</p>
+      </div>
+    </noscript>
+  </section>
+
+  <p class="diploma-fyi">🏆 <strong>Tiedoksi:</strong> Voittaja-joukkue saa
+    Six-Seven mestari -diplomin opettajalta tehtävän päätteeksi.</p>
+
+  <footer>
+    <p>Lähteet: Wikipedia (6-7 meme, Doot Doot (6 7)), Forbes, Washington Post,
+      Psychology Today, WHYY, Complex, King5 (2025).</p>
+  </footer>
+</main>
+
+<script>
+const quizData = [
+  {
+    q: "Kumman räppärin kappaleesta 'six-seven'-lause on alun perin?",
+    options: ["Skrilla", "Drake", "Ice Spice"],
+    correct: 0
+  },
+  {
+    q: "Mihin NBA-pelaajaan meemi yhdistettiin hänen pituutensa takia?",
+    options: ["LeBron James", "LaMelo Ball", "Steph Curry"],
+    correct: 1
+  },
+  {
+    q: "Mitä Taylen Kinney vastasi, kun häntä pyydettiin arvioimaan jotain (esim. juoma)?",
+    options: ["\"Ihan ok\"", "\"Six-seven\"", "\"Ei kommentteja\""],
+    correct: 1
+  },
+  {
+    q: "Mikä palvelu valitsi '67':n vuoden 2025 sanaksi?",
+    options: ["Dictionary.com", "Oxford Dictionary yksin", "Ei mikään sanakirja"],
+    correct: 0
+  },
+  {
+    q: "Mikä tekee ilmiön leviämisestä helppoa tutkijoiden mukaan?",
+    options: [
+      "Se vaatii pitkän selityksen",
+      "Matala kynnys osallistua ja epäselvä merkitys",
+      "Se toimii vain koripallofaneille"
+    ],
+    correct: 1
+  }
+];
+
+function shuffle(arr){
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const namesInput = document.getElementById('namesInput');
+const groupCountInput = document.getElementById('groupCountInput');
+const makeGroupsBtn = document.getElementById('makeGroupsBtn');
+const clearGroupsBtn = document.getElementById('clearGroupsBtn');
+const groupResults = document.getElementById('groupResults');
+
+makeGroupsBtn.onclick = () => {
+  const names = namesInput.value.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+  const groupCount = Math.max(2, Math.min(10, parseInt(groupCountInput.value, 10) || 5));
+
+  if (names.length < groupCount) {
+    groupResults.innerHTML = '<p><strong>Kirjoita ainakin ' + groupCount +
+      ' nimeä, jotta kaikki ' + groupCount + ' ryhmää saavat jäsenen.</strong></p>';
+    return;
+  }
+
+  const shuffled = shuffle(names);
+  const groups = Array.from({ length: groupCount }, () => []);
+  shuffled.forEach((name, i) => {
+    groups[i % groupCount].push(name);
+  });
+
+  let html = '';
+  groups.forEach((g, i) => {
+    html += '<div class="group-card"><h4>Ryhmä ' + (i + 1) + '</h4><p>' +
+      g.join(', ') + '</p></div>';
+  });
+  groupResults.innerHTML = html;
+};
+
+clearGroupsBtn.onclick = () => {
+  namesInput.value = '';
+  groupResults.innerHTML = '';
+};
+
+let quizScore = 0;
+const quizScoreCell = document.getElementById('quizScoreCell');
+const quizLiveScore = document.getElementById('quizLiveScore');
+const score1Input = document.getElementById('score1');
+const score4Input = document.getElementById('score4');
+const score5Input = document.getElementById('score5');
+const totalScoreCell = document.getElementById('totalScore');
+
+function updateTotal(){
+  const s1 = Math.min(parseInt(score1Input.value, 10) || 0, 3);
+  const s4 = Math.min(parseInt(score4Input.value, 10) || 0, 2);
+  const s5 = Math.min(parseInt(score5Input.value, 10) || 0, 7);
+  const total = quizScore + s1 + s4 + s5;
+  totalScoreCell.innerHTML = '<strong>' + total + '</strong>';
+}
+
+[score1Input, score4Input, score5Input].forEach(input => {
+  input.addEventListener('input', updateTotal);
+});
+
+const quizDiv = document.getElementById('quiz');
+quizData.forEach((item, i) => {
+  const qDiv = document.createElement('div');
+  qDiv.className = 'quiz-q';
+  const qId = 'quiz-feedback-' + i;
+
+  const qP = document.createElement('p');
+  qP.className = 'q';
+  qP.id = 'quiz-question-' + i;
+  qP.textContent = (i+1) + ". " + item.q;
+  qDiv.appendChild(qP);
+
+  const feedback = document.createElement('div');
+  feedback.className = 'quiz-feedback';
+  feedback.id = qId;
+  feedback.setAttribute('role', 'status');
+  feedback.setAttribute('aria-live', 'polite');
+
+  item.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = opt;
+    btn.setAttribute('aria-describedby', qP.id);
+    btn.onclick = () => {
+      [...qDiv.querySelectorAll('button')].forEach(b => b.disabled = true);
+      if (idx === item.correct) {
+        btn.classList.add('correct');
+        feedback.textContent = "Oikein! Plus yksi piste.";
+        quizScore += 1;
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = "Väärin. Oikea vastaus on: " + item.options[item.correct];
+        qDiv.querySelectorAll('button')[item.correct].classList.add('correct');
+      }
+      quizScoreCell.textContent = quizScore;
+      quizLiveScore.innerHTML = '<strong>Pisteesi visasta: ' + quizScore + '/5</strong>';
+      updateTotal();
+    };
+    qDiv.appendChild(btn);
+  });
+  qDiv.appendChild(feedback);
+  quizDiv.appendChild(qDiv);
+});
+
+const diplomaNameInput = document.getElementById('diplomaNameInput');
+const diplomaDateInput = document.getElementById('diplomaDateInput');
+const diplomaNameDisplay = document.getElementById('diplomaNameDisplay');
+const diplomaDateDisplay = document.getElementById('diplomaDateDisplay');
+const diplomaScoreDisplay = document.getElementById('diplomaScoreDisplay');
+const fillDiplomaBtn = document.getElementById('fillDiplomaBtn');
+const printDiplomaBtn = document.getElementById('printDiplomaBtn');
+
+function formatFinDate(iso){
+  const parts = iso.split('-');
+  if (parts.length !== 3) return iso;
+  return parts[2] + '.' + parts[1] + '.' + parts[0];
+}
+
+const today = new Date();
+const isoToday = today.getFullYear() + '-' +
+  String(today.getMonth() + 1).padStart(2, '0') + '-' +
+  String(today.getDate()).padStart(2, '0');
+diplomaDateInput.value = isoToday;
+
+function fillDiploma(){
+  diplomaNameDisplay.textContent = diplomaNameInput.value.trim() || '___________________';
+  const dateVal = diplomaDateInput.value;
+  diplomaDateDisplay.textContent = 'Päivämäärä: ' + (dateVal ? formatFinDate(dateVal) : '—');
+  const totalDigits = totalScoreCell.textContent.replace(/[^0-9]/g, '');
+  diplomaScoreDisplay.textContent = totalDigits || '0';
+}
+
+fillDiplomaBtn.onclick = fillDiploma;
+
+const teacherGroupToggle = document.getElementById('teacherGroupToggle');
+let diplomaTogglePreviousState = false;
+
+printDiplomaBtn.onclick = () => {
+  fillDiploma();
+  diplomaTogglePreviousState = teacherGroupToggle.open;
+  teacherGroupToggle.open = true;
+  document.body.classList.add('printing-diploma');
+  window.print();
+};
+
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove('printing-diploma');
+  teacherGroupToggle.open = diplomaTogglePreviousState;
+});
+</script>
+
+</body>
+</html>

@@ -234,6 +234,64 @@
     th:nth-child(3), td:nth-child(3) { display: none; }
     footer { padding: 32px 20px; flex-direction: column; }
   }
+
+  /* INSTRUCTIONS */
+  .instructions-box {
+    background: #fff;
+    border: 1px solid rgba(107,163,216,0.18);
+    border-radius: 18px;
+    box-shadow: 0 2px 20px rgba(26,63,111,0.05);
+    padding: 28px 32px;
+    margin-bottom: 32px;
+  }
+  .instructions-box h2 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 19px; font-weight: 700;
+    color: var(--blue-deep);
+    margin-bottom: 6px;
+  }
+  .instructions-box > p {
+    font-size: 14px; color: var(--text-mid);
+    margin-bottom: 20px;
+  }
+  .instructions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+  .instruction-col h3 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14.5px; font-weight: 700;
+    color: var(--green-deep);
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .instruction-col h3 .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--green-mid); color: #fff;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .instruction-col ol {
+    margin: 0; padding-left: 20px;
+  }
+  .instruction-col li {
+    font-size: 13.5px; color: var(--text-mid);
+    line-height: 1.6; margin-bottom: 8px;
+  }
+  .instruction-note {
+    grid-column: 1 / -1;
+    font-size: 13px; color: var(--text-mid);
+    background: var(--yellow-pale);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-top: 4px;
+  }
+  .instruction-note strong { color: var(--text-dark); }
+
+  @media (max-width: 700px) {
+    .instructions-grid { grid-template-columns: 1fr; }
+  }
 </style>
   <script defer src="/_vercel/insights/script.js"></script>
 </head>
@@ -252,6 +310,36 @@
   <div class="page-label">Ilmainen</div>
   <h1 class="page-title">Opinto-ohjaajan digitaalinen tehtäväpankki</h1>
   <p class="page-sub">Lataa ilmaiset tehtävät suoraan käyttöön – ei kirjautumista, ei rekisteröitymistä. Kaikki materiaalit on suunniteltu yläkoulun opo-tunneille.</p>
+
+  <!-- INSTRUCTIONS -->
+  <div class="instructions-box">
+    <h2>Näin käytät tehtäväpankkia</h2>
+    <p>Kaikki tehtävät ovat yksittäisiä HTML-tiedostoja. Ne toimivat suoraan selaimessa – erillistä ohjelmaa, tiliä tai internetyhteyttä ei tarvita tehtävän tekemiseen.</p>
+
+    <div class="instructions-grid">
+      <div class="instruction-col">
+        <h3><span class="step-num">1</span> Näin lataat tehtävän</h3>
+        <ol>
+          <li>Etsi sopiva tehtävä listalta. Voit suodattaa luokka-asteen mukaan tai hakea hakusanalla.</li>
+          <li>Paina rivin <strong>Lataa</strong>-painiketta. Tiedosto tallentuu tietokoneesi Lataukset-kansioon.</li>
+          <li>Voit avata tiedoston heti kaksoisnapauttamalla sitä – se aukeaa oletusselaimessasi (esim. Chrome, Edge, Safari tai Firefox).</li>
+        </ol>
+      </div>
+
+      <div class="instruction-col">
+        <h3><span class="step-num">2</span> Näin jaat tehtävän oppilaille</h3>
+        <ol>
+          <li><strong>Luokkatilanteessa:</strong> avaa tiedosto omalla koneellasi ja heijasta se luokan näytölle tai valkotaululle.</li>
+          <li><strong>Etänä tai itsenäiseen tekemiseen:</strong> lähetä tiedosto oppilaille liitteenä sähköpostilla tai jaa se Google Classroomin kautta.</li>
+          <li>Oppilas avaa saamansa tiedoston kaksoisnapauttamalla. Tehtävä toimii suoraan selaimessa, eikä vaadi kirjautumista.</li>
+        </ol>
+      </div>
+
+      <p class="instruction-note">
+        <strong>Huomio:</strong> Tehtävät eivät tallenna vastauksia mihinkään. Jos oppilas sulkee sivun tai lataa sen uudelleen, kirjoitetut vastaukset ja pisteet katoavat. Kehota oppilaita kirjoittamaan tärkeät vastaukset myös vihkoon, tai ottamaan kuvakaappaus lopputuloksesta. Osa tehtävistä sisältää tulostettavia osioita (esim. kortteja tai diplomeja), jotka voi tulostaa suoraan selaimen tulostustoiminnolla (Ctrl+P tai Cmd+P).
+      </p>
+    </div>
+  </div>
 
   <!-- FILTERS -->
   <div class="filters">
@@ -318,6 +406,12 @@
       luokat: ["7"],
       aihe: "Ryhmäytyminen",
       tiedosto: "ladattavat/laiva-toivonpurje-tehtava.html"
+    },
+    {
+      nimi: "Six-Seven – ryhmäytystehtävä",
+      luokat: ["7"],
+      aihe: "Ryhmäytyminen",
+      tiedosto: "ladattavat/six-seven-tehtava.html"
     },
     {
       nimi: "Uusi YO-tutkinto",
