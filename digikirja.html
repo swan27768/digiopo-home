@@ -96,9 +96,10 @@
     background: radial-gradient(ellipse 60% 50% at 25% 60%, rgba(45,158,107,0.2), transparent 60%);
   }
   /* Kun video-URL lisätään, korvaa .video-box sisältö iframe-elementillä */
-  .video-box iframe {
+  .video-box iframe,
+  .video-box video {
     position: absolute; inset: 0; width: 100%; height: 100%;
-    border: none; border-radius: 22px;
+    border: none; border-radius: 22px; object-fit: cover;
   }
   .play-btn {
     width: 72px; height: 72px; border-radius: 50%;
@@ -173,6 +174,30 @@
     padding: 6px 18px; border-radius: 20px;
   }
 
+  /* HINTA-KORTIT */
+  .hinta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .hinta-card {
+    background: #fff; border: 1.5px solid rgba(107,163,216,0.25);
+    border-radius: 20px; padding: 40px 28px 28px;
+    text-align: center; position: relative; transition: all 0.3s;
+    display: flex; flex-direction: column;
+  }
+  .hinta-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(26,63,111,0.08); }
+  .hinta-card.suosituin { border-color: var(--blue-mid); }
+  .hinta-badge {
+    position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+    background: var(--yellow); color: var(--text-dark);
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 20px; white-space: nowrap;
+  }
+  .hinta-card h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 700; color: var(--blue-deep); margin-bottom: 4px; }
+  .hinta-tagline { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-light); margin-bottom: 18px; }
+  .hinta-summa { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 30px; font-weight: 800; color: var(--blue-mid); margin-bottom: 14px; }
+  .hinta-summa span { display: block; font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 500; color: var(--text-light); margin-top: 3px; }
+  .hinta-kuvaus { font-size: 13.5px; color: var(--text-mid); line-height: 1.6; margin-bottom: 24px; flex-grow: 1; }
+  .hinta-card .btn-outline { padding: 11px 24px; font-size: 14px; }
+  .hinnasto-alv-note { text-align: center; font-size: 12.5px; color: var(--text-light); margin-top: 24px; }
+
   /* CTA */
   .cta-dark {
     background: linear-gradient(135deg, var(--blue-deep) 0%, #1a5a4a 100%);
@@ -203,6 +228,7 @@
     nav { padding: 0 20px; }
     .hero { grid-template-columns: 1fr; padding: 100px 20px 60px; gap: 36px; }
     .luokat-grid { grid-template-columns: 1fr; }
+    .hinta-grid { grid-template-columns: 1fr; }
     .section { padding: 64px 20px; }
     .cta-dark { padding: 48px 28px; }
     footer { padding: 32px 20px; flex-direction: column; }
@@ -218,6 +244,7 @@
   <div class="nav-links">
     <a href="tehtavapankki.html">Tehtäväpankki</a>
     <a href="stream-palvelut.html">Stream-palvelut</a>
+    <a href="hinnasto.html">Hinnasto</a>
     <a href="tilauslomake.html" class="nav-cta">Tilaa digikirja</a>
   </div>
 </nav>
@@ -236,12 +263,10 @@
 
   <!-- VIDEO -->
   <div class="video-box" id="esittely">
-    <!-- Kun video on valmis, korvaa tämä div:
-    <iframe src="https://www.youtube.com/embed/VIDEO_ID" allowfullscreen></iframe>
-    -->
-    <div class="play-btn">▶</div>
-    <p class="video-label">Esittelyvideo tulossa pian</p>
-    <div class="video-duration">1:00</div>
+    <iframe src="https://www.youtube.com/embed/LRpm0VFNTOA"
+      title="Omilla Jäljillä – esittelyvideo"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen></iframe>
   </div>
 </div>
 
@@ -261,20 +286,17 @@
   <div class="luokat-grid">
     <div class="luokka-card lk7">
       <div class="luokka-num">7.</div>
-      <h3>Omat jäljet alkavat tästä</h3>
-      <p class="luokka-tagline">Tutki, kokeile, löydä</p>
+      <h3>Yläkoulun startti</h3>
       <p>Seitsemännen luokan sisältö tukee oppilasta yläkouluun siirtymisessä. Harjoitellaan oppimaan oppimisen taitoja, itsetuntemusta ja oman suunnan etsimistä. Lähtökohtana on, että oppilas oppii tunnistamaan omat vahvuutensa ja kiinnostuksensa jo heti yläkoulun alusta.</p>
     </div>
     <div class="luokka-card lk8">
       <div class="luokka-num">8.</div>
-      <h3>Katse eteenpäin</h3>
-      <p class="luokka-tagline">Tutki, vertaile, suunnista</p>
+      <h3>Sinun suunta</h3>
       <p>Kahdeksannen luokan sisällöissä katse kääntyy kohti tulevaa: koulutuspolkuja ja työelämää. Oppilaat syventävät itsetuntemustaan, tutkivat omia vahvuuksiaan ja kiinnostuksen kohteitaan sekä alkavat hahmottaa mahdollisia urasuuntia. Sisällöt rakentuvat luontevasti seitsemännen luokan pohjan päälle.</p>
     </div>
     <div class="luokka-card lk9">
       <div class="luokka-num">9.</div>
-      <h3>Omat jäljet johtavat eteenpäin</h3>
-      <p class="luokka-tagline">Valitse, rohkaistu, rakenna</p>
+      <h3>Sinun valinta</h3>
       <p>Yhdeksännen luokan kokonaisuus on käytännönläheinen ja konkreettinen. Oppilaat valmistautuvat yhteishakuun, tekevät jatko-opintovalintoja ja rakentavat omaa tulevaisuudenkuvaansa arvojensa ja tavoitteidensa pohjalta. Painopiste on rohkeassa eteenpäin katsomisessa.</p>
     </div>
   </div>
@@ -283,50 +305,64 @@
 <!-- OMINAISUUDET -->
 <div class="section" style="padding-top: 0; background: var(--off-white); border-radius: 32px; max-width: 100%; padding: 80px 0;">
   <div style="max-width: 1060px; margin: 0 auto; padding: 0 32px;">
-    <div class="section-label">Miksi DigiOpo?</div>
+    <div class="section-label">Miksi digikirja?</div>
     <h2 class="section-title">Digikirjan vahvuudet</h2>
-    <p class="section-sub">Suunniteltu suomalaisille opinto-ohjaajille – käytännöllinen, ajantasainen ja helppo ottaa käyttöön.</p>
+    <p class="section-sub">Omilla Jäljillä on peruskoulun oppilaanohjauksen tunneille suunniteltu digikirja. Oppilas etenee tehtävissä omaan tahtiinsa – itsenäisesti, opon ohjauksessa tai pienryhmässä. Tehtävät ohjaavat oppijaa eteenpäin ja antavat palautetta jo työskentelyn aikana. Opo seuraa oppilaiden edistymistä ja auttaa tarvittaessa, ja voi palata tehtävien tuloksiin myös henkilökohtaisissa ohjauskeskusteluissa.</p>
     <div class="features-grid">
+      <div class="feature-item">
+        <div class="feature-icon">🎓</div>
+        <div>
+          <h4>Opetussuunnitelman mukainen</h4>
+          <p>Sisältö on rakennettu Opetushallituksen perusopetuksen oppilaanohjauksen tavoitteiden mukaisesti. <a href="https://www.oph.fi/fi/koulutus-ja-tutkinnot/oppilaanohjaus-perusopetuksessa" target="_blank" rel="noopener" style="color: var(--blue-mid); font-weight: 600;">Lue lisää OPH:n sivuilta →</a></p>
+        </div>
+      </div>
       <div class="feature-item">
         <div class="feature-icon">🔄</div>
         <div>
-          <h4>Jatkuvasti päivittyvä</h4>
-          <p>Sisältö pysyy aina ajantasaisena – uudet materiaalit tulevat automaattisesti ilman lisätyötä.</p>
+          <h4>Aina ajan tasalla</h4>
+          <p>Sisältö tarkistetaan ja päivitetään ennen jokaisen lukuvuoden alkua. Materiaali pysyy ajantasaisena ilman, että sinun tarvitsee tehdä mitään.</p>
         </div>
       </div>
       <div class="feature-item">
         <div class="feature-icon">📱</div>
         <div>
-          <h4>Toimii kaikilla laitteilla</h4>
-          <p>Tabletti, tietokone – oppilas käyttää digikirjaa mistä tahansa.</p>
+          <h4>Toimii koulun laitteilla</h4>
+          <p>Digikirja avautuu selaimessa tabletilla ja Chromebookilla – ei asennuksia. Puhelinta ei suositella, sillä näyttö on tehtäville liian pieni.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🌍</div>
+        <div>
+          <h4>Saavutettava kaikille</h4>
+          <p>Selkeä ja selkokielinen sisältö tukee jokaista oppilasta. Kirja on saatavilla myös useilla eri kielillä.</p>
         </div>
       </div>
       <div class="feature-item">
         <div class="feature-icon">✏️</div>
         <div>
-          <h4>Oppilaat työskentelevät itse</h4>
-          <p>Oppilaat tekevät tehtäviä yksin tai pienryhmissä ja kirjoittavat vastauksensa suoraan digisivuille – palauttavat valmiit tehtävät Classroomiin.</p>
+          <h4>Oppilaslähtöinen työskentely tunnilla</h4>
+          <p>Oppilaat tekevät tehtäviä yksin tai pienryhmissä ja kirjoittavat vastaukset suoraan digikirjaan. Valmiit tehtävät palautetaan Google Classroomiin. Jokainen etenee omaan tahtiinsa, ja nopeille oppijoille on tarjolla lisähaasteita.</p>
         </div>
       </div>
       <div class="feature-item">
         <div class="feature-icon">👩‍🏫</div>
         <div>
-          <h4>Opolla aikaa oppilaille</h4>
-          <p>Materiaaleja ei tarvitse valmistella – DigiOpo hoitaa sen, joten opo voi keskittyä oppilaiden ohjaukseen ja kohtaamiseen.</p>
+          <h4>Valmiit ohjeet opettajalle</h4>
+          <p>Jokaiselta kirjan sivulta löytyvät opettajan ohjeet sekä muokkaustila, jolla voit muokata sivun sisältöä oman ryhmäsi tarpeisiin.</p>
         </div>
       </div>
       <div class="feature-item">
         <div class="feature-icon">🔒</div>
         <div>
-          <h4>GDPR-yhteensopiva</h4>
-          <p>Tiedot tallentuvat turvallisesti. Oppilaan data pysyy omassa koulussa.</p>
+          <h4>Tietoturvallinen ja GDPR-yhteensopiva</h4>
+          <p>Tiedot käsitellään tietoturvallisesti tietosuoja-asetuksen mukaisesti. Oppilaan omat vastaukset pysyvät hänen omalla laitteellaan.</p>
         </div>
       </div>
       <div class="feature-item">
         <div class="feature-icon">⚡</div>
         <div>
           <h4>Nopea käyttöönotto</h4>
-          <p>Tilaa → saat koulukoodin → jaa oppilaille. Ei IT-tukea, ei asennuksia.</p>
+          <p>Käyttöönotto on vaivatonta: tilaat lisenssin, saat koulukohtaisen koodin ja jaat sen oppilaille. Ei asennuksia eikä IT-tukea.</p>
         </div>
       </div>
     </div>
@@ -339,12 +375,32 @@
     <div class="section-label">Hinnasto</div>
     <h2 class="section-title" style="max-width: 100%; text-align: center;">Hinnoittelu</h2>
   </div>
-  <div class="hinnasto-box">
-    <div class="hinnasto-icon">🏷️</div>
-    <h3>Hinnasto on tulossa pian!</h3>
-    <p>Hinnoittelu perustuu oppilasmäärään. Tarkemmat hintatiedot ovat tulossa pian.</p>
-    <div class="hinnasto-badge">Hinnasto tulossa pian</div>
+  <p class="section-sub" style="text-align: center; margin: 0 auto 40px;">Hinnoittelu perustuu oppilasmäärään. Koululisenssi kattaa luokka-asteet 7.–9.</p>
+  <div class="hinta-grid">
+    <div class="hinta-card suosituin">
+      <div class="hinta-badge">Suosituin</div>
+      <h3>Koululisenssi</h3>
+      <p class="hinta-tagline">Vuosilisenssi</p>
+      <div class="hinta-summa">5,90 €<span>/oppilas/lukuvuosi</span></div>
+      <p class="hinta-kuvaus">Koko koulun käyttöön, kattaa luokka-asteet 7.–9. Laskutus vuosittain.</p>
+      <a href="tilauslomake.html" class="btn-outline">Tilaa →</a>
+    </div>
+    <div class="hinta-card">
+      <h3>Koululisenssi</h3>
+      <p class="hinta-tagline">3 vuoden lisenssi</p>
+      <div class="hinta-summa">14,90 €<span>/oppilas/3 v (≈ 4,97 €/v)</span></div>
+      <p class="hinta-kuvaus">Sama sisältö kuin vuosilisenssissä – edullisempi pidemmäksi aikaa sitoutuville kouluille.</p>
+      <a href="tilauslomake.html" class="btn-outline">Tilaa →</a>
+    </div>
+    <div class="hinta-card">
+      <h3>Opettajalisenssi</h3>
+      <p class="hinta-tagline">Henkilökohtainen</p>
+      <div class="hinta-summa">49 €<span>/vuosi</span></div>
+      <p class="hinta-kuvaus">Yhden opettajan käyttöön, sidottu omaan sähköpostiisi. Sopii kokeiluun ilman koko koulun tilausta.</p>
+      <a href="tilauslomake.html" class="btn-outline">Tilaa →</a>
+    </div>
   </div>
+  <p class="hinnasto-alv-note">Hinnat ilman alv:tä (+ alv 13,5 %). Pienille kouluille minimitilaus 120 €/vuosi. <a href="hinnasto.html" style="color: var(--blue-mid); font-weight: 600;">Katso koko hinnasto →</a></p>
 </div>
 
 <!-- CTA -->
