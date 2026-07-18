@@ -28,6 +28,45 @@ const SALLITUT_ORIGINIT = new Set([
   'https://www.digiopo.fi',
 ]);
 
+// ─── Rate limit (muistipohjainen; tilaus on harvinainen, matalavolyyminen) ───
+// Estää saman IP:n tilaustulvan. Instanssikohtainen laskuri riittää tähän.
+const tilausYritykset = new Map();
+const TILAUS_MAX = 5;                     // tilausta per IP
+const TILAUS_IKKUNA_MS = 10 * 60 * 1000;  // 10 min
+
+function haeIp(req) {
+  // Vercelin x-real-ip on luotettava (ei väärennettävissä).
+  const real = String(req.headers['x-real-ip'] || '').trim();
+  if (real) return real;
+  const xff = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  return xff || 'tuntematon';
+}
+
+function rateLimitSallittu(ip) {
+  const nyt = Date.now();
+  const m = tilausYritykset.get(ip) || { maara: 0, alku: nyt };
+  if (nyt - m.alku > TILAUS_IKKUNA_MS) { tilausYritykset.set(ip, { maara: 1, alku: nyt }); return true; }
+  if (m.maara >= TILAUS_MAX) return false;
+  tilausYritykset.set(ip, { maara: m.maara + 1, alku: m.alku });
+  return true;
+}
+
+// Duplikaattisuoja (luotettava, jaettu Supabasen kautta): jos samalle
+// sähköpostille on luotu lisenssi viimeisen 3 min aikana, kyseessä on lähes
+// varmasti kaksoislähetys (tuplaklikkaus / uudelleenlataus) → ei luoda toista
+// lisenssiä eikä laskua. Fail-open: jos tarkistus ei onnistu, tilaus etenee.
+async function onTuoreDuplikaatti(emailNorm) {
+  const baseUrl = SUPABASE_URL.replace(/\/$/, '');
+  const raja = new Date(Date.now() - 3 * 60 * 1000).toISOString();
+  const r = await fetch(
+    `${baseUrl}/rest/v1/lisenssit?email=eq.${encodeURIComponent(emailNorm)}&luotu_at=gte.${raja}&select=id&limit=1`,
+    { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
+  );
+  if (!r.ok) return false;
+  const rivit = await r.json();
+  return Array.isArray(rivit) && rivit.length > 0;
+}
+
 // ─── Hinnasto (pidä synkassa hinnasto.html / tilauslomake.html kanssa) ───────
 const HINTA = {
   vuosi:     { hinta: 5.90,  minimi: 120 },
@@ -452,6 +491,12 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ virhe: 'Metodi ei sallittu' });
 
+  // Rate limit per IP (spämmäyksen esto)
+  const ip = haeIp(req);
+  if (!rateLimitSallittu(ip)) {
+    return res.status(429).json({ ok: false, virhe: 'Liian monta tilausta lyhyessä ajassa. Yritä hetken kuluttua uudelleen.' });
+  }
+
   // Body
   let body;
   try {
@@ -484,6 +529,14 @@ export default async function handler(req, res) {
   const emailNorm = email.trim().toLowerCase();
   const henkilö = `${etunimi.trim()} ${sukunimi.trim()}`;
   let koodi = null;
+
+  // Duplikaattisuoja: sama sähköposti viimeisen 3 min aikana → älä luo toista
+  // lisenssiä/laskua. Käsitellään onnistuneena (tilaus on jo mennyt läpi).
+  try {
+    if (await onTuoreDuplikaatti(emailNorm)) {
+      return res.status(200).json({ ok: true, duplikaatti: true });
+    }
+  } catch { /* fail-open: ei estetä tilausta jos tarkistus ei onnistu */ }
 
   if (tilaustyyppi === 'opettajalisenssi') {
     // Opettajalisenssi: ei jaettavaa koodia – email on avain
@@ -523,6 +576,7 @@ export default async function handler(req, res) {
           yhteyshenkilö: henkilö,
           email: emailNorm,
           tyyppi: 'vuosi',
+          paikat: Number(oppilasmaara) || null, // ostettu oppilasmäärä → ylikäytön seuranta
           voimassa_asti,
           aktiivinen: true,
         });
