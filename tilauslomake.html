@@ -284,9 +284,15 @@
           <label for="kunta">Kunta <span>*</span></label>
           <input type="text" id="kunta" name="kunta" placeholder="Esim. Helsinki" required>
         </div>
-        <div class="field">
+        <div class="field" id="oppilasmaaraKentta">
           <label for="oppilasmaara">Oppilaiden määrä <span>*</span></label>
           <input type="number" id="oppilasmaara" name="oppilasmaara" placeholder="Esim. 60" min="1" required>
+        </div>
+        <div class="field" id="opettajaHuomio" style="display:none">
+          <p style="font-size:13px;color:#3a5a7a;line-height:1.5;margin:26px 0 0">
+            Opettajalisenssi on henkilökohtainen, joten oppilasmäärää ei tarvita.
+            Hinta on kiinteä 49 €/vuosi.
+          </p>
         </div>
       </div>
 
@@ -374,10 +380,22 @@
     return n.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
   }
 
+  const oppilasmaaraKentta = document.getElementById('oppilasmaaraKentta');
+  const opettajaHuomio     = document.getElementById('opettajaHuomio');
+
   function paivitaHintaArvio() {
     const tilaustyyppi = form.querySelector('input[name="tilaustyyppi"]:checked')?.value;
     const onKoululisenssi = tilaustyyppi === 'koululisenssi';
     lisenssikausiWrap.style.display = onKoululisenssi ? 'block' : 'none';
+
+    // Opettajalisenssi on henkilökohtainen eikä oppilasmäärä vaikuta hintaan.
+    // Kenttä piilotetaan ja täytetään arvolla 1, koska palvelinvalidointi
+    // vaatii sen (api/tilaus.js). Ilman tätä ostaja jää jumiin pakolliseen
+    // kenttään, joka ei liity hänen tilaukseensa mitenkään.
+    oppilasmaaraKentta.style.display = onKoululisenssi ? '' : 'none';
+    opettajaHuomio.style.display     = onKoululisenssi ? 'none' : '';
+    form.oppilasmaara.required       = onKoululisenssi;
+    if (!onKoululisenssi) form.oppilasmaara.value = 1;
 
     if (!onKoululisenssi) {
       const { hinta } = HINTA.opettaja;
