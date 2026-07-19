@@ -55,16 +55,37 @@ function rateLimitSallittu(ip) {
 // sähköpostille on luotu lisenssi viimeisen 3 min aikana, kyseessä on lähes
 // varmasti kaksoislähetys (tuplaklikkaus / uudelleenlataus) → ei luoda toista
 // lisenssiä eikä laskua. Fail-open: jos tarkistus ei onnistu, tilaus etenee.
-async function onTuoreDuplikaatti(emailNorm) {
+// HUOM: suodatetaan myös tyypin mukaan. Aiemmin tarkistus katsoi pelkkää
+// sähköpostia, jolloin sama henkilö ei voinut tilata koululisenssiä ja
+// opettajalisenssiä kolmen minuutin sisällä – jälkimmäinen kuitattiin
+// duplikaatiksi, asiakas näki onnistumisen eikä lisenssiä syntynyt.
+async function onTuoreDuplikaatti(emailNorm, tyyppi) {
   const baseUrl = SUPABASE_URL.replace(/\/$/, '');
   const raja = new Date(Date.now() - 3 * 60 * 1000).toISOString();
   const r = await fetch(
-    `${baseUrl}/rest/v1/lisenssit?email=eq.${encodeURIComponent(emailNorm)}&luotu_at=gte.${raja}&select=id&limit=1`,
+    `${baseUrl}/rest/v1/lisenssit?email=eq.${encodeURIComponent(emailNorm)}` +
+    `&tyyppi=eq.${encodeURIComponent(tyyppi)}&luotu_at=gte.${raja}&select=id&limit=1`,
     { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
   );
   if (!r.ok) return false;
   const rivit = await r.json();
   return Array.isArray(rivit) && rivit.length > 0;
+}
+
+// Hakee olemassa olevan opettajalisenssin sähköpostilla. Uusintatilaus
+// päivittää tätä riviä eikä luo uutta – kannassa on uniikki-indeksi
+// (lisenssit_opettaja_email_idx), joka sallii yhden opettajalisenssin
+// per sähköposti, ja api/lisenssi.js valitsisi duplikaateista mielivaltaisen.
+async function hae_opettajalisenssi(emailNorm) {
+  const baseUrl = SUPABASE_URL.replace(/\/$/, '');
+  const r = await fetch(
+    `${baseUrl}/rest/v1/lisenssit?email=eq.${encodeURIComponent(emailNorm)}` +
+    `&tyyppi=eq.opettaja&select=id,koodi,voimassa_asti&limit=1`,
+    { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
+  );
+  if (!r.ok) return null;
+  const [rivi] = await r.json();
+  return rivi || null;
 }
 
 // ─── Hinnasto (pidä synkassa hinnasto.html / tilauslomake.html kanssa) ───────
@@ -165,6 +186,17 @@ function generoi_koodi(koulu) {
   return `${puhdas}-${vuosi}-${satunnainen}`;
 }
 
+// Opettajalisenssin koodi. Kirjautuminen tapahtuu sähköpostilla eikä koodia
+// syötetä minnekään – mutta lisenssit.koodi on NOT NULL ja uniikki, joten
+// arvo on pakko generoida. Ilman tätä jokainen opettajalisenssitilaus kaatui
+// Postgresin NOT NULL -rajoitteeseen ja asiakas näki vain "Palvelinvirhe".
+function generoi_opettaja_koodi() {
+  const satunnainen = Array.from({ length: 6 }, () =>
+    CHARS[Math.floor(Math.random() * CHARS.length)]
+  ).join('');
+  return `OPE-${new Date().getFullYear() + 1}-${satunnainen}`;
+}
+
 async function lisaa_supabaseen(data) {
   const baseUrl = SUPABASE_URL.replace(/\/$/, '');
   const vastaus = await fetch(`${baseUrl}/rest/v1/lisenssit`, {
@@ -177,6 +209,27 @@ async function lisaa_supabaseen(data) {
     },
     body: JSON.stringify(data),
   });
+  if (!vastaus.ok) {
+    const teksti = await vastaus.text();
+    throw new Error(`Supabase ${vastaus.status}: ${teksti}`);
+  }
+}
+
+async function paivita_supabaseen(id, data) {
+  const baseUrl = SUPABASE_URL.replace(/\/$/, '');
+  const vastaus = await fetch(
+    `${baseUrl}/rest/v1/lisenssit?id=eq.${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(data),
+    }
+  );
   if (!vastaus.ok) {
     const teksti = await vastaus.text();
     throw new Error(`Supabase ${vastaus.status}: ${teksti}`);
@@ -520,7 +573,9 @@ export default async function handler(req, res) {
   const kestoVuosina = (tilaustyyppi === 'koululisenssi' && lisenssikausi === '3vuotta') ? 3 : 1;
   const voimassa = new Date();
   voimassa.setFullYear(voimassa.getFullYear() + kestoVuosina);
-  const voimassa_asti = voimassa.toISOString().split('T')[0];
+  // let, ei const: uusintatilauksessa arvo lasketaan uudelleen nykyisestä
+  // päättymispäivästä, jottei asiakas menetä jäljellä olevaa aikaa.
+  let voimassa_asti = voimassa.toISOString().split('T')[0];
 
   const hintatiedot = laske_hinta(tilaustyyppi, lisenssikausi, oppilasmaara);
   const laskunumero = generoi_laskunumero();
@@ -532,23 +587,60 @@ export default async function handler(req, res) {
 
   // Duplikaattisuoja: sama sähköposti viimeisen 3 min aikana → älä luo toista
   // lisenssiä/laskua. Käsitellään onnistuneena (tilaus on jo mennyt läpi).
+  const tyyppiKannassa = tilaustyyppi === 'opettajalisenssi' ? 'opettaja' : 'vuosi';
   try {
-    if (await onTuoreDuplikaatti(emailNorm)) {
+    if (await onTuoreDuplikaatti(emailNorm, tyyppiKannassa)) {
       return res.status(200).json({ ok: true, duplikaatti: true });
     }
   } catch { /* fail-open: ei estetä tilausta jos tarkistus ei onnistu */ }
 
   if (tilaustyyppi === 'opettajalisenssi') {
-    // Opettajalisenssi: ei jaettavaa koodia – email on avain
+    // Opettajalisenssi: kirjautuminen tapahtuu sähköpostilla, mutta koodi on
+    // silti pakollinen kenttä kannassa. Uusintatilaus PÄIVITTÄÄ olemassa
+    // olevaa riviä – uusi rivi rikkoisi uniikin indeksin ja tekisi
+    // kirjautumisesta arvaamatonta (api/lisenssi.js ottaa data[0]).
+    let uusinta = false;
     try {
-      await lisaa_supabaseen({
-        koulu: koulu.trim(),
-        yhteyshenkilö: henkilö,
-        email: emailNorm,
-        tyyppi: 'opettaja',
-        voimassa_asti,
-        aktiivinen: true,
-      });
+      const olemassa = await hae_opettajalisenssi(emailNorm);
+
+      if (olemassa) {
+        uusinta = true;
+        koodi = olemassa.koodi;
+
+        // Jatketaan nykyisestä päättymispäivästä, jos lisenssi on yhä voimassa
+        // – muuten asiakas menettäisi jäljellä olevan ajan uusiessaan ajoissa.
+        const nykyinenLoppu = new Date(olemassa.voimassa_asti);
+        const pohja = nykyinenLoppu > new Date() ? nykyinenLoppu : new Date();
+        pohja.setFullYear(pohja.getFullYear() + kestoVuosina);
+        const uusiLoppu = pohja.toISOString().split('T')[0];
+
+        await paivita_supabaseen(olemassa.id, {
+          koulu: koulu.trim(),
+          yhteyshenkilö: henkilö,
+          voimassa_asti: uusiLoppu,
+          aktiivinen: true,
+        });
+        voimassa_asti = uusiLoppu;
+      } else {
+        // Uusi lisenssi: yritetään 3 kertaa koodin törmäyksen varalta
+        for (let yritys = 0; yritys < 3; yritys++) {
+          koodi = generoi_opettaja_koodi();
+          try {
+            await lisaa_supabaseen({
+              koodi,
+              koulu: koulu.trim(),
+              yhteyshenkilö: henkilö,
+              email: emailNorm,
+              tyyppi: 'opettaja',
+              voimassa_asti,
+              aktiivinen: true,
+            });
+            break;
+          } catch (err) {
+            if (yritys === 2) throw err;
+          }
+        }
+      }
     } catch (err) {
       console.error('Supabase insert epäonnistui:', err.message);
       await kirjaaVirhe('tilaus opettajalisenssi', err, { koulu, email: emailNorm });
@@ -562,7 +654,16 @@ export default async function handler(req, res) {
       [
         laheta_sahkoposti(emailNorm, 'DigiOpo – opettajalisenssisi on aktivoitu', sahkoposti_opettajalle(etunimi, emailNorm, voimassa_asti)),
         laheta_sahkoposti(emailNorm, `DigiOpo – lasku nro ${String(laskunumero).slice(0,4)}-${String(laskunumero).slice(4)}`, sahkoposti_lasku(tilausData, hintatiedot, laskunumero, erapaiva)),
-        ADMIN_EMAIL && laheta_sahkoposti(ADMIN_EMAIL, `Uusi DigiOpo-tilaus: ${koulu}`, sahkoposti_adminille(tilausData, '(opettajalisenssi – ei koodia)', voimassa_asti, hintatiedot)),
+        ADMIN_EMAIL && laheta_sahkoposti(
+          ADMIN_EMAIL,
+          `${uusinta ? 'Uusinta' : 'Uusi'} DigiOpo-tilaus: ${koulu}`,
+          sahkoposti_adminille(
+            tilausData,
+            `${koodi} ${uusinta ? '(uusinta – voimassaoloa jatkettu)' : '(uusi opettajalisenssi)'}`,
+            voimassa_asti,
+            hintatiedot
+          )
+        ),
       ]
     );
   } else {
