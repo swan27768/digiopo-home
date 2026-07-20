@@ -341,6 +341,7 @@ function sahkoposti_opettajalle(etunimi, email, voimassa_asti) {
   <div style="background:#fef9e0;border:1px solid #f5c842;border-radius:10px;padding:16px 20px;margin-bottom:28px;font-size:13.5px;color:#7a5c00;line-height:1.6">
     <strong>Huomio:</strong> Tämä on henkilökohtainen lisenssi. Kirjautumislinkki toimii vain tällä sähköpostiosoitteella, eikä sitä voi jakaa eteenpäin.
   </div>
+  <p style="line-height:1.6;margin-bottom:24px;font-size:14px">📖 <strong>Opettajan pikaohjeet</strong> on tämän sähköpostin liitteenä. Siitä näet, miten luot opetusryhmän, järjestät osiot ja jaat sisällön oppilaille.</p>
   <div style="text-align:center;margin-bottom:32px">
     <a href="https://app.digiopo.fi/kirjaudu" style="background:#1a3f6f;color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">Kirjaudu DigiOpoon →</a>
   </div>
@@ -648,11 +649,21 @@ export default async function handler(req, res) {
     }
 
     const tilausData = { etunimi, sukunimi, email: emailNorm, puhelin, koulu, kunta, oppilasmaara, tilaustyyppi, lisenssikausi, lisatiedot };
+
+    // Pikaohje myös opettajalisenssin ostajalle. Aiemmin liite lähti vain
+    // koululisenssin mukana, jolloin yksittäinen opettaja jäi ilman ohjetta –
+    // vaikka juuri hän tarvitsee sitä eniten, koska hänellä ei ole koulun
+    // yhteyshenkilöä jolta kysyä.
+    const opePdfB64 = await hae_pikaohjeet_base64();
+    const opePdfLiite = opePdfB64
+      ? [{ filename: 'DigiOpo_opettajan_pikaohjeet.pdf', content: opePdfB64 }]
+      : [];
+
     await laheta_sahkopostit_ja_kirjaa(
       'tilaus opettajalisenssi sahkoposti',
       { koulu, email: emailNorm, tilaustyyppi },
       [
-        laheta_sahkoposti(emailNorm, 'DigiOpo – opettajalisenssisi on aktivoitu', sahkoposti_opettajalle(etunimi, emailNorm, voimassa_asti)),
+        laheta_sahkoposti(emailNorm, 'DigiOpo – opettajalisenssisi on aktivoitu', sahkoposti_opettajalle(etunimi, emailNorm, voimassa_asti), opePdfLiite),
         laheta_sahkoposti(emailNorm, `DigiOpo – lasku nro ${String(laskunumero).slice(0,4)}-${String(laskunumero).slice(4)}`, sahkoposti_lasku(tilausData, hintatiedot, laskunumero, erapaiva)),
         ADMIN_EMAIL && laheta_sahkoposti(
           ADMIN_EMAIL,
