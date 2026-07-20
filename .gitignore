@@ -1,4 +1,11 @@
-admin-paneeli.html
+# HUOM: admin-paneeli.html oli aiemmin tällä listalla, jotta se ei päätyisi
+# julkiseksi. Se kuitenkin tarkoitti ettei tiedosto ollut versionhallinnassa
+# lainkaan: ei varmuuskopiota, ei historiaa, eikä se olisi siirtynyt projektin
+# mukana eteenpäin.
+#
+# Nyt paneeli on gitissä mutta .vercelignore-tiedosto estää sen julkaisun.
+# Turvallisuus ei kärsi: paneeli on pelkkä käyttöliittymä eikä sisällä
+# salaisuuksia, ja sen käyttämät rajapinnat vaativat x-admin-key-otsakkeen.
 
 # Ympäristömuuttujat (salaisuudet)
 .env

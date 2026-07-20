@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Sivu ei ole linkitetty mistään julkisesti, mutta se on silti
+     saatavilla osoitteella. Suoja tulee admin-avaimesta – tämä vain
+     estää sivua päätymästä hakutuloksiin. -->
+<meta name="robots" content="noindex, nofollow">
+<title>DigiOpo Palvelut - digiprojektien ohjauspaneeli</title>
+<style>
+  :root{
+    --bg:#0f1117; --panel:#171a23; --panel2:#1e2230; --border:#2a2f3d;
+    --text:#e7e9ee; --muted:#9aa1b1; --accent:#7c3aed; --accent2:#a78bfa;
+    --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;line-height:1.5}
+  header{padding:28px 32px 16px;max-width:1200px;margin:0 auto}
+  h1{margin:0 0 4px;font-size:24px}
+  .sub{color:var(--muted);font-size:14px}
+  main{max-width:1200px;margin:0 auto;padding:0 32px 60px}
+
+  .banner{background:#3a2410;border:1px solid var(--warn);color:#fde68a;padding:14px 18px;border-radius:10px;margin:16px 0;display:flex;gap:12px;align-items:flex-start;font-size:14px}
+  .banner b{color:#fff}
+  .banner button{margin-left:auto;background:none;border:1px solid #6b5a2c;color:#fde68a;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;flex-shrink:0}
+  .banner.hidden{display:none}
+  .banner.ok{background:#0f2a1a;border-color:var(--ok);color:#bbf7d0}
+  .banner.ok button{border-color:#1f6b3d;color:#bbf7d0}
+
+  .authstatus{font-size:12.5px;color:var(--muted);background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:14px}
+  .authstatus b{color:var(--ok)}
+
+  .checklist label{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:6px 2px;cursor:pointer}
+  .checklist input{accent-color:var(--accent);width:15px;height:15px;flex-shrink:0}
+  .checklist .done{color:var(--muted);text-decoration:line-through}
+
+  .edittoolbar{display:flex;flex-wrap:wrap;gap:4px;background:var(--panel2);border:1px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0;padding:6px}
+  .edittoolbar button{background:none;border:1px solid transparent;color:var(--text);border-radius:6px;width:30px;height:28px;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;justify-content:center}
+  .edittoolbar button:hover{background:var(--panel);border-color:var(--border)}
+  .edittoolbar button.active{background:var(--accent);border-color:var(--accent)}
+  .edittoolbar .sep{width:1px;background:var(--border);margin:2px 4px}
+  .edittoolbar button.danger-tool{color:var(--danger)}
+  .richbox{min-height:110px;max-height:320px;overflow-y:auto;background:var(--panel2);border:1px solid var(--border);border-radius:0 0 8px 8px;color:var(--text);padding:10px;font-family:inherit;font-size:13px;line-height:1.5}
+  .richbox:empty::before{content:attr(data-placeholder);color:var(--muted)}
+  .richbox b, .richbox strong{font-weight:700}
+  .richbox u{text-decoration:underline}
+  .richbox i, .richbox em{font-style:italic}
+
+  .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+  .statbox{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px}
+  .statbox .num{font-size:22px;font-weight:700;color:var(--text)}
+  .statbox .num.warn{color:var(--warn)}
+  .statbox .num.danger{color:var(--danger)}
+  .statbox .lbl{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+
+  .errlist{font-size:12.5px}
+  .errlist .errrow{border-left:3px solid var(--danger);background:#2a1414;border-radius:0 6px 6px 0;padding:8px 10px;margin-bottom:6px}
+  .errlist .errrow .meta{color:var(--muted);font-size:11px;margin-bottom:3px}
+  .errlist .errrow .msg{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-word}
+  .liveerr{color:var(--danger);font-size:13px}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px}
+  @media (max-width:860px){.grid{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px}
+  .card h2{margin:0 0 2px;font-size:18px}
+  .card .domain{color:var(--accent2);font-size:13px;margin-bottom:14px;display:block;text-decoration:none}
+  .card .domain:hover{text-decoration:underline}
+
+  .linkrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .linkbtn{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .linkbtn:hover{border-color:var(--accent2)}
+
+  h3.section{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 8px;border-top:1px solid var(--border);padding-top:14px}
+  .card h3.section:first-of-type{border-top:none;padding-top:0}
+
+  .pages{display:flex;flex-wrap:wrap;gap:6px}
+  .pagepill{font-size:12px;background:var(--panel2);border:1px solid var(--border);padding:5px 9px;border-radius:20px;color:var(--muted);text-decoration:none}
+  .pagepill:hover{color:var(--text);border-color:var(--accent2)}
+
+  .scriptrow{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:13px}
+  .scriptrow button{background:var(--accent);color:#fff;border:none;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;flex-shrink:0}
+  .scriptrow button:hover{background:#6d28d9}
+  .empty{color:var(--muted);font-size:13px;font-style:italic}
+
+  .envlist{display:flex;flex-wrap:wrap;gap:6px}
+  .envpill{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:#0d1a0f;color:#86efac;border:1px solid #1f4023;padding:4px 8px;border-radius:6px}
+
+  .sqllist{font-size:13px;color:var(--muted)}
+  .sqllist a{color:var(--muted);text-decoration:none}
+  .sqllist a:hover{color:var(--text)}
+  .sqllist li{margin-bottom:3px}
+
+  .wide{grid-column:1/-1}
+  textarea{width:100%;min-height:110px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px;font-family:inherit;font-size:13px;resize:vertical}
+  .savedhint{color:var(--muted);font-size:12px;margin-top:6px}
+  .addcard{border:1px dashed var(--border);border-radius:14px;padding:20px;color:var(--muted);font-size:13px}
+  .addcard code{background:var(--panel2);padding:1px 5px;border-radius:4px}
+  footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0}
+
+  .tierhead{display:flex;align-items:center;gap:9px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin:34px 0 12px}
+  .tierhead:first-of-type{margin-top:22px}
+  .tierhead .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .tierhead.t-critical{color:#fca5a5}
+  .tierhead.t-critical .dot{background:var(--danger);box-shadow:0 0 0 3px rgba(239,68,68,.18)}
+  .tierhead.t-daily .dot{background:var(--accent2)}
+  .tierhead.t-security .dot{background:var(--ok)}
+  .tierhead.t-rhythm .dot{background:#38bdf8}
+  .tierhead.t-ref .dot{background:var(--muted)}
+  .nogap{margin-top:0 !important}
+
+  .remrow{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--border);border-left-width:3px;border-radius:8px;padding:10px 12px;margin-bottom:8px}
+  .remrow .rleft{flex:1;min-width:0}
+  .remrow .rname{font-size:13.5px;font-weight:600}
+  .remrow .rmeta{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .remrow .rstatus{font-size:11.5px;font-weight:600;white-space:nowrap;flex-shrink:0}
+  .remrow button{background:var(--accent);color:#fff;border:none;padding:6px 11px;border-radius:6px;font-size:12px;cursor:pointer;flex-shrink:0}
+  .remrow button:hover{background:#6d28d9}
+  .remrow.ok{border-left-color:var(--ok)} .remrow.ok .rstatus{color:var(--ok)}
+  .remrow.soon{border-left-color:var(--warn)} .remrow.soon .rstatus{color:var(--warn)}
+  .remrow.late{border-left-color:var(--danger)} .remrow.late .rstatus{color:var(--danger)}
+  .remrow.never{border-left-color:var(--muted)} .remrow.never .rstatus{color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>DigiOpo Palvelut - ohjauspaneeli</h1>
+  <div class="sub">Paikallinen linkkikeskus projektien ylläpitoon. Tämä tiedosto ei mene GitHubiin eikä julkaisuun.</div>
+</header>
+
+<main>
+  <div class="banner ok" id="tokenBanner">
+    <span>✅</span>
+    <div>
+      <b>Git-turvallisuus korjattu (2026-07-04):</b> molemmat repot käyttävät nyt SSH-avainta (<code>~/.ssh/id_ed25519_digiopo</code>) GitHubiin. Vanha, selkokielisenä vuotanut PAT-token (<code>ghp_BkQKBZxpjjJnR...</code>, nimeltä "work") on revokoitu GitHubista.
+    </div>
+    <button onclick="dismissBanner()">Piilota</button>
+  </div>
+
+  <div class="tierhead t-critical"><span class="dot"></span> Kriittinen — reaaliaikainen tila &amp; vikatilanteet</div>
+  <div class="grid nogap">
+    <div class="card wide">
+      <h3 class="section" style="margin-top:0">Live-tilastot (digiopo)</h3>
+      <div class="empty" style="margin-bottom:10px" id="liveIntro">
+        Hakee reaaliaikaista dataa <code>/api/admin-tilastot</code>-endpointista: lisenssien määrä, kuormitus ja — tärkeimpänä — viimeisimmät API-virheet. Vaatii admin-avaimen (sama kuin ympäristömuuttuja <code>ADMIN_DASHBOARD_KEY</code> Vercelissä).
+      </div>
+
+      <div class="linkrow" id="liveKeyRow">
+        <input type="password" id="adminKeyInput" placeholder="Admin-avain (ADMIN_DASHBOARD_KEY)" style="flex:1;min-width:220px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:13px">
+        <button class="linkbtn" style="cursor:pointer" onclick="tallennaAdminAvain()">Tallenna avain</button>
+        <button class="linkbtn" style="cursor:pointer" onclick="haeLiveTilastot()">🔄 Päivitä</button>
+      </div>
+
+      <div id="liveStatus" class="savedhint" style="margin-top:8px"></div>
+      <div id="liveContent" style="margin-top:14px"></div>
+    </div>
+  </div>
+
+  <div class="tierhead t-critical"><span class="dot"></span> Kriittinen — häiriöviestintä</div>
+  <div class="grid nogap">
+    <div class="card wide">
+      <h3 class="section" style="margin-top:0">📢 Massaviesti tilaajille (digiopo)</h3>
+      <div class="empty" style="margin-bottom:10px">
+        Lähettää sähköpostin kaikille aktiivisille, voimassa oleville lisensseille (testilisenssit ohitetaan automaattisesti, samat sähköpostit yhdistetään). Käytä esim. häiriötiedotteisiin: "Vika on havaittu ja korjataan mahdollisimman pian!"
+      </div>
+
+      <div style="margin-bottom:10px">
+        <input type="text" id="viestiOtsikko" placeholder="Otsikko (esim. Häiriö havaittu palvelussa)" style="width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:8px">
+
+        <div class="edittoolbar">
+          <button type="button" title="Lihavointi" onclick="muotoile('bold')"><b>B</b></button>
+          <button type="button" title="Alleviivaus" onclick="muotoile('underline')"><u>U</u></button>
+          <button type="button" title="Kursiivi" onclick="muotoile('italic')"><i>I</i></button>
+          <div class="sep"></div>
+          <button type="button" title="Numeroitu lista" onclick="muotoile('insertOrderedList')">1.</button>
+          <button type="button" title="Luettelo" onclick="muotoile('insertUnorderedList')">•</button>
+          <div class="sep"></div>
+          <button type="button" title="Poista muotoilu" onclick="muotoile('removeFormat')">Tx</button>
+          <button type="button" title="Tyhjennä koko viesti" class="danger-tool" onclick="tyhjennaViesti()">🗑</button>
+        </div>
+        <div id="viestiSisalto" class="richbox" contenteditable="true" data-placeholder="Viestin sisältö... (esim. Olemme havainneet häiriön palvelussa ja korjaamme sen mahdollisimman pian. Pahoittelemme aiheutunutta haittaa.)"></div>
+      </div>
+
+      <div class="linkrow">
+        <button class="linkbtn" style="cursor:pointer" onclick="paivitaVastaanottajamaara()">👥 Näytä vastaanottajamäärä</button>
+        <button class="linkbtn" style="cursor:pointer" onclick="lahetaTestiviesti()">✉️ Lähetä testiviesti itselleni</button>
+      </div>
+
+      <div id="vastaanottajaStatus" class="savedhint" style="margin:8px 0"></div>
+
+      <div class="linkrow" style="align-items:center">
+        <input type="text" id="viestiVahvistus" placeholder='Kirjoita LAHETA vahvistaaksesi' style="flex:1;min-width:200px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:13px">
+        <button class="linkbtn" id="lahetaKaikilleBtn" style="cursor:pointer;background:var(--danger);border-color:var(--danger);color:#fff" onclick="lahetaKaikille()" disabled>🚨 Lähetä kaikille</button>
+      </div>
+      <div id="lahetysStatus" class="savedhint" style="margin-top:8px"></div>
+
+      <h3 class="section">Lähetyshistoria</h3>
+      <div id="viestiHistoria" class="empty">Ei vielä ladattu — paina "Näytä vastaanottajamäärä" ensin (lataa myös historian).</div>
+    </div>
+  </div>
+
+  <div class="tierhead t-critical"><span class="dot"></span> Kriittinen — ryhmien hallinta</div>
+  <div class="grid nogap">
+    <div class="card wide">
+      <h3 class="section" style="margin-top:0">📇 Lisenssit ja yhteyshenkilöt</h3>
+      <div class="empty" style="margin-bottom:12px">
+        Kaikki lisenssit vanhenemisjärjestyksessä – ylimpänä ne, joiden uusinta on ajankohtaisin.
+        <b>Punainen</b> = vanhentunut, <b>keltainen</b> = vanhenee 30 pv sisällä.
+        Laitemäärä on 30 päivän aktiiviset laitteet, ja se on suuntaa-antava eikä päälukumäärä.
+      </div>
+      <div class="linkrow">
+        <button class="linkbtn" style="cursor:pointer" onclick="haeLisenssit()">🔄 Lataa lisenssit</button>
+      </div>
+      <div id="lisenssitStatus" class="savedhint" style="margin:8px 0"></div>
+      <div id="lisenssitSisalto"></div>
+    </div>
+  </div>
+
+  <div class="grid nogap">
+    <div class="card wide">
+      <h3 class="section" style="margin-top:0">🎫 Luo lisenssi</h3>
+      <div class="empty" style="margin-bottom:12px">
+        Lisenssi ilman laskutusta: kokeilujaksot, pilottikoulut ja erikoistapaukset.
+        Ostavat asiakkaat tulevat tilauslomakkeen kautta.
+        <b>Sähköpostia ei lähetetä</b> – koodi näytetään tässä ja välität sen itse.
+        Käyttää samaa admin-avainta kuin Live-tilastot.
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:12px">
+        <label style="font-size:12px;color:var(--muted)">Tyyppi
+          <select id="lisTyyppi" onchange="lisTyyppiVaihtui()"
+            style="width:100%;margin-top:4px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px">
+            <option value="vuosi">Koululisenssi – vuosi</option>
+            <option value="kunta">Koululisenssi – kunta</option>
+            <option value="testi">Testilisenssi</option>
+            <option value="opettaja">Opettajalisenssi</option>
+          </select>
+        </label>
+
+        <label style="font-size:12px;color:var(--muted)">Koulu *
+          <input id="lisKoulu" list="lisKoulutLista" placeholder="Esim. Mäyrälän koulu"
+            style="width:100%;margin-top:4px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px">
+          <datalist id="lisKoulutLista"></datalist>
+        </label>
+
+        <label style="font-size:12px;color:var(--muted)">Yhteyshenkilö
+          <input id="lisHenkilo" placeholder="Etunimi Sukunimi"
+            style="width:100%;margin-top:4px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px">
+        </label>
+
+        <label style="font-size:12px;color:var(--muted)"><span id="lisEmailLabel">Sähköposti</span>
+          <input id="lisEmail" type="email" placeholder="nimi@koulu.fi"
+            style="width:100%;margin-top:4px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px">
+        </label>
+
+        <label style="font-size:12px;color:var(--muted)">Voimassa asti *
+          <input id="lisVoimassa" type="date"
+            style="width:100%;margin-top:4px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px">
+        </label>
+
+        <label style="font-size:12px;color:var(--muted)" id="lisPaikatKentta">Paikat (ylikäytön seuranta)
+          <input id="lisPaikat" type="number" min="1" placeholder="Tyhjä = ei seurantaa"
+            style="width:100%;margin-top:4px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px">
+        </label>
+      </div>
+
+      <div id="lisVihje" class="empty" style="margin-bottom:10px"></div>
+
+      <div class="linkrow">
+        <button class="linkbtn" style="cursor:pointer" onclick="luoLisenssi()">➕ Luo lisenssi</button>
+        <button class="linkbtn" style="cursor:pointer" onclick="haeKoulunimet()">🔄 Päivitä koulunimet</button>
+      </div>
+
+      <div id="lisStatus" class="savedhint" style="margin:8px 0"></div>
+      <div id="lisTulos"></div>
+    </div>
+  </div>
+
+  <div class="tierhead t-rhythm"><span class="dot"></span> Ylläpitorytmi — muistutukset</div>
+  <div class="grid nogap">
+    <div class="card wide">
+      <h3 class="section" style="margin-top:0">🔔 Säännölliset ylläpitotehtävät</h3>
+      <div class="empty" style="margin-bottom:12px">
+        Muistutukset toistuvista tehtävistä. Kun teet tehtävän, paina <b>Merkitse tehdyksi</b> — se tallentaa päivämäärän ja laskee seuraavan eräpäivän. Väri kertoo tilan: 🟢 kunnossa, 🟡 erääntyy pian, 🔴 myöhässä. Tila tallentuu vain tähän selaimeen.
+      </div>
+      <div id="reminderList"></div>
+    </div>
+  </div>
+
+  <div class="tierhead t-daily"><span class="dot"></span> Projektit &amp; päivittäiset hallintalinkit</div>
+  <div class="grid nogap" id="projectGrid"></div>
+
+  <div class="tierhead t-security"><span class="dot"></span> Tietoturva</div>
+  <div class="grid nogap">
+    <div class="card wide">
+      <h3 class="section" style="margin-top:0">Tietoturva — RLS-korjaus (digiopo)</h3>
+
+      <div id="rlsSummary" style="display:none;cursor:pointer" onclick="toggleRlsDetail()">
+        <span style="color:var(--ok);font-weight:600">✅ RLS korjattu (5/5)</span>
+        <span class="empty"> — kaikki taulut suojattu ja vahvistettu. Klikkaa nähdäksesi yksityiskohdat.</span>
+      </div>
+
+      <div id="rlsDetail">
+        <div class="empty" style="margin-bottom:10px">
+          5 Supabase-taulua luotiin ilman Row Level Securitya (ammattiset_tulostaulu, ammattiset_asetukset, fake_insta_profiilit, page_views, tiedontemppeli_tulostaulu) — julkinen anon-avain voisi tällä hetkellä kirjoittaa/poistaa niitä suoraan. Aja SQL alla Supabasen SQL Editorissa, sitten täppää tehdyksi.
+        </div>
+        <div class="checklist" id="rlsChecklist"></div>
+        <div class="linkrow" style="margin-top:10px">
+          <button class="linkbtn" style="cursor:pointer" onclick="copyRlsSql(this)">Kopioi täysi korjaus-SQL</button>
+          <a class="linkbtn" href="https://supabase.com/dashboard/project/xltsuuovdrradlproonr/sql/new" target="_blank">🗄️ Avaa Supabase SQL Editor</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tierhead t-ref"><span class="dot"></span> Viiteaineisto</div>
+  <div class="grid nogap">
+    <div class="card wide">
+      <h3 class="section" style="margin-top:0">Dokumentaatio (DigiOpo_Tekniset_Ohjeet)</h3>
+      <div class="empty" style="margin-bottom:10px">Päivitetty 2026-07-04 vastaamaan nykytilaa (Vercel, RLS, virhelokitus, admin-paneeli). .docx-versiot eivät ole vielä synkassa .md-tiedostojen kanssa.</div>
+      <div id="docsList"></div>
+    </div>
+  </div>
+
+  <div class="addcard" style="margin-top:34px">
+    Uuden projektin lisääminen: avaa tämä tiedosto tekstieditorissa ja lisää uusi objekti <code>PROJECTS</code>-listaan (script-tagin alussa) — kortti ilmestyy automaattisesti.
+  </div>
+
+  <footer>Päivitetty käsin — projektidata on kovakoodattu tähän tiedostoon. Viimeksi rakennettu 2026-07-04.</footer>
+</main>
+
+<script>
+// ─── Projektidata: lisää tähän uusia projekteja tarpeen mukaan ───
+const PROJECTS = [
+  {
+    id: 'digiopo',
+    name: 'DigiOpo - Omilla Jäljillä - digikirja peruskoulun oppilaanohjaukseen',
+    domain: 'https://app.digiopo.fi',
+    localPath: '/Users/vicis/Projects/digiopo',
+    github: 'https://github.com/swan27768/digiopo',
+    githubPages: 'https://github.com/swan27768/digiopo/settings/pages',
+    vercel: 'https://vercel.com/dashboard',
+    vercelNote: 'Projekti-ID: prj_Faadfq7ZHe3xsxJ4ZSfyoweGLnuj — hae "digiopo" dashboardista (tiimin slugia ei ole vielä selvitetty)',
+    supabase: 'https://supabase.com/dashboard/project/xltsuuovdrradlproonr',
+    palvelut: [
+      { nimi: 'Resend', icon: '📧', url: 'https://resend.com/emails', vastuu: 'Sähköpostien lähetys ja toimitusloki: kirjautumispiikkihälytys (tarkista-kirjaukset.js-cron)' },
+      { nimi: 'Upstash Redis', icon: '🔴', url: 'https://console.upstash.com', vastuu: 'Rate limiting lisenssi.js:ssä — estää lisenssikoodien brute force -arvaamisen (max 5 yritystä/IP/10min)' },
+    ],
+    scripts: [
+      {label:'Esikatselu (paikallinen palvelin, portti 8000)', file:'esikatselu.command'},
+      {label:'Julkaise (push GitHubiin → Vercel julkaisee)', file:'julkaise.command'}
+    ],
+    pages: ['index.html','tehtava.html','interactive.html','ala-set_ope.html','supervoima_ope.html','tulevaisuus_8lk_ope.html','maailma-taulu.html','fake-insta.html','kirjaudu.html','liity.html','kayttoehdot.html'],
+    envVars: ['ANTHROPIC_API_KEY','SUPABASE_URL','SUPABASE_SERVICE_KEY','RESEND_API_KEY','ADMIN_EMAIL','FROM_EMAIL','PORT'],
+    sql: ['supabase_schema.sql','supabase_ammattiset.sql','supabase_fake_insta.sql','supabase_jarjestys.sql','supabase_laskuri.sql','supabase_lisenssi_kirjaukset.sql','supabase_maailma_taulu.sql','supabase_tiedontemppeli.sql','supabase_KAIKKI_uudet_29-6.sql']
+  },
+  {
+    id: 'digiopo-home',
+    name: 'DigiOpo.fi - markkinointisivu',
+    domain: 'https://digiopo.fi',
+    localPath: '/Users/vicis/Projects/digiopo-home',
+    github: 'https://github.com/swan27768/digiopo-home',
+    githubPages: 'https://github.com/swan27768/digiopo-home/settings/pages',
+    vercel: 'https://vercel.com/dashboard',
+    vercelNote: 'Projekti-ID ei vielä varmistettu tälle repolle — hae "digiopo-home" dashboardista',
+    supabase: 'https://supabase.com/dashboard/projects',
+    supabaseNote: 'Ei vahvistettu käyttääkö samaa projektia kuin digiopo (xltsuuovdrradlproonr) — tarkista .env:stä',
+    palvelut: [
+      { nimi: 'Resend', icon: '📧', url: 'https://resend.com/emails', vastuu: 'Sähköpostien lähetys ja toimitusloki: tilausvahvistukset, laskut ja admin-ilmoitukset (tilaus.js)' },
+    ],
+    scripts: [],
+    pages: ['index.html','digikirja.html','hinnasto.html','laskuri.html','stream-palvelut.html','tehtavapankki.html','tilauslomake.html','tietosuojaseloste.html'],
+    envVars: ['SUPABASE_URL','SUPABASE_SERVICE_KEY','RESEND_API_KEY','ADMIN_EMAIL','FROM_EMAIL'],
+    sql: []
+  }
+];
+
+// ─── Dokumentaatio: /Users/vicis/Documents/DigiOpo_Tekniset_Ohjeet ───
+const DOCS_ROOT = '/Users/vicis/Documents/DigiOpo_Tekniset_Ohjeet';
+const DOCS = [
+  { kansio: 'Dokumentaatio', tiedostot: ['TEKNINEN_SELOSTE.md', 'JARJESTYS_DOKUMENTAATIO.md'] },
+  { kansio: 'Kayttoonotto', tiedostot: ['DEPLOYMENT.md', 'JULKAISUOHJEET.md', 'JULKAISUSUUNNITELMA.md', 'VAIHE2_KAYTTOONOTTO.md'] },
+  { kansio: 'Yllapito', tiedostot: ['MUUTOSOHJEET.md', 'TURVALLISUUS_avaimen_vaihto.md'] },
+  { kansio: 'Kayttajaohjeet', tiedostot: ['OHJEET_opettaja_ja_yllapitaja.md', 'OPETTAJAN_OHJE_vastausten_tallentuminen.md'] },
+  { kansio: 'Testaus', tiedostot: ['testauslomake.xlsx'] },
+];
+
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function renderDocs(){
+  const el = document.getElementById('docsList');
+  el.innerHTML = DOCS.map(ryhma => `
+    <h3 class="section" style="margin-top:14px">${esc(ryhma.kansio)}</h3>
+    <div class="pages">
+      ${ryhma.tiedostot.map(f => `<a class="pagepill" href="file://${DOCS_ROOT}/${ryhma.kansio}/${f}">${f}</a>`).join('')}
+    </div>
+  `).join('');
+}
+
+function renderProjects(){
+  const grid = document.getElementById('projectGrid');
+  grid.innerHTML = PROJECTS.map(p => `
+    <div class="card">
+      <h2>${esc(p.name)}</h2>
+      <a class="domain" href="${p.domain}" target="_blank">${p.domain}</a>
+
+      <h3 class="section" style="margin-top:0">Hallintapaneelit</h3>
+      <div class="authstatus">🔐 Git: <b>SSH</b> (id_ed25519_digiopo) — PAT-token revokoitu</div>
+      <div class="linkrow">
+        <a class="linkbtn" href="${p.github}" target="_blank">🐙 GitHub</a>
+        <a class="linkbtn" href="${p.githubPages}" target="_blank">📄 Pages-asetukset</a>
+        <a class="linkbtn" href="${p.vercel}" target="_blank" title="${esc(p.vercelNote||'')}">▲ Vercel</a>
+        <a class="linkbtn" href="${p.supabase}" target="_blank" title="${esc(p.supabaseNote||'')}">🗄️ Supabase</a>
+        ${(p.palvelut||[]).map(pv => `<a class="linkbtn" href="${pv.url}" target="_blank" title="Vastuussa: ${esc(pv.vastuu)}">${pv.icon} ${esc(pv.nimi)}</a>`).join('')}
+      </div>
+      ${(p.palvelut||[]).length ? `<div class="empty" style="margin-bottom:16px">${p.palvelut.map(pv => `<b style="color:var(--text)">${esc(pv.nimi)}</b>: ${esc(pv.vastuu)}`).join(' · ')}</div>` : ''}
+
+      <h3 class="section">Paikalliset komennot</h3>
+      ${p.scripts.length ? p.scripts.map(s => `
+        <div class="scriptrow">
+          <span>${esc(s.label)}</span>
+          <button onclick="copyCmd('${p.localPath}/${s.file}', this)">Kopioi komento</button>
+        </div>
+      `).join('') : '<div class="empty">Ei paikallisia käynnistysskriptejä tässä projektissa.</div>'}
+
+      <h3 class="section">Pikalinkit sivuille</h3>
+      <div class="pages">
+        ${p.pages.map(pg => `<a class="pagepill" href="file://${p.localPath}/${pg}">${pg}</a>`).join('')}
+      </div>
+
+      <h3 class="section">Ympäristömuuttujat</h3>
+      <div class="envlist">
+        ${p.envVars.map(e => `<span class="envpill">${e}</span>`).join('')}
+      </div>
+
+      ${p.sql.length ? `
+      <h3 class="section">Supabase-skeemat (.sql)</h3>
+      <ul class="sqllist">
+        ${p.sql.map(f => `<li><a href="file://${p.localPath}/${f}">${f}</a></li>`).join('')}
+      </ul>` : ''}
+    </div>
+  `).join('');
+}
+
+function copyCmd(path, btn){
+  const cmd = `open "${path}"`;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Kopioitu ✓';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+function dismissBanner(){
+  document.getElementById('tokenBanner').classList.add('hidden');
+  localStorage.setItem('tokenBannerDismissed', '1');
+}
+
+// ─── RLS-korjauslista ───
+const RLS_TABLES = ['ammattiset_tulostaulu','ammattiset_asetukset','fake_insta_profiilit','page_views','tiedontemppeli_tulostaulu'];
+const RLS_SQL = RLS_TABLES.map(t =>
+  `alter table ${t} enable row level security;\ncreate policy "Ei julkista pääsyä" on ${t} for all using (false);`
+).join('\n\n');
+
+function rlsKaikkiValmiina(state){
+  return RLS_TABLES.every(t => state[t]);
+}
+
+// Näyttää yhteenvedon jos kaikki 5 on rastitettu, muuten yksityiskohtaisen listan.
+// forceExpand-parametrilla voi väliaikaisesti pakottaa yksityiskohdat näkyviin
+// (esim. klikkaamalla yhteenvetoa) vaikka kaikki olisi jo valmiina.
+function paivitaRlsNakyma(forceExpand){
+  const state = JSON.parse(localStorage.getItem('rlsChecklist') || '{}');
+  const valmis = rlsKaikkiValmiina(state);
+  const summary = document.getElementById('rlsSummary');
+  const detail = document.getElementById('rlsDetail');
+
+  if (valmis && !forceExpand) {
+    summary.style.display = 'block';
+    detail.style.display = 'none';
+  } else {
+    summary.style.display = 'none';
+    detail.style.display = 'block';
+  }
+}
+
+function toggleRlsDetail(){
+  // Klikkaamalla yhteenvetoa avataan yksityiskohdat väliaikaisesti tarkistusta varten
+  paivitaRlsNakyma(true);
+}
+
+function renderRlsChecklist(){
+  const el = document.getElementById('rlsChecklist');
+  const state = JSON.parse(localStorage.getItem('rlsChecklist') || '{}');
+  el.innerHTML = RLS_TABLES.map(t => `
+    <label>
+      <input type="checkbox" data-table="${t}" ${state[t] ? 'checked' : ''}>
+      <span class="${state[t] ? 'done' : ''}">${t}</span>
+    </label>
+  `).join('');
+  el.querySelectorAll('input').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const s = JSON.parse(localStorage.getItem('rlsChecklist') || '{}');
+      s[cb.dataset.table] = cb.checked;
+      localStorage.setItem('rlsChecklist', JSON.stringify(s));
+      cb.nextElementSibling.classList.toggle('done', cb.checked);
+      paivitaRlsNakyma(false);
+    });
+  });
+  paivitaRlsNakyma(false);
+}
+
+function copyRlsSql(btn){
+  navigator.clipboard.writeText(RLS_SQL).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Kopioitu ✓';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+renderRlsChecklist();
+renderDocs();
+
+// ─── Ylläpitorytmi — muistutukset ───
+// Lisää tai muokkaa muistutuksia tästä listasta. vali_pv = kuinka monen päivän
+// välein tehtävä pitäisi tehdä. Tila (viimeksi tehty) tallentuu localStorageen.
+const REMINDERS = [
+  { id:'db_backup',    nimi:'Tietokannan varmuuskopio (pg_dump)',       vali_pv:7,   vihje:'Aja pg_dump Documents/Varmuuskopiot-kansiossa, nimeä päivämäärällä.' },
+  { id:'code_backup',  nimi:'Koodin varmuuskopio (ZIP GitHubista)',     vali_pv:30,  vihje:'Code → Download ZIP, talleta koneelle + koneen ulkopuolelle.' },
+  { id:'lisenssit',    nimi:'Tarkista pian vanhenevat lisenssit',       vali_pv:30,  vihje:'Katso Live-tilastot → "Vanhenee 30pv" ja ole yhteydessä tarvittaessa.' },
+  { id:'virhelokit',   nimi:'Tarkista API-virhelokit (24h)',            vali_pv:7,   vihje:'Katso Live-tilastot → Vikatilanteet. Selvitä toistuvat virheet.' },
+  { id:'avaimet',      nimi:'Rotatoi admin- ja API-avaimet',            vali_pv:180, vihje:'Vaihda ADMIN_DASHBOARD_KEY, DB-salasana ja API-avaimet, päivitä Verceliin.' },
+];
+const PV_MS = 24*60*60*1000;
+
+function remTila(){ return JSON.parse(localStorage.getItem('muistutukset') || '{}'); }
+
+function muotoilePvm(iso){
+  try { return new Date(iso).toLocaleDateString('fi-FI', { dateStyle:'short' }); }
+  catch { return iso; }
+}
+
+function renderReminders(){
+  const el = document.getElementById('reminderList');
+  const tila = remTila();
+  const nyt = Date.now();
+
+  el.innerHTML = REMINDERS.map(r => {
+    const viimeksi = tila[r.id];
+    let luokka, status;
+    if (!viimeksi){
+      luokka = 'never';
+      status = 'Ei vielä merkitty';
+    } else {
+      const kulunut = Math.floor((nyt - new Date(viimeksi).getTime()) / PV_MS);
+      const jaljella = r.vali_pv - kulunut;
+      if (jaljella < 0){
+        luokka = 'late';
+        status = `Myöhässä ${-jaljella} pv`;
+      } else if (jaljella <= Math.max(1, Math.round(r.vali_pv*0.2))){
+        luokka = 'soon';
+        status = jaljella === 0 ? 'Erääntyy tänään' : `Erääntyy ${jaljella} pv`;
+      } else {
+        luokka = 'ok';
+        status = `Kunnossa (${jaljella} pv)`;
+      }
+    }
+    const valiTeksti = r.vali_pv % 30 === 0 ? `${r.vali_pv/30} kk välein` : (r.vali_pv === 7 ? 'viikoittain' : `${r.vali_pv} pv välein`);
+    const viimeksiTeksti = viimeksi ? ` · viimeksi ${muotoilePvm(viimeksi)}` : '';
+    return `
+      <div class="remrow ${luokka}">
+        <div class="rleft">
+          <div class="rname">${esc(r.nimi)}</div>
+          <div class="rmeta">${esc(valiTeksti)}${esc(viimeksiTeksti)} — ${esc(r.vihje)}</div>
+        </div>
+        <div class="rstatus">${status}</div>
+        <button onclick="merkitseTehdyksi('${r.id}')">Merkitse tehdyksi</button>
+      </div>`;
+  }).join('');
+}
+
+function merkitseTehdyksi(id){
+  const tila = remTila();
+  tila[id] = new Date().toISOString();
+  localStorage.setItem('muistutukset', JSON.stringify(tila));
+  renderReminders();
+}
+
+renderReminders();
+
+// ─── Live-tilastot ───
+const ADMIN_TILASTOT_URL = 'https://app.digiopo.fi/api/admin-tilastot';
+
+function tallennaAdminAvain(){
+  const v = document.getElementById('adminKeyInput').value.trim();
+  if (!v) return;
+  localStorage.setItem('adminDashboardKey', v);
+  document.getElementById('adminKeyInput').value = '';
+  document.getElementById('adminKeyInput').placeholder = 'Avain tallennettu ✓ (piilotettu)';
+  haeLiveTilastot();
+}
+
+function muotoileAika(iso){
+  try {
+    return new Date(iso).toLocaleString('fi-FI', { dateStyle: 'short', timeStyle: 'short' });
+  } catch { return iso; }
+}
+
+async function haeLiveTilastot(){
+  const key = localStorage.getItem('adminDashboardKey') || '';
+  const statusEl = document.getElementById('liveStatus');
+  const contentEl = document.getElementById('liveContent');
+
+  if (!key) {
+    statusEl.textContent = 'Anna admin-avain yllä ja paina "Tallenna avain".';
+    return;
+  }
+
+  statusEl.textContent = 'Haetaan...';
+  try {
+    const res = await fetch(ADMIN_TILASTOT_URL, { headers: { 'x-admin-key': key } });
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      statusEl.innerHTML = `<span class="liveerr">Virhe: ${esc(data.virhe || res.status)}${data.virhe === 'virheellinen_avain' ? ' — tarkista admin-avain' : ''}</span>`;
+      contentEl.innerHTML = '';
+      return;
+    }
+
+    statusEl.textContent = `Päivitetty ${muotoileAika(data.haettu)}`;
+    renderLiveTilastot(data, contentEl);
+  } catch (err) {
+    statusEl.innerHTML = `<span class="liveerr">Yhteysvirhe: ${esc(err.message)} — onko endpoint /api/admin-tilastot julkaistu ja CORS kunnossa?</span>`;
+  }
+}
+
+function renderLiveTilastot(data, el){
+  const { lisenssit, kuorma, virheet, deploy, lisenssikaytto } = data;
+
+  const virheDanger = virheet.viime_24h > 0;
+
+  el.innerHTML = `
+    <h3 class="section" style="margin-top:0">📄 Lisenssit</h3>
+    <div class="statgrid">
+      <div class="statbox"><div class="num">${lisenssit.yhteensa}</div><div class="lbl">Yhteensä</div></div>
+      <div class="statbox"><div class="num">${lisenssit.aktiiviset}</div><div class="lbl">Aktiiviset</div></div>
+      <div class="statbox"><div class="num ${lisenssit.pian_vanhenevat > 0 ? 'warn' : ''}">${lisenssit.pian_vanhenevat}</div><div class="lbl">Vanhenee 30pv</div></div>
+      <div class="statbox"><div class="num">${lisenssit.vanhentuneet}</div><div class="lbl">Vanhentunut</div></div>
+    </div>
+    <div class="empty" style="margin-bottom:16px">Tyypeittäin: ${Object.entries(lisenssit.tyypeittain).map(([t,n]) => `${esc(t)}: ${n}`).join(', ') || '—'}</div>
+
+    <h3 class="section">⚡ Kuormitus</h3>
+    <div class="statgrid">
+      <div class="statbox"><div class="num">${kuorma.tanaan_yhteensa}</div><div class="lbl">Käyntejä tänään</div></div>
+      <div class="statbox"><div class="num">${kuorma.viikko_yhteensa}</div><div class="lbl">Käyntejä 7pv</div></div>
+    </div>
+    <div class="empty" style="margin-bottom:16px">Suosituimmat: ${kuorma.suosituimmat_sivut.slice(0,5).map(s => `${esc(s.sivu)} (${s.kaynteya_yhteensa})`).join(', ') || '—'}</div>
+
+    <h3 class="section">🎫 Lisenssien käyttö (laitepohjainen)</h3>
+    ${(() => {
+      const kaytto = lisenssikaytto || [];
+      if (!kaytto.length) return '<div class="empty" style="margin-bottom:16px">Ei laitekirjauksia vielä — kertyy kun oppilaat kirjautuvat koodilla. (Aseta myydyt paikat: lisenssit.paikat Supabasessa.)</div>';
+      const yli = kaytto.filter(k => k.ylikaytto === true);
+      const rows = kaytto.slice(0, 15).map(k => {
+        const paikat = (k.paikat == null) ? '—' : k.paikat;
+        const yliClass = k.ylikaytto === true ? 'danger' : '';
+        return `<div class="errrow">
+            <div class="meta">${esc(k.koodi)} — ${esc(k.koulu || '')}</div>
+            <div class="msg ${yliClass}">${k.laitteita_30pv} laitetta 30pv / ${paikat} paikkaa${k.ylikaytto === true ? ' ⚠️ ylikäyttö' : ''} · yhteensä ${k.laitteita_yht}</div>
+          </div>`;
+      }).join('');
+      const yhteenveto = yli.length > 0
+        ? `<b class="danger">${yli.length} koodia ylittää myydyt paikat</b>`
+        : 'Ei ylikäyttöä 🎉';
+      return `<div class="empty" style="margin-bottom:8px">${yhteenveto} · laske vain koodit joille paikat on asetettu</div><div class="errlist" style="margin-bottom:16px">${rows}</div>`;
+    })()}
+
+    <h3 class="section">🚨 Vikatilanteet</h3>
+    <div class="statgrid">
+      <div class="statbox"><div class="num ${virheDanger ? 'danger' : ''}">${virheet.viime_24h}</div><div class="lbl">Virhettä / 24h</div></div>
+      <div class="statbox"><div class="num">${virheet.viimeisimmat.length}</div><div class="lbl">Tallessa (max 50)</div></div>
+    </div>
+    <div class="errlist">
+      ${virheet.viimeisimmat.length === 0 ? '<div class="empty">Ei kirjattuja virheitä 🎉</div>' :
+        virheet.viimeisimmat.slice(0, 10).map(v => `
+          <div class="errrow">
+            <div class="meta">${muotoileAika(v.luotu_at)} — ${esc(v.endpoint)}</div>
+            <div class="msg">${esc(v.viesti)}</div>
+          </div>
+        `).join('')}
+    </div>
+
+    <h3 class="section">▲ Viimeisin julkaisu (Vercel)</h3>
+    ${deploy ? `
+      <div class="empty">Tila: <b style="color:var(--text)">${esc(deploy.tila)}</b> — ${muotoileAika(deploy.luotu)} (${esc(deploy.url)})</div>
+    ` : '<div class="empty">Vercel-integraatio ei käytössä (VERCEL_API_TOKEN puuttuu) — tarkista tila manuaalisesti Vercel-dashboardista.</div>'}
+  `;
+}
+
+// Lataa automaattisesti jos avain jo tallennettu, ja päivitä 60s välein
+if (localStorage.getItem('adminDashboardKey')) {
+  haeLiveTilastot();
+  setInterval(haeLiveTilastot, 60000);
+}
+
+// ─── Massaviesti tilaajille ───
+const ADMIN_VIESTI_URL = 'https://app.digiopo.fi/api/admin-viesti';
+
+function adminAvainTaiVaroita(statusEl){
+  const key = localStorage.getItem('adminDashboardKey') || '';
+  if (!key) {
+    statusEl.textContent = 'Anna admin-avain Live-tilastot-osiossa ensin (sama avain toimii tässäkin).';
+    return null;
+  }
+  return key;
+}
+
+// ─── Muokkaustyökalut (rich text) ───
+function muotoile(komento){
+  document.getElementById('viestiSisalto').focus();
+  document.execCommand(komento, false, null);
+}
+
+function tyhjennaViesti(){
+  if (!confirm('Tyhjennetäänkö koko viesti?')) return;
+  document.getElementById('viestiSisalto').innerHTML = '';
+  document.getElementById('viestiSisalto').focus();
+}
+
+// Kevyt puhdistus ennen lähetystä palvelimelle: poistaa script/style-tagit ja
+// on*-attribuutit selainpuolella (palvelin puhdistaa vielä uudelleen varmuudeksi)
+function puhdistaHtml(html){
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  div.querySelectorAll('script, style').forEach(n => n.remove());
+  div.querySelectorAll('*').forEach(el => {
+    [...el.attributes].forEach(attr => {
+      if (/^on/i.test(attr.name)) el.removeAttribute(attr.name);
+    });
+  });
+  return div.innerHTML;
+}
+
+function lueViestiKentat(){
+  const kentta = document.getElementById('viestiSisalto');
+  return {
+    otsikko: document.getElementById('viestiOtsikko').value.trim(),
+    viesti: puhdistaHtml(kentta.innerHTML.trim()),
+    viestiTeksti: kentta.textContent.trim(), // tyhjyystarkistusta varten
+  };
+}
+
+async function paivitaVastaanottajamaara(){
+  const statusEl = document.getElementById('vastaanottajaStatus');
+  const key = adminAvainTaiVaroita(statusEl);
+  if (!key) return;
+
+  statusEl.textContent = 'Haetaan...';
+  try {
+    const res = await fetch(`${ADMIN_VIESTI_URL}?action=esikatselu`, { headers: { 'x-admin-key': key } });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      statusEl.innerHTML = `<span class="liveerr">Virhe: ${esc(data.virhe || res.status)}</span>`;
+      return;
+    }
+    statusEl.innerHTML = `<b style="color:var(--text)">${data.maara}</b> vastaanottajaa saisi viestin nyt (aktiiviset, voimassa olevat, ei-testilisenssit, samat sähköpostit yhdistetty).`;
+  } catch (err) {
+    statusEl.innerHTML = `<span class="liveerr">Yhteysvirhe: ${esc(err.message)}</span>`;
+  }
+
+  haeViestiHistoria(key);
+}
+
+async function lahetaTestiviesti(){
+  const statusEl = document.getElementById('lahetysStatus');
+  const key = adminAvainTaiVaroita(statusEl);
+  if (!key) return;
+
+  const { otsikko, viesti, viestiTeksti } = lueViestiKentat();
+  if (!otsikko || !viestiTeksti) {
+    statusEl.innerHTML = '<span class="liveerr">Kirjoita otsikko ja viesti ensin.</span>';
+    return;
+  }
+
+  statusEl.textContent = 'Lähetetään testiviestiä...';
+  try {
+    const res = await fetch(ADMIN_VIESTI_URL, {
+      method: 'POST',
+      headers: { 'x-admin-key': key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'testi', otsikko, viesti }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      statusEl.innerHTML = `<span class="liveerr">Virhe: ${esc(data.virhe || res.status)}</span>`;
+      return;
+    }
+    statusEl.innerHTML = `✅ Testiviesti lähetetty omaan sähköpostiisi (ADMIN_EMAIL). Tarkista saapuiko se ennen massalähetystä.`;
+  } catch (err) {
+    statusEl.innerHTML = `<span class="liveerr">Yhteysvirhe: ${esc(err.message)}</span>`;
+  }
+}
+
+async function lahetaKaikille(){
+  const statusEl = document.getElementById('lahetysStatus');
+  const key = adminAvainTaiVaroita(statusEl);
+  if (!key) return;
+
+  const { otsikko, viesti, viestiTeksti } = lueViestiKentat();
+  if (!otsikko || !viestiTeksti) {
+    statusEl.innerHTML = '<span class="liveerr">Kirjoita otsikko ja viesti ensin.</span>';
+    return;
+  }
+
+  const btn = document.getElementById('lahetaKaikilleBtn');
+  btn.disabled = true;
+  statusEl.textContent = 'Lähetetään kaikille — tämä voi kestää hetken (batch-lähetys)...';
+
+  try {
+    const res = await fetch(ADMIN_VIESTI_URL, {
+      method: 'POST',
+      headers: { 'x-admin-key': key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'laheta', otsikko, viesti, vahvistus: 'LAHETA' }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      statusEl.innerHTML = `<span class="liveerr">Virhe: ${esc(data.virhe || res.status)}</span>`;
+      return;
+    }
+    statusEl.innerHTML = `✅ Lähetetty ${data.maara} vastaanottajalle — ${data.onnistuneet} onnistui, ${data.epaonnistuneet} epäonnistui.`;
+    document.getElementById('viestiVahvistus').value = '';
+    haeViestiHistoria(key);
+  } catch (err) {
+    statusEl.innerHTML = `<span class="liveerr">Yhteysvirhe: ${esc(err.message)}</span>`;
+  } finally {
+    // Nappi pysyy lukittuna kunnes vahvistuskenttä kirjoitetaan uudelleen (estää tuplaklikkauksen)
+  }
+}
+
+async function haeViestiHistoria(key){
+  const el = document.getElementById('viestiHistoria');
+  try {
+    const res = await fetch(`${ADMIN_VIESTI_URL}?action=historia`, { headers: { 'x-admin-key': key } });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      el.innerHTML = `<span class="liveerr">Historian haku epäonnistui: ${esc(data.virhe || res.status)}</span>`;
+      return;
+    }
+    if (data.historia.length === 0) {
+      el.innerHTML = 'Ei vielä lähetettyjä viestejä.';
+      return;
+    }
+    el.innerHTML = data.historia.map(v => `
+      <div class="errrow" style="border-left-color:var(--accent2);background:var(--panel2)">
+        <div class="meta">${muotoileAika(v.laheta_at)} — ${v.onnistuneet}/${v.vastaanottajamaara} onnistui${v.epaonnistuneet > 0 ? `, ${v.epaonnistuneet} epäonnistui` : ''}</div>
+        <div class="msg" style="font-family:inherit"><b>${esc(v.otsikko)}</b></div>
+      </div>
+    `).join('');
+  } catch (err) {
+    el.innerHTML = `<span class="liveerr">Yhteysvirhe: ${esc(err.message)}</span>`;
+  }
+}
+
+// Vahvistuskenttä: nappi aktivoituu vain kun tekstiksi on kirjoitettu täsmälleen LAHETA
+document.getElementById('viestiVahvistus').addEventListener('input', (e) => {
+  document.getElementById('lahetaKaikilleBtn').disabled = e.target.value.trim() !== 'LAHETA';
+});
+
+if (localStorage.getItem('tokenBannerDismissed') === '1') {
+  document.getElementById('tokenBanner').classList.add('hidden');
+}
+
+/* ─────────────────────────────────────────────────────────────
+   LISENSSIN LUONTI
+   Endpoint on digiopo-home-projektissa (sama origin kuin tämä
+   sivu), toisin kuin muut paneelin toiminnot jotka kutsuvat
+   app.digiopo.fi-osoitetta. Syy: app.digiopo.fi on Vercelin
+   Hobby-tason 12 funktion katossa, ja lisenssien luontilogiikka
+   kuuluu samaan projektiin tilaus.js:n kanssa.
+   ───────────────────────────────────────────────────────────── */
+// Absoluuttinen osoite, kuten paneelin muissakin toiminnoissa. Suhteellinen
+// polku toimisi vain digiopo.fi-sivustolta avattuna – paneelia käytetään myös
+// paikallisena kopiona (työpöydältä, file://), jolloin se osoittaisi tyhjään.
+const ADMIN_LISENSSI_URL = 'https://www.digiopo.fi/api/admin-lisenssi';
+
+function lisPvm(paivia){
+  const d = new Date();
+  d.setDate(d.getDate() + paivia);
+  return d.toISOString().split('T')[0];
+}
+
+// Tyyppi ohjaa oletusarvoja ja vihjetekstiä. Testilisenssille lyhyt
+// voimassaolo, koska pääsyn on tarkoitus päättyä itsestään.
+function lisTyyppiVaihtui(){
+  const tyyppi   = document.getElementById('lisTyyppi').value;
+  const vihje    = document.getElementById('lisVihje');
+  const paikat   = document.getElementById('lisPaikatKentta');
+  const emailLbl = document.getElementById('lisEmailLabel');
+  const voimassa = document.getElementById('lisVoimassa');
+
+  const onOpettaja = tyyppi === 'opettaja';
+  paikat.style.display   = onOpettaja ? 'none' : '';
+  emailLbl.textContent   = onOpettaja ? 'Sähköposti * (kirjautumistunnus)' : 'Sähköposti';
+  voimassa.value         = tyyppi === 'testi' ? lisPvm(30) : lisPvm(365);
+
+  if (onOpettaja) {
+    vihje.innerHTML = '⚠️ Opettajalisenssi vaatii <b>myös Supabase Auth -käyttäjän</b> samalla '
+      + 'sähköpostilla (Authentication → Users). Pelkkä lisenssirivi ei riitä kirjautumiseen. '
+      + 'Yksi opettajalisenssi per sähköposti.';
+  } else if (tyyppi === 'testi') {
+    vihje.innerHTML = 'Testilisenssi avaa <b>koko sisällön</b> kuten maksavakin – tyyppi ei rajoita pääsyä. '
+      + 'Lyhyt voimassaolo on siksi tärkein suoja. Paikat 3 hälyttää, jos koodi jaetaan luokalle.';
+  } else {
+    vihje.innerHTML = 'Koulunimen on oltava <b>täsmälleen sama</b> kuin saman koulun opettajalisensseissä, '
+      + 'muuten opettaja ei näe oppilaiden töitä. Käytä ehdotuslistaa.';
+  }
+}
+
+async function haeKoulunimet(){
+  const key = localStorage.getItem('adminDashboardKey') || '';
+  const lista = document.getElementById('lisKoulutLista');
+  if (!key) return;
+  try {
+    const res = await fetch(ADMIN_LISENSSI_URL + '?action=koulut', { headers: { 'x-admin-key': key } });
+    const json = await res.json();
+    if (!json.ok) return;
+    lista.innerHTML = json.koulut.map(k => `<option value="${esc(k)}">`).join('');
+  } catch { /* ehdotukset ovat apu, ei vaatimus – hiljainen epäonnistuminen */ }
+}
+
+async function luoLisenssi(){
+  const statusEl = document.getElementById('lisStatus');
+  const tulosEl  = document.getElementById('lisTulos');
+  tulosEl.innerHTML = '';
+
+  const key = adminAvainTaiVaroita(statusEl);
+  if (!key) return;
+
+  const data = {
+    tyyppi:        document.getElementById('lisTyyppi').value,
+    koulu:         document.getElementById('lisKoulu').value.trim(),
+    yhteyshenkilo: document.getElementById('lisHenkilo').value.trim(),
+    email:         document.getElementById('lisEmail').value.trim(),
+    voimassa_asti: document.getElementById('lisVoimassa').value,
+    paikat:        document.getElementById('lisPaikat').value,
+  };
+
+  if (!data.koulu)         { statusEl.textContent = 'Koulun nimi puuttuu.'; return; }
+  if (!data.voimassa_asti) { statusEl.textContent = 'Voimassaolopäivä puuttuu.'; return; }
+
+  statusEl.textContent = 'Luodaan…';
+  try {
+    const res  = await fetch(ADMIN_LISENSSI_URL, {
+      method:  'POST',
+      headers: { 'x-admin-key': key, 'Content-Type': 'application/json' },
+      body:    JSON.stringify(data),
+    });
+    const json = await res.json();
+
+    if (json.ok) {
+      statusEl.textContent = '';
+      tulosEl.innerHTML =
+        `<div style="background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:8px">
+           <div style="font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Lisenssi luotu</div>
+           <div style="font-size:22px;font-weight:700;letter-spacing:2px;margin:6px 0">${esc(json.koodi)}</div>
+           <div style="font-size:13px;color:var(--muted)">${esc(json.koulu)} · ${esc(json.tyyppi)} · voimassa ${esc(json.voimassa_asti)} asti</div>
+           <div style="font-size:12px;color:var(--muted);margin-top:10px">
+             Kopioi koodi nyt – sitä ei näytetä uudelleen tässä näkymässä.
+             ${json.tyyppi === 'opettaja' ? 'Muista luoda myös Supabase Auth -käyttäjä.' : ''}
+           </div>
+         </div>`;
+      document.getElementById('lisKoulu').value   = '';
+      document.getElementById('lisHenkilo').value = '';
+      document.getElementById('lisEmail').value   = '';
+      document.getElementById('lisPaikat').value  = '';
+      haeKoulunimet();
+      return;
+    }
+
+    // Tunnetut virheet selkokielellä – muuten admin arvailee mikä meni pieleen.
+    const viestit = {
+      opettajalisenssi_on_jo:      `Tällä sähköpostilla on jo opettajalisenssi (${esc(json.koodi || '')}, voimassa ${esc(json.voimassa_asti || '')} asti). Muokkaa sitä Supabasessa tai käytä toista osoitetta.`,
+      email_pakollinen_opettajalle: 'Opettajalisenssi tarvitsee sähköpostin – se on kirjautumistunnus.',
+      paivamaara_menneisyydessa:    'Voimassaolopäivä on menneisyydessä.',
+      virheellinen_paivamaara:      'Voimassaolopäivä puuttuu tai on virheellinen.',
+      virheellinen_paikkamaara:     'Paikkamäärän on oltava kokonaisluku (tai tyhjä).',
+      virheellinen_email:           'Sähköpostiosoite ei kelpaa.',
+      koulu_puuttuu:                'Koulun nimi puuttuu tai on liian pitkä.',
+      ei_valtuutusta:               'Admin-avain ei kelpaa.',
+      admin_avain_puuttuu:          'ADMIN_DASHBOARD_KEY puuttuu Vercelin ympäristömuuttujista (digiopo-home).',
+    };
+    statusEl.textContent = viestit[json.virhe] || `Virhe: ${json.virhe || res.status}`;
+  } catch (err) {
+    statusEl.textContent = `Yhteysvirhe: ${err.message}`;
+  }
+}
+
+/* ─── Lisenssit ja yhteyshenkilöt ─────────────────────────────
+   Korvasi aiemman "Ryhmien hallinta" -näkymän. Opetusryhmien
+   siivous tehdään nyt tarvittaessa Supabasessa:
+     select ryhmakoodi, nimi, koulukoodi, luotu_at
+     from opetusryhmat order by luotu_at desc;
+     delete from opetusryhmat where ryhmakoodi = '...';
+   Poisto vie mukanaan järjestykset ja aikataulun (cascade).
+   ───────────────────────────────────────────────────────────── */
+async function haeLisenssit(){
+  const statusEl = document.getElementById('lisenssitStatus');
+  const sisalto  = document.getElementById('lisenssitSisalto');
+  const key = adminAvainTaiVaroita(statusEl);
+  if (!key) return;
+
+  statusEl.textContent = 'Haetaan lisenssejä…';
+  sisalto.innerHTML = '';
+  try {
+    const res  = await fetch(ADMIN_LISENSSI_URL + '?action=lista', { headers: { 'x-admin-key': key } });
+    const json = await res.json();
+    if (!json.ok) { statusEl.textContent = `Virhe: ${json.virhe || res.status}`; return; }
+    statusEl.textContent = `${json.lisenssit.length} lisenssiä.`;
+    renderLisenssit(json.lisenssit);
+  } catch (err) {
+    statusEl.textContent = `Yhteysvirhe: ${err.message}`;
+  }
+}
+
+function renderLisenssit(lista){
+  const sisalto = document.getElementById('lisenssitSisalto');
+  if (!lista.length) { sisalto.innerHTML = '<div class="empty">Ei lisenssejä.</div>'; return; }
+
+  const solu = 'padding:8px 10px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:top';
+  const rivit = lista.map(x => {
+    // Väri kertoo kiireellisyyden yhdellä silmäyksellä: punainen = pääsy
+    // päättynyt, keltainen = uusinta ajankohtainen.
+    const reuna = !x.aktiivinen ? 'var(--muted)'
+                : x.vanhentunut  ? 'var(--danger)'
+                : x.pian_vanhenee ? 'var(--warn)' : 'transparent';
+    const tila = !x.aktiivinen ? 'suljettu'
+               : x.vanhentunut ? `vanhentunut ${Math.abs(x.paivia_jaljella)} pv sitten`
+               : `${x.paivia_jaljella} pv jäljellä`;
+    const kaytto = x.laitteita_30pv == null ? '—'
+      : `${x.laitteita_30pv}${x.paikat ? ' / ' + x.paikat : ''}${x.ylikaytto ? ' ⚠️' : ''}`;
+    const posti = x.email
+      ? `<a href="mailto:${esc(x.email)}" style="color:var(--accent2)">${esc(x.email)}</a>` : '—';
+
+    return `<tr style="border-left:3px solid ${reuna}">
+      <td style="${solu}"><b>${esc(x.koulu || '—')}</b><div style="color:var(--muted);font-size:11.5px">${esc(x.tyyppi)}</div></td>
+      <td style="${solu}">${esc(x.yhteyshenkilö || '—')}<div style="font-size:11.5px">${posti}</div></td>
+      <td style="${solu}"><code style="font-size:11.5px">${esc(x.koodi)}</code></td>
+      <td style="${solu}">${esc(x.voimassa_asti)}<div style="color:var(--muted);font-size:11.5px">${tila}</div></td>
+      <td style="${solu};text-align:center">${kaytto}</td>
+    </tr>`;
+  }).join('');
+
+  sisalto.innerHTML = `<div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em">
+        <th style="${solu}">Koulu</th><th style="${solu}">Yhteyshenkilö</th>
+        <th style="${solu}">Koodi</th><th style="${solu}">Voimassa</th>
+        <th style="${solu};text-align:center">Laitteita 30 pv</th>
+      </tr></thead>
+      <tbody>${rivit}</tbody>
+    </table></div>`;
+}
+
+lisTyyppiVaihtui();
+haeKoulunimet();
+
+renderProjects();
+</script>
+</body>
+</html>

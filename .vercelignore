@@ -1,0 +1,12 @@
+# Tiedostot jotka EIVÄT päädy julkaisuun.
+#
+# Hallintapaneeli on versionhallinnassa (varmuuskopio, historia, siirtyy
+# projektin mukana), mutta sitä ei julkaista digiopo.fi-sivustolle. Käyttö
+# tapahtuu avaamalla tiedosto paikallisesti.
+#
+# HUOM: tämä ei ole turvatoimi vaan siisteyttä. Paneeli ei sisällä
+# salaisuuksia, ja sen käyttämät rajapinnat (api/admin-lisenssi.js,
+# app.digiopo.fi/api/admin-*) ovat joka tapauksessa julkisesti saatavilla ja
+# suojattu x-admin-key-otsakkeella. Suoja on avaimessa, ei osoitteen
+# salaamisessa.
+admin-paneeli.html
