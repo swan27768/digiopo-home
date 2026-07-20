@@ -30,10 +30,15 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const ADMIN_DASHBOARD_KEY = process.env.ADMIN_DASHBOARD_KEY;
 
-const SALLITUT_ORIGINIT = new Set([
-  'https://digiopo.fi',
-  'https://www.digiopo.fi',
-]);
+// HUOM: '*' eikä origin-lista, kuten muissakin admin-rajapinnoissa
+// (admin-tilastot.js, admin-viesti.js, jarjestys.js). Perustelu: valtuutus
+// tulee x-admin-key-otsakkeesta EIKÄ evästeestä, ja selain kieltää '*':n
+// yhdistämisen credentials-tilaan. Origin ei siis ole turvaraja täällä.
+//
+// Käytännön syy: hallintapaneelia käytetään myös paikallisena kopiona
+// (file://), jolloin origin on 'null' eikä osuisi mihinkään sallittuun
+// listaan – ja koko toiminto olisi käyttökelvoton työpöydältä.
+const CORS_ORIGIN = '*';
 
 // Sallitut tyypit. HUOM: 'kunta' ja 'vuosi' toimivat pääsyn kannalta
 // identtisesti – ks. docs/06-lisenssit.md. Ero on raportoinnissa.
@@ -82,10 +87,7 @@ async function sb(polku, opts = {}) {
 }
 
 export default async function handler(req, res) {
-  const origin = req.headers.origin || '';
-  if (SALLITUT_ORIGINIT.has(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
+  res.setHeader('Access-Control-Allow-Origin', CORS_ORIGIN);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-key');
   if (req.method === 'OPTIONS') return res.status(204).end();
