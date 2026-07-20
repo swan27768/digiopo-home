@@ -353,15 +353,6 @@
     </div>
   </div>
 
-  <div class="tierhead t-ref"><span class="dot"></span> Viiteaineisto</div>
-  <div class="grid nogap">
-    <div class="card wide">
-      <h3 class="section" style="margin-top:0">Dokumentaatio (DigiOpo_Tekniset_Ohjeet)</h3>
-      <div class="empty" style="margin-bottom:10px">Päivitetty 2026-07-04 vastaamaan nykytilaa (Vercel, RLS, virhelokitus, admin-paneeli). .docx-versiot eivät ole vielä synkassa .md-tiedostojen kanssa.</div>
-      <div id="docsList"></div>
-    </div>
-  </div>
-
   <div class="addcard" style="margin-top:34px">
     Uuden projektin lisääminen: avaa tämä tiedosto tekstieditorissa ja lisää uusi objekti <code>PROJECTS</code>-listaan (script-tagin alussa) — kortti ilmestyy automaattisesti.
   </div>
@@ -415,27 +406,7 @@ const PROJECTS = [
   }
 ];
 
-// ─── Dokumentaatio: /Users/vicis/Documents/DigiOpo_Tekniset_Ohjeet ───
-const DOCS_ROOT = '/Users/vicis/Documents/DigiOpo_Tekniset_Ohjeet';
-const DOCS = [
-  { kansio: 'Dokumentaatio', tiedostot: ['TEKNINEN_SELOSTE.md', 'JARJESTYS_DOKUMENTAATIO.md'] },
-  { kansio: 'Kayttoonotto', tiedostot: ['DEPLOYMENT.md', 'JULKAISUOHJEET.md', 'JULKAISUSUUNNITELMA.md', 'VAIHE2_KAYTTOONOTTO.md'] },
-  { kansio: 'Yllapito', tiedostot: ['MUUTOSOHJEET.md', 'TURVALLISUUS_avaimen_vaihto.md'] },
-  { kansio: 'Kayttajaohjeet', tiedostot: ['OHJEET_opettaja_ja_yllapitaja.md', 'OPETTAJAN_OHJE_vastausten_tallentuminen.md'] },
-  { kansio: 'Testaus', tiedostot: ['testauslomake.xlsx'] },
-];
-
 function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
-
-function renderDocs(){
-  const el = document.getElementById('docsList');
-  el.innerHTML = DOCS.map(ryhma => `
-    <h3 class="section" style="margin-top:14px">${esc(ryhma.kansio)}</h3>
-    <div class="pages">
-      ${ryhma.tiedostot.map(f => `<a class="pagepill" href="file://${DOCS_ROOT}/${ryhma.kansio}/${f}">${f}</a>`).join('')}
-    </div>
-  `).join('');
-}
 
 function renderProjects(){
   const grid = document.getElementById('projectGrid');
@@ -558,7 +529,6 @@ function copyRlsSql(btn){
   });
 }
 renderRlsChecklist();
-renderDocs();
 
 // ─── Ylläpitorytmi — muistutukset ───
 // Lisää tai muokkaa muistutuksia tästä listasta. vali_pv = kuinka monen päivän
