@@ -3,6 +3,36 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { kirjaaVirhe } from './_lib/virhelogi.js';
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  ⚠️  JAETTU TIETOKANTA – LUE TÄMÄ ENNEN MUUTOKSIA
+//
+//  Tämä tiedosto kirjoittaa `lisenssit`-tauluun, jota käyttää MYÖS toinen
+//  projekti: digiopo (app.digiopo.fi). Taulun skeema ja rajoitteet asuvat
+//  siellä, EIVÄT täällä:
+//
+//      digiopo/supabase_schema.sql          – lisenssit-taulu ja rajoitteet
+//      digiopo/docs/03-tietokanta.md        – taulut ja ajojärjestys
+//      digiopo/docs/06-lisenssit.md         – lisenssien elinkaari
+//
+//  RAJOITTEET JOIHIN TÄMÄ TIEDOSTO NOJAA:
+//
+//    · koodi   NOT NULL, UNIQUE
+//              → myös opettajalisenssille on generoitava koodi, vaikka
+//                kirjautuminen tapahtuu sähköpostilla. Tämä puuttui aiemmin
+//                ja kaatoi jokaisen opettajalisenssitilauksen.
+//
+//    · tyyppi  CHECK ('testi' | 'vuosi' | 'kunta' | 'opettaja')
+//              → uusi tyyppi on lisättävä rajoitteeseen digiopo-repossa.
+//
+//    · lisenssit_opettaja_email_idx  UNIQUE (email) WHERE tyyppi='opettaja'
+//              → yksi opettajalisenssi per sähköposti. Uusintatilaus PÄIVITTÄÄ
+//                olemassa olevaa riviä; uusi INSERT kaatuisi indeksiin.
+//
+//  Jos muutat kannan rajoitteita, tarkista MOLEMMAT projektit. Näin ei tehty
+//  kertaalleen, ja uniikki-indeksi olisi kaatanut uusintatilaukset hiljaa –
+//  asiakas olisi nähnyt vain "Palvelinvirhe – yritä uudelleen".
+// ═══════════════════════════════════════════════════════════════════════════
+
 // DigiOpo – Tilausten automaattinen käsittely
 // POST /api/tilaus
 // Body: { etunimi, sukunimi, email, puhelin, koulu, kunta, oppilasmaara, tilaustyyppi, lisenssikausi, lisatiedot }

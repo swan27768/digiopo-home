@@ -1,3 +1,17 @@
+// ═══════════════════════════════════════════════════════════════════════════
+//  ⚠️  JAETTU TIETOKANTA – LUE TÄMÄ ENNEN MUUTOKSIA
+//
+//  Tämä tiedosto kirjoittaa `lisenssit`-tauluun, jota käyttää MYÖS toinen
+//  projekti: digiopo (app.digiopo.fi). Taulun skeema ja rajoitteet asuvat
+//  siellä: digiopo/supabase_schema.sql ja digiopo/docs/03-tietokanta.md.
+//
+//  Rajoitteet joihin tämä nojaa: koodi NOT NULL UNIQUE, tyyppi-CHECK
+//  ('testi'|'vuosi'|'kunta'|'opettaja') ja uniikki osittainen indeksi
+//  lisenssit_opettaja_email_idx (yksi opettajalisenssi per sähköposti).
+//
+//  Jos muutat kannan rajoitteita, tarkista MOLEMMAT projektit.
+// ═══════════════════════════════════════════════════════════════════════════
+
 // DigiOpo – Lisenssin luonti hallintapaneelista
 //
 // GET  /api/admin-lisenssi?action=koulut
