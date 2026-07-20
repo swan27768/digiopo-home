@@ -103,8 +103,43 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ── GET: olemassa olevat koulunimet ehdotuksiksi ──────────────────────
+    // ── GET ?action=koulut: koulunimet ehdotuksiksi ───────────────────────
+    // ── GET ?action=lista:  lisenssit yhteystietoineen ────────────────────
     if (req.method === 'GET') {
+      const action = String(req.query?.action || 'koulut');
+
+      if (action === 'lista') {
+        const r = await sb(
+          'lisenssit?select=koodi,koulu,yhteyshenkilö,email,tyyppi,voimassa_asti,aktiivinen,paikat,luotu_at' +
+          '&order=voimassa_asti.asc'
+        );
+        if (!r.ok) throw new Error(`Supabase ${r.status}: ${await r.text()}`);
+        const rivit = await r.json();
+
+        // Laitemäärä 30 pv:ltä lisenssi_kaytto-näkymästä. Jos näkymä puuttuu,
+        // lista toimii silti – seurantaluku on lisätieto, ei edellytys.
+        let kaytto = {};
+        try {
+          const k = await sb('lisenssi_kaytto?select=koodi,laitteita_30pv,ylikaytto');
+          if (k.ok) for (const x of await k.json()) kaytto[x.koodi] = x;
+        } catch { /* ohitetaan */ }
+
+        const tanaan = new Date();
+        const lisenssit = rivit.map(x => {
+          const loppu = new Date(x.voimassa_asti);
+          const paivia = Math.ceil((loppu - tanaan) / 86400000);
+          return {
+            ...x,
+            paivia_jaljella: paivia,
+            vanhentunut: paivia < 0,
+            pian_vanhenee: paivia >= 0 && paivia <= 30,
+            laitteita_30pv: kaytto[x.koodi]?.laitteita_30pv ?? null,
+            ylikaytto: kaytto[x.koodi]?.ylikaytto ?? null,
+          };
+        });
+        return res.status(200).json({ ok: true, lisenssit });
+      }
+
       const r = await sb('lisenssit?select=koulu&order=koulu.asc');
       if (!r.ok) throw new Error(`Supabase ${r.status}: ${await r.text()}`);
       const rivit = await r.json();
