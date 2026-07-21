@@ -152,6 +152,39 @@
   .feature-item h4 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; color: var(--blue-deep); margin-bottom: 6px; }
   .feature-item p { font-size: 13.5px; color: var(--text-mid); line-height: 1.6; }
 
+  /* MIKSI DIGIOPO – lupaus + tehtävätyyppipilvi */
+  .lupaus { text-align: center; max-width: 760px; margin: 0 auto; }
+  .lupaus h2 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(30px, 4.5vw, 46px); font-weight: 800;
+    color: var(--blue-deep); line-height: 1.12; letter-spacing: -1px;
+    margin-bottom: 18px;
+  }
+  .lupaus h2 span { color: var(--green-mid); }
+  .lupaus-sub { font-size: 17px; color: var(--text-mid); line-height: 1.6; margin-bottom: 12px; }
+  .pilvi-otsikko {
+    font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-light); margin: 44px 0 20px;
+  }
+  .tehtava-pilvi {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+    max-width: 820px; margin: 0 auto;
+  }
+  .chip {
+    font-size: 14.5px; font-weight: 600;
+    padding: 9px 18px; border-radius: 100px;
+    border: 1.5px solid transparent; white-space: nowrap;
+  }
+  .chip-a { background: var(--blue-pale);   color: var(--blue-deep);  border-color: rgba(37,99,168,0.18); }
+  .chip-b { background: var(--green-pale);  color: var(--green-deep); border-color: rgba(45,158,107,0.22); }
+  .chip-c { background: var(--yellow-pale); color: #8a6d00;           border-color: rgba(245,200,66,0.5); }
+  .lupaus-faktat {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 32px;
+    margin: 44px auto 0; max-width: 720px;
+  }
+  .lupaus-fakta { display: flex; align-items: center; gap: 9px; font-size: 15px; color: var(--text-dark); font-weight: 500; }
+  .lupaus-fakta span { font-size: 20px; }
+
   /* HINNASTO */
   .hinnasto-box {
     background: #fff;
@@ -302,10 +335,46 @@
   </div>
 </div>
 
+<!-- MIKSI DIGIOPO -->
+<div class="section">
+  <div class="section-label" style="text-align: center;">Miksi DigiOpo</div>
+
+  <div class="lupaus">
+    <h2>Oppilaanohjaus, jota <span>tehdään</span> – ei lueta.</h2>
+    <p class="lupaus-sub">Yli 15 erilaista tehtävätyyppiä, joissa oppilas tekee, kokeilee ja keskustelee – yksin, pareittain ja ryhmässä.</p>
+  </div>
+
+  <div class="pilvi-otsikko" style="text-align: center;">Yli 15 tehtävätyyppiä – muun muassa</div>
+  <div class="tehtava-pilvi">
+    <span class="chip chip-a">Keskustelutehtävät</span>
+    <span class="chip chip-b">Pelit ja kilpailut</span>
+    <span class="chip chip-c">Pakopeli</span>
+    <span class="chip chip-a">Salapoliisitehtävät</span>
+    <span class="chip chip-b">Huutokauppa</span>
+    <span class="chip chip-c">Onnenpyörä</span>
+    <span class="chip chip-a">Ristikot</span>
+    <span class="chip chip-b">Sanastopelit</span>
+    <span class="chip chip-c">Muistipelit</span>
+    <span class="chip chip-a">Visat ja kokeet</span>
+    <span class="chip chip-b">Interaktiiviset tarinat</span>
+    <span class="chip chip-c">Skenaariot</span>
+    <span class="chip chip-a">Vahvuustehtävät</span>
+    <span class="chip chip-b">Vertailutehtävät</span>
+    <span class="chip chip-c">Kirjoitustehtävät</span>
+  </div>
+
+  <div class="lupaus-faktat">
+    <div class="lupaus-fakta"><span>🌍</span> 11 kieltä</div>
+    <div class="lupaus-fakta"><span>♿</span> Selkokielinen ja saavutettava</div>
+    <div class="lupaus-fakta"><span>⭐</span> Lisähaastetta halukkaille</div>
+    <div class="lupaus-fakta"><span>👩‍🏫</span> Ohjeet ja opettajan hallintapaneeli</div>
+  </div>
+</div>
+
 <!-- OMINAISUUDET -->
 <div class="section" style="padding-top: 0; background: var(--off-white); border-radius: 32px; max-width: 100%; padding: 80px 0;">
   <div style="max-width: 1060px; margin: 0 auto; padding: 0 32px;">
-    <div class="section-label">Miksi digikirja?</div>
+    <div class="section-label">Ominaisuudet</div>
     <h2 class="section-title">Digikirjan vahvuudet</h2>
     <p class="section-sub">Omilla Jäljillä on peruskoulun oppilaanohjauksen tunneille suunniteltu digikirja. Oppilas etenee tehtävissä omaan tahtiinsa – itsenäisesti, opon ohjauksessa tai pienryhmässä. Tehtävät ohjaavat oppijaa eteenpäin ja antavat palautetta jo työskentelyn aikana. Opo seuraa oppilaiden edistymistä ja auttaa tarvittaessa, ja voi palata tehtävien tuloksiin myös henkilökohtaisissa ohjauskeskusteluissa.</p>
     <div class="features-grid">
