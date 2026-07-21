@@ -161,11 +161,39 @@ function muotoile_euro(n) {
 
 // ─── Laskutusapufunktiot ──────────────────────────────────────────────────────
 
-// Generoi laskunumeron: VUOSI + satunnainen 4-numero (esim. "20261847")
-function generoi_laskunumero() {
-  const vuosi = new Date().getFullYear();
-  const satunnainen = String(Math.floor(Math.random() * 9000) + 1000); // 1000–9999
-  return `${vuosi}${satunnainen}`;
+// Varaa seuraavan laskunumeron: VUOSI + juokseva 4-numero (esim. "20260001").
+//
+// MIKSI EI SATUNNAINEN: numero arvottiin aiemmin väliltä 1000–9999. Neljä
+// satunnaista numeroa törmää syntymäpäiväparadoksin mukaisesti nopeasti –
+// 50 laskulla törmäyksen todennäköisyys on 12 %, 100 laskulla 39 % ja
+// 200 laskulla 86 %. Kaksi laskua samalla numerolla rikkoo kirjanpidon
+// tositeketjun, ja verkkolaskuoperaattori hylkää jälkimmäisen. Mikään ei
+// myöskään tarkistanut ainutlaatuisuutta, joten törmäys olisi jäänyt huomaamatta.
+//
+// Numero varataan kannasta atomisesti, joten rinnakkaiset tilaukset eivät voi
+// saada samaa numeroa. Muoto säilyy ennallaan (VVVV + 4 numeroa), joten laskun
+// näyttömuoto ja viitenumeron laskenta toimivat kuten ennenkin.
+//
+// Vaatii: supabase_laskunumerot.sql
+async function seuraava_laskunumero() {
+  const baseUrl = SUPABASE_URL.replace(/\/$/, '');
+  const r = await fetch(`${baseUrl}/rest/v1/rpc/seuraava_laskunumero`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: '{}',
+  });
+  if (!r.ok) {
+    throw new Error(`Laskunumeron varaus epäonnistui: ${r.status} ${await r.text()}`);
+  }
+  const numero = String(await r.json());
+  if (!/^\d{8}$/.test(numero)) {
+    throw new Error(`Laskunumero väärässä muodossa: ${numero}`);
+  }
+  return numero;
 }
 
 // Suomalainen viitenumeroalgoritmi (mod 10/7/3)
@@ -628,7 +656,6 @@ export default async function handler(req, res) {
   let voimassa_asti = alku.toISOString().split('T')[0];
 
   const hintatiedot = laske_hinta(tilaustyyppi, lisenssikausi, oppilasmaara);
-  const laskunumero = generoi_laskunumero();
   const erapaiva    = luo_erapaiva();
   const laskuPvm    = new Date().toISOString().split('T')[0];
 
@@ -644,6 +671,23 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, duplikaatti: true });
     }
   } catch { /* fail-open: ei estetä tilausta jos tarkistus ei onnistu */ }
+
+  // Laskunumero varataan vasta duplikaattitarkistuksen jälkeen. Tuplaklikkaus
+  // ei saa polttaa numeroa: juoksevan numeroinnin aukot pitää pystyä
+  // selittämään kirjanpidossa, eikä "asiakas klikkasi kahdesti" ole selitys
+  // joka löytyy jälkikäteen mistään.
+  //
+  // Tässä ei ole fail-openia toisin kuin duplikaattitarkistuksessa. Jos numeroa
+  // ei saada, tilausta ei synny lainkaan: lisenssi ilman laskunumeroa jäisi
+  // laskuttamatta, ja asiakas saisi käyttöoikeuden josta ei koskaan tule laskua.
+  let laskunumero;
+  try {
+    laskunumero = await seuraava_laskunumero();
+  } catch (err) {
+    console.error('Laskunumeron varaus epäonnistui:', err.message);
+    await kirjaaVirhe('tilaus laskunumero', err, { koulu, email: emailNorm });
+    return res.status(500).json({ ok: false, virhe: 'Palvelinvirhe – yritä uudelleen' });
+  }
 
   if (tilaustyyppi === 'opettajalisenssi') {
     // Opettajalisenssi: kirjautuminen tapahtuu sähköpostilla, mutta koodi on
