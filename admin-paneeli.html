@@ -327,6 +327,19 @@
     </div>
   </div>
 
+  <div class="grid nogap">
+    <div class="card wide">
+      <h3 class="section" style="margin-top:0">💳 Palvelut, sopimukset ja maksut</h3>
+      <div class="empty" style="margin-bottom:12px">
+        Mistä palveluista DigiOpo koostuu, mitä ne maksavat ja milloin ne uusiutuvat.
+        Väri kertoo seuraavan maksun läheisyyden: 🟢 yli kuukausi, 🟡 alle kuukausi, 🔴 erääntynyt.
+        Tiedot muokataan <code>SOPIMUKSET</code>-listasta tämän tiedoston script-osiossa.
+      </div>
+      <div id="sopimusLista"></div>
+      <div id="sopimusYhteenveto" class="savedhint" style="margin-top:10px"></div>
+    </div>
+  </div>
+
   <div class="tierhead t-daily"><span class="dot"></span> Projektit &amp; päivittäiset hallintalinkit</div>
   <div class="grid nogap" id="projectGrid"></div>
 
@@ -541,6 +554,87 @@ const REMINDERS = [
   { id:'avaimet',      nimi:'Rotatoi admin- ja API-avaimet',            vali_pv:180, vihje:'Vaihda ADMIN_DASHBOARD_KEY, DB-salasana ja API-avaimet, päivitä Verceliin.' },
 ];
 const PV_MS = 24*60*60*1000;
+
+/* ─── Palvelut, sopimukset ja maksut ─────────────────────────────────
+   TÄYTÄ TÄMÄ LISTA. Kentät:
+     palvelu   – palvelun nimi
+     taso      – tilaustaso
+     hinta     – teksti sellaisenaan, esim. '25 $/kk' tai '0 €'
+     jakso     – 'kuukausittain' | 'vuosittain' | '—'
+     uusiutuu  – 'YYYY-MM-DD' tai null jos ei laskutusta
+     linkki    – laskutussivu
+     huom      – vapaa muistiinpano
+
+   Toisin kuin muistutukset, nämä eivät perustu väliin päivissä vaan
+   kiinteään uusiutumispäivään – siksi oma lista ja oma laskenta.
+   ─────────────────────────────────────────────────────────────────── */
+const SOPIMUKSET = [
+  { palvelu:'Vercel', taso:'Hobby', hinta:'0 €', jakso:'—', uusiutuu:null,
+    linkki:'https://vercel.com/account/billing',
+    huom:'12 funktion katto TÄYNNÄ ja 2 cron-ajoa/vrk käytössä. Pro tarvitaan jos uusia endpointteja.' },
+
+  { palvelu:'Supabase', taso:'Free', hinta:'0 €', jakso:'—', uusiutuu:null,
+    linkki:'https://supabase.com/dashboard/project/xltsuuovdrradlproonr/settings/billing',
+    huom:'EI VARMUUSKOPIOITA ilmaistasolla. Pro (~25 $/kk) antaa 7 pv. Suunniteltu ensimmäisen kaupan yhteyteen.' },
+
+  { palvelu:'Resend', taso:'TÄYTÄ', hinta:'TÄYTÄ', jakso:'TÄYTÄ', uusiutuu:null,
+    linkki:'https://resend.com/settings/billing',
+    huom:'Tilausvahvistukset, laskut ja hälytyssähköpostit. Ilman tätä ne lakkaavat hiljaa.' },
+
+  { palvelu:'Upstash Redis', taso:'TÄYTÄ', hinta:'TÄYTÄ', jakso:'TÄYTÄ', uusiutuu:null,
+    linkki:'https://console.upstash.com',
+    huom:'Rate limit. Ilman tätä rajat eivät päde serverless-instanssien yli.' },
+
+  { palvelu:'Verkkotunnus digiopo.fi', taso:'TÄYTÄ (rekisteröijä)', hinta:'TÄYTÄ', jakso:'vuosittain', uusiutuu:null,
+    linkki:'',
+    huom:'Kattaa myös app.digiopo.fi. Vanhentuminen kaataa KOKO palvelun – tärkein yksittäinen päivämäärä.' },
+];
+
+function renderSopimukset(){
+  const el = document.getElementById('sopimusLista');
+  const yht = document.getElementById('sopimusYhteenveto');
+  if (!el) return;
+
+  const nyt = new Date(); nyt.setHours(0,0,0,0);
+  const solu = 'padding:9px 10px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:top';
+
+  const rivit = SOPIMUKSET.map(s => {
+    let tila = '—', reuna = 'transparent', paivia = null;
+    if (s.uusiutuu) {
+      const loppu = new Date(s.uusiutuu + 'T00:00:00');
+      paivia = Math.round((loppu - nyt) / PV_MS);
+      if (paivia < 0)       { tila = `erääntyi ${Math.abs(paivia)} pv sitten`; reuna = 'var(--danger)'; }
+      else if (paivia <= 30){ tila = `${paivia} pv kuluttua`;                  reuna = 'var(--warn)'; }
+      else                  { tila = `${paivia} pv kuluttua`;                  reuna = 'var(--ok)'; }
+    }
+    const nimi = s.linkki
+      ? `<a href="${esc(s.linkki)}" target="_blank" rel="noopener" style="color:var(--accent2);text-decoration:none">${esc(s.palvelu)}</a>`
+      : esc(s.palvelu);
+    const puuttuu = /TÄYTÄ/.test(s.taso + s.hinta + s.jakso);
+
+    return `<tr style="border-left:3px solid ${reuna}">
+      <td style="${solu}"><b>${nimi}</b><div style="color:var(--muted);font-size:11.5px">${esc(s.taso)}</div></td>
+      <td style="${solu}">${esc(s.hinta)}<div style="color:var(--muted);font-size:11.5px">${esc(s.jakso)}</div></td>
+      <td style="${solu}">${s.uusiutuu ? esc(s.uusiutuu) : '—'}<div style="color:var(--muted);font-size:11.5px">${esc(tila)}</div></td>
+      <td style="${solu};color:var(--muted)">${puuttuu ? '⚠️ ' : ''}${esc(s.huom)}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `<div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em">
+        <th style="${solu}">Palvelu</th><th style="${solu}">Hinta</th>
+        <th style="${solu}">Uusiutuu</th><th style="${solu}">Huomiot</th>
+      </tr></thead>
+      <tbody>${rivit}</tbody>
+    </table></div>`;
+
+  const taytettava = SOPIMUKSET.filter(s => /TÄYTÄ/.test(s.taso + s.hinta + s.jakso)).length;
+  const ilmanPvm   = SOPIMUKSET.filter(s => !s.uusiutuu).length;
+  yht.innerHTML = taytettava
+    ? `⚠️ ${taytettava} palvelun tiedot täyttämättä. Muokkaa <code>SOPIMUKSET</code>-listaa tässä tiedostossa.`
+    : (ilmanPvm ? `${ilmanPvm} palvelulla ei uusiutumispäivää – lisää se, niin saat varoituksen ajoissa.` : 'Kaikki tiedot täytetty.');
+}
 
 function remTila(){ return JSON.parse(localStorage.getItem('muistutukset') || '{}'); }
 
@@ -1072,6 +1166,7 @@ function renderLisenssit(lista){
 lisTyyppiVaihtui();
 haeKoulunimet();
 
+renderSopimukset();
 renderProjects();
 </script>
 </body>
