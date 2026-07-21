@@ -201,6 +201,20 @@
   </div>
 
   <div class="tierhead t-critical"><span class="dot"></span> Kriittinen — ryhmien hallinta</div>
+  <!-- Piilotettu kunnes maksamattomia tilauksia on. Tyhjä työjono on
+       parempi olla näyttämättä kuin näyttää tyhjänä joka päivä. -->
+  <div class="grid nogap" id="perintaKortti" style="display:none">
+    <div class="card wide" style="border-color:var(--warn)">
+      <h3 class="section" style="margin-top:0;color:var(--warn)">💶 Odottaa maksua</h3>
+      <div class="empty" style="margin-bottom:12px">
+        Tilauksia, joiden lasku on lähetetty mutta ei kuitattu. Pääsy on voimassa
+        30 päivää tilauksesta ja <b>päättyy itsestään</b>, ellet merkitse laskua
+        maksetuksi. Kun kuittaat, voimassaolo jatkuu ostettuun kauteen.
+      </div>
+      <div id="perintaLista"></div>
+    </div>
+  </div>
+
   <div class="grid nogap">
     <div class="card wide">
       <h3 class="section" style="margin-top:0">📇 Lisenssit ja yhteyshenkilöt</h3>
@@ -1121,6 +1135,7 @@ async function haeLisenssit(){
     if (!json.ok) { statusEl.textContent = `Virhe: ${json.virhe || res.status}`; return; }
     statusEl.textContent = `${json.lisenssit.length} lisenssiä.`;
     renderLisenssit(json.lisenssit);
+    renderPerinta(json.lisenssit);
   } catch (err) {
     statusEl.textContent = `Yhteysvirhe: ${err.message}`;
   }
@@ -1160,6 +1175,58 @@ async function merkitseMaksetuksi(koodi){
   } catch (err) {
     statusEl.textContent = `Yhteysvirhe: ${err.message}`;
   }
+}
+
+// Maksamattomat tilaukset omana työjonona. Nostaa esiin sen mitä pitää tehdä
+// tänään, sen sijaan että se hukkuisi koko lisenssilistan sekaan.
+function renderPerinta(lista){
+  const kortti = document.getElementById('perintaKortti');
+  const el     = document.getElementById('perintaLista');
+  if (!kortti || !el) return;
+
+  const odottavat = lista.filter(x => x.maksettu === false && x.taysi_voimassa_asti);
+
+  if (!odottavat.length) { kortti.style.display = 'none'; return; }
+  kortti.style.display = '';
+
+  const solu = 'padding:9px 10px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:top';
+  const rivit = odottavat
+    .sort((a,b) => a.paivia_jaljella - b.paivia_jaljella)
+    .map(x => {
+      // Väri kertoo kiireen: pääsy katkeaa kun paivia_jaljella menee nollaan.
+      const reuna = x.paivia_jaljella < 0 ? 'var(--danger)'
+                  : x.paivia_jaljella <= 7 ? 'var(--warn)' : 'var(--accent2)';
+      const tila = x.paivia_jaljella < 0
+        ? `pääsy päättyi ${Math.abs(x.paivia_jaljella)} pv sitten`
+        : `pääsy katkeaa ${x.paivia_jaljella} pv kuluttua`;
+      const posti = x.email
+        ? `<a href="mailto:${esc(x.email)}" style="color:var(--accent2)">${esc(x.email)}</a>` : '—';
+
+      return `<tr style="border-left:3px solid ${reuna}">
+        <td style="${solu}"><b>${esc(x.koulu || '—')}</b>
+          <div style="color:var(--muted);font-size:11.5px">${esc(x.yhteyshenkilö || '—')}</div>
+          <div style="font-size:11.5px">${posti}</div></td>
+        <td style="${solu}">${esc(x.laskunumero || '—')}
+          <div style="color:var(--muted);font-size:11.5px">${x.lasku_pvm ? 'lähetetty ' + esc(x.lasku_pvm) : ''}</div></td>
+        <td style="${solu}">${esc(x.voimassa_asti)}
+          <div style="color:var(--muted);font-size:11.5px">${esc(tila)}</div></td>
+        <td style="${solu}">${esc(x.taysi_voimassa_asti)}
+          <div style="color:var(--muted);font-size:11.5px">maksettuna</div></td>
+        <td style="${solu};text-align:right">
+          <button class="linkbtn" style="cursor:pointer;padding:5px 10px;font-size:12px"
+                  onclick="merkitseMaksetuksi('${esc(x.koodi)}')">💶 Maksettu</button></td>
+      </tr>`;
+    }).join('');
+
+  el.innerHTML = `<div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em">
+        <th style="${solu}">Asiakas</th><th style="${solu}">Lasku</th>
+        <th style="${solu}">Pääsy voimassa</th><th style="${solu}">Jatketaan</th>
+        <th style="${solu}"></th>
+      </tr></thead>
+      <tbody>${rivit}</tbody>
+    </table></div>`;
 }
 
 function renderLisenssit(lista){
