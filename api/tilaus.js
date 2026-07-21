@@ -121,7 +121,7 @@ async function hae_opettajalisenssi(emailNorm) {
 // ─── Hinnasto (pidä synkassa hinnasto.html / tilauslomake.html kanssa) ───────
 const HINTA = {
   vuosi:     { hinta: 5.90,  minimi: 120 },
-  '3vuotta': { hinta: 14.90, minimi: 360 },
+  '3vuotta': { hinta: 12.50, minimi: 360 },
   opettaja:  { hinta: 49,    minimi: 0 },
 };
 const ALV = 0.135;
@@ -537,7 +537,7 @@ function sahkoposti_lasku(tilaus, hintatiedot, laskunumero, erapaiva) {
     rivihinta   = muotoile_euro(hintatiedot.netto);
   } else if (lisenssikausi === '3vuotta') {
     tuotekuvaus = 'DigiOpo Omilla jäljillä – koululisenssi, 3 vuotta';
-    maara       = `${oppilasmaara} oppilasta × 14,90 €`;
+    maara       = `${oppilasmaara} oppilasta × 12,50 €`;
     rivihinta   = muotoile_euro(hintatiedot.netto);
   } else {
     tuotekuvaus = 'DigiOpo Omilla jäljillä – koululisenssi, 1 lukuvuosi';
