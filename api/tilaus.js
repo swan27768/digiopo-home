@@ -137,6 +137,68 @@ const LASKUTTAJA = {
   maksuaika:   14,
 };
 
+// ─── Laskutustietojen validointi ─────────────────────────────────────────────
+//
+// Nämä tarkistukset ovat myös tilauslomake.html:ssä, mutta selainvalidointi on
+// käyttömukavuutta – ei suojaa. Lomakkeen ohi voi lähettää mitä tahansa suoraan
+// rajapintaan, ja puutteellinen laskutustieto huomataan vasta kun laskua
+// yritetään lähettää viikkoja myöhemmin.
+
+const LASKUTUSKENTAT = [
+  'laskutus_nimi',
+  'laskutus_ytunnus',
+  'laskutus_verkkolaskuosoite',
+  'laskutus_valittajatunnus',
+  'laskutus_viitteenne',
+];
+
+// Suomalaisen Y-tunnuksen tarkistusmerkki (mod 11, painot 7-9-10-5-8-4-2)
+function ytunnusKelpaa(arvo) {
+  const m = String(arvo || '').trim().replace(/\s/g, '').match(/^(\d{7})-?(\d)$/);
+  if (!m) return false;
+  const painot = [7, 9, 10, 5, 8, 4, 2];
+  const summa = m[1].split('').reduce((a, d, i) => a + Number(d) * painot[i], 0);
+  const jaannos = summa % 11;
+  if (jaannos === 1) return false;
+  return (jaannos === 0 ? 0 : 11 - jaannos) === Number(m[2]);
+}
+
+function verkkolaskuosoiteKelpaa(arvo) {
+  return /^[0-9A-Za-z]{8,20}$/.test(String(arvo || '').trim().replace(/[\s-]/g, ''));
+}
+
+// Palauttaa virheilmoituksen tai null, jos tiedot kelpaavat.
+function tarkista_laskutustiedot(body) {
+  for (const nimi of LASKUTUSKENTAT) {
+    if (!String(body?.[nimi] || '').trim()) {
+      return 'Laskutustiedot puuttuvat';
+    }
+  }
+  if (!ytunnusKelpaa(body.laskutus_ytunnus)) {
+    return 'Virheellinen Y-tunnus';
+  }
+  if (!verkkolaskuosoiteKelpaa(body.laskutus_verkkolaskuosoite)) {
+    return 'Virheellinen verkkolaskuosoite';
+  }
+  if (!verkkolaskuosoiteKelpaa(body.laskutus_valittajatunnus)) {
+    return 'Virheellinen välittäjätunnus';
+  }
+  return null;
+}
+
+// Normalisoi tallennusta varten: Y-tunnus aina muotoon 1234567-8, tunnukset
+// ilman välilyöntejä. Kanta pysyy siistinä riippumatta siitä miten asiakas kirjoitti.
+function normalisoi_laskutustiedot(body) {
+  const yt = String(body.laskutus_ytunnus).trim().replace(/[\s-]/g, '');
+  return {
+    laskutus_nimi:              String(body.laskutus_nimi).trim(),
+    laskutus_ytunnus:           `${yt.slice(0, 7)}-${yt.slice(7)}`,
+    laskutus_verkkolaskuosoite: String(body.laskutus_verkkolaskuosoite).trim().replace(/[\s-]/g, ''),
+    laskutus_valittajatunnus:   String(body.laskutus_valittajatunnus).trim().replace(/[\s-]/g, ''),
+    laskutus_viitteenne:        String(body.laskutus_viitteenne).trim(),
+  };
+}
+
 function laske_hinta(tilaustyyppi, lisenssikausi, oppilasmaara) {
   if (tilaustyyppi === 'opettajalisenssi') {
     const netto = HINTA.opettaja.hinta;
@@ -431,6 +493,11 @@ function sahkoposti_adminille(t, koodi, voimassa_asti, hintatiedot) {
     ${rivi('Lisenssikausi', lisenssikausiTeksti)}
     ${rivi('Laskutettava summa', hintaTeksti)}
     ${rivi('Lisätiedot', t.lisatiedot || '–')}
+    ${t.laskutus_nimi ? `
+      ${rivi('Laskutettava', `${t.laskutus_nimi} (${t.laskutus_ytunnus})`)}
+      ${rivi('Verkkolaskuosoite', `${t.laskutus_verkkolaskuosoite} / välittäjä ${t.laskutus_valittajatunnus}`)}
+      ${rivi('Viitteenne', t.laskutus_viitteenne)}
+    ` : ''}
     ${rivi('Generoitu koodi', `<strong style="font-size:18px;letter-spacing:2px">${koodi}</strong>`)}
     ${rivi('Voimassa asti', pvm)}
   </table>
@@ -509,9 +576,17 @@ function sahkoposti_lasku(tilaus, hintatiedot, laskunumero, erapaiva) {
   <div style="background:#f8fbff;border-left:3px solid #1a3f6f;padding:14px 18px;margin-bottom:28px;border-radius:0 8px 8px 0">
     <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7a9ab5;margin-bottom:6px">LASKUTETAAN</div>
     <div style="font-size:13.5px;line-height:1.85">
-      <strong>${koulu}</strong>, ${kunta}<br>
-      Yhteyshenkilö: ${etunimi} ${sukunimi}<br>
-      <span style="color:#3a5a7a">${email}</span>
+      ${tilaus.laskutus_nimi
+        ? `<strong>${tilaus.laskutus_nimi}</strong><br>
+           Y-tunnus: ${tilaus.laskutus_ytunnus}<br>
+           Viitteenne: <strong>${tilaus.laskutus_viitteenne}</strong><br>
+           <span style="color:#3a5a7a">Verkkolaskuosoite: ${tilaus.laskutus_verkkolaskuosoite}
+           · välittäjä ${tilaus.laskutus_valittajatunnus}</span><br><br>
+           <span style="color:#3a5a7a">Käyttökohde: ${koulu}, ${kunta}<br>
+           Yhteyshenkilö: ${etunimi} ${sukunimi} · ${email}</span>`
+        : `<strong>${koulu}</strong>, ${kunta}<br>
+           Yhteyshenkilö: ${etunimi} ${sukunimi}<br>
+           <span style="color:#3a5a7a">${email}</span>`}
     </div>
   </div>
 
@@ -625,6 +700,20 @@ export default async function handler(req, res) {
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ ok: false, virhe: 'Virheellinen sähköpostiosoite' });
+  }
+
+  // Laskutustiedot vaaditaan vain koululisenssiltä. Ostaja on kunta, joka on
+  // hankintayksikkö ja jolla on verkkolaskulain (241/2019) nojalla oikeus vaatia
+  // lasku verkkolaskuna – ilman näitä tietoja laskua ei voi lähettää lainkaan.
+  // Opettajalisenssin ostaa yksityishenkilö, jolta niitä ei ole mistä kysyä.
+  let laskutustiedot = null;
+  if (tilaustyyppi === 'koululisenssi') {
+    const laskutusVirhe = tarkista_laskutustiedot(body);
+    if (laskutusVirhe) {
+      return res.status(400).json({ ok: false, virhe: laskutusVirhe });
+    }
+    // Vasta validoinnin jälkeen – normalisointi olettaa kenttien olevan olemassa.
+    laskutustiedot = normalisoi_laskutustiedot(body);
   }
 
   // ─── Voimassaolo: lyhyt alku, täysi kausi maksun jälkeen ──────────────────
@@ -759,7 +848,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ ok: false, virhe: 'Palvelinvirhe – yritä uudelleen' });
     }
 
-    const tilausData = { etunimi, sukunimi, email: emailNorm, puhelin, koulu, kunta, oppilasmaara, tilaustyyppi, lisenssikausi, lisatiedot };
+    const tilausData = { etunimi, sukunimi, email: emailNorm, puhelin, koulu, kunta, oppilasmaara, tilaustyyppi, lisenssikausi, lisatiedot, ...laskutustiedot };
 
     // Pikaohje myös opettajalisenssin ostajalle. Aiemmin liite lähti vain
     // koululisenssin mukana, jolloin yksittäinen opettaja jäi ilman ohjetta –
@@ -806,6 +895,7 @@ export default async function handler(req, res) {
           lasku_pvm: laskuPvm,
           maksettu: false,
           aktiivinen: true,
+          ...laskutustiedot,
         });
         break;
       } catch (err) {
@@ -817,7 +907,7 @@ export default async function handler(req, res) {
       }
     }
 
-    const tilausData = { etunimi, sukunimi, email: emailNorm, puhelin, koulu, kunta, oppilasmaara, tilaustyyppi, lisenssikausi, lisatiedot };
+    const tilausData = { etunimi, sukunimi, email: emailNorm, puhelin, koulu, kunta, oppilasmaara, tilaustyyppi, lisenssikausi, lisatiedot, ...laskutustiedot };
     const pdfB64 = await hae_pikaohjeet_base64();
     const pdfLiite = pdfB64
       ? [{ filename: 'DigiOpo_opettajan_pikaohjeet.pdf', content: pdfB64 }]
