@@ -132,12 +132,6 @@
      yleensä opo eikä talousosasto – ilman ohjetta kenttä täytetään arvaamalla. */
   .field-hint { font-size: 12px; color: var(--text-light); line-height: 1.55; margin-top: 6px; }
   .field-hint code { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; background: var(--off-white); padding: 1px 5px; border-radius: 4px; }
-  .laskutus-ohje {
-    background: var(--blue-pale); border-radius: 12px;
-    padding: 14px 18px; margin-bottom: 20px;
-    font-size: 13px; color: var(--text-mid); line-height: 1.6;
-  }
-  .laskutus-ohje strong { color: var(--blue-deep); }
 
   /* Checkbox */
   .checkbox-field {
@@ -250,11 +244,11 @@
 <div class="page">
   <div class="page-label">Tilauslomake</div>
   <h1 class="page-title">Tilaa DigiOpo-lisenssi</h1>
-  <p class="page-sub">Täytä lomake ja saat koulukoodisi suoraan sähköpostiisi. Lasku lähetetään erikseen.</p>
+  <p class="page-sub">Täytä lomake ja siirry maksamaan verkkomaksulla. Saat koulukoodisi sähköpostiisi heti maksun jälkeen.</p>
 
   <div class="info-box">
     <strong>Miten tilaus etenee?</strong><br>
-    Täytät lomakkeen → saat koulukoodin heti sähköpostiisi → jaat koodin oppilaillesi → lasku toimitetaan erikseen.
+    Täytät lomakkeen → siirryt maksamaan verkkomaksulla (kortti, verkkopankki tai MobilePay) → saat koulukoodin heti sähköpostiisi → jaat koodin oppilaillesi.
   </div>
 
   <div class="form-card">
@@ -295,26 +289,11 @@
           <label for="kunta">Kunta <span>*</span></label>
           <input type="text" id="kunta" name="kunta" placeholder="Esim. Helsinki" required>
         </div>
-        <div class="field" id="oppilasmaaraKentta">
+        <div class="field">
           <label for="oppilasmaara">Oppilaiden määrä <span>*</span></label>
           <input type="number" id="oppilasmaara" name="oppilasmaara" placeholder="Esim. 60" min="1" required>
         </div>
-        <div class="field" id="opettajaHuomio" style="display:none">
-          <p style="font-size:13px;color:#3a5a7a;line-height:1.5;margin:26px 0 0">
-            Opettajalisenssi on henkilökohtainen, joten oppilasmäärää ei tarvita.
-          </p>
-        </div>
       </div>
-
-      <!-- Opettajalisenssiä ei myydä yksittäiselle opettajalle. Lisenssityyppi
-           on kannassa yhä olemassa ja se voidaan luoda hallintapaneelista
-           (api/admin-lisenssi.js), mutta julkista tilauskanavaa sille ei ole.
-
-           Tyyppi jää piilokentäksi eikä radiovalintana poistu kokonaan: koko
-           lomakkeen ja api/tilaus.js:n logiikka haarautuu tämän arvon mukaan,
-           ja kentän poistaminen tekisi paluusta myöhemmin ison muutoksen.
-           Myynnin avaaminen uudelleen = tämä takaisin radiovalinnaksi. -->
-      <input type="hidden" name="tilaustyyppi" value="koululisenssi">
 
       <div class="form-section">Lisenssikausi</div>
 
@@ -334,66 +313,9 @@
       </div>
 
       <div class="hinta-arvio" id="hintaArvio" style="display: none;">
-        <span class="hinta-arvio-label">Arvioitu hinta (alv 0 %)</span>
+        <span class="hinta-arvio-label">Arvioitu hinta (maksettava sis. alv)</span>
         <span class="hinta-arvio-summa" id="hintaArvioSumma">–</span>
         <span class="hinta-arvio-min" id="hintaArvioMin" style="display: none;">Minimitilaus käytössä</span>
-      </div>
-
-      <!-- Laskutustiedot: vain koululisenssille.
-           Kunta on hankintayksikkö ja sillä on verkkolaskulain (241/2019)
-           nojalla oikeus vaatia lasku verkkolaskuna. Ilman näitä tietoja
-           laskua ei voi lähettää lainkaan, joten ne kysytään tilauksen
-           yhteydessä eikä jälkikäteen sähköpostiketjussa.
-           Opettajalisenssin ostaa yksityishenkilö – häneltä näitä ei kysytä. -->
-      <div id="laskutusWrap" style="display: none;">
-        <div class="form-section">Laskutustiedot</div>
-
-        <div class="laskutus-ohje">
-          Lasku lähetetään verkkolaskuna kunnalle. Tiedot löytyvät kuntasi
-          <strong>laskutusohjeista</strong> tai talous&shy;hallinnosta – koulusi
-          kanslia osaa yleensä kertoa ne suoraan. Ne ovat julkisia tietoja.
-        </div>
-
-        <div class="field">
-          <label for="laskutus_nimi">Laskutettava organisaatio <span>*</span></label>
-          <input type="text" id="laskutus_nimi" name="laskutus_nimi" placeholder="Esim. Helsingin kaupunki">
-          <p class="field-hint">
-            Kunta tai kuntayhtymä, ei koulu. Koulu ei ole oikeushenkilö eikä sillä ole Y-tunnusta.
-          </p>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="laskutus_ytunnus">Y-tunnus <span>*</span></label>
-            <input type="text" id="laskutus_ytunnus" name="laskutus_ytunnus" placeholder="1234567-8">
-            <p class="field-hint">Laskutettavan organisaation Y-tunnus.</p>
-          </div>
-          <div class="field">
-            <label for="laskutus_verkkolaskuosoite">Verkkolaskuosoite <span>*</span></label>
-            <input type="text" id="laskutus_verkkolaskuosoite" name="laskutus_verkkolaskuosoite" placeholder="003712345678">
-            <p class="field-hint">
-              OVT-tunnus, alkaa yleensä <code>0037</code>.
-            </p>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="laskutus_valittajatunnus">Välittäjätunnus <span>*</span></label>
-            <input type="text" id="laskutus_valittajatunnus" name="laskutus_valittajatunnus" placeholder="Esim. 003721291126">
-            <p class="field-hint">
-              Kunnan verkkolasku&shy;operaattori. Ilmoitetaan aina verkkolaskuosoitteen rinnalla.
-            </p>
-          </div>
-          <div class="field">
-            <label for="laskutus_viitteenne">Viitteenne <span>*</span></label>
-            <input type="text" id="laskutus_viitteenne" name="laskutus_viitteenne" placeholder="Esim. tilaajan nimi tai kustannuspaikka">
-            <p class="field-hint">
-              Kunnan oma viite tai tilausnumero. <strong>Tärkein kenttä:</strong> ilman
-              sitä lasku ei löydä asiatarkastajaa eikä tule maksetuksi.
-            </p>
-          </div>
-        </div>
       </div>
 
       <div class="field" style="margin-top: 20px;">
@@ -409,16 +331,11 @@
       </div>
 
       <div class="submit-area">
-        <button type="submit" class="btn-submit">Lähetä tilaus →</button>
-        <p class="submit-note">Saat koulukoodin sähköpostiisi välittömästi.<br>Tähtimerkatut kentät ovat pakollisia.</p>
+        <button type="submit" class="btn-submit">Siirry maksamaan →</button>
+        <p class="submit-note">Sinut ohjataan turvalliseen maksupalveluun (Paytrail). Maksuvaihtoehdot: verkkopankki, kortti ja MobilePay.<br>Saat koulukoodin sähköpostiisi heti maksun jälkeen. Tähtimerkatut kentät ovat pakollisia.</p>
       </div>
 
     </form>
-
-    <div class="success-msg" id="successMsg">
-      <h3>✓ Koodi lähetetty sähköpostiisi!</h3>
-      <p>Kiitos tilauksestasi! Koulukoodisi on nyt lähetetty sähköpostiisi – tarkista myös roskapostikansio.<br><br>Lasku toimitetaan erikseen.</p>
-    </div>
 
   </div>
 </div>
@@ -427,15 +344,15 @@
   const form = document.getElementById('tilausForm');
   const btn = form.querySelector('.btn-submit');
 
-  // ─── Hinnasto (pidä synkassa hinnasto.html:n kanssa) ──────────────────────
+  // ─── Hinnasto (pidä synkassa hinnasto.html:n ja api/_lib/tilaus-taytto.js:n kanssa) ──
+  // HUOM: tämä on VAIN näytettävä arvio. Veloitettava summa lasketaan aina
+  // palvelimella (api/tilaus.js) – selaimen lukua ei koskaan uskota maksussa.
   const HINTA = {
     vuosi:     { hinta: 5.90,  minimi: 120 },
     '3vuotta': { hinta: 12.50, minimi: 360 },
-    opettaja:  { hinta: 49,    minimi: 0 },
   };
   const ALV = 0.135;
 
-  const lisenssikausiWrap = document.getElementById('lisenssikausiWrap');
   const hintaArvio = document.getElementById('hintaArvio');
   const hintaArvioSumma = document.getElementById('hintaArvioSumma');
   const hintaArvioMin = document.getElementById('hintaArvioMin');
@@ -444,73 +361,7 @@
     return n.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
   }
 
-  const oppilasmaaraKentta = document.getElementById('oppilasmaaraKentta');
-  const opettajaHuomio     = document.getElementById('opettajaHuomio');
-  const laskutusWrap       = document.getElementById('laskutusWrap');
-
-  const LASKUTUSKENTAT = [
-    'laskutus_nimi',
-    'laskutus_ytunnus',
-    'laskutus_verkkolaskuosoite',
-    'laskutus_valittajatunnus',
-    'laskutus_viitteenne',
-  ];
-
-  // Suomalaisen Y-tunnuksen tarkistusmerkki (mod 11, painot 7-9-10-5-8-4-2).
-  // Kun kenttä on pakollinen, osa täyttää sen päästäkseen eteenpäin. Tarkiste
-  // ei estä tahallista väärää tietoa, mutta nappaa näppäilyvirheet – ja
-  // väärällä Y-tunnuksella lasku hylätään vasta operaattorilla, jolloin
-  // virheen huomaa viikkoja myöhemmin.
-  function ytunnusKelpaa(arvo) {
-    const s = String(arvo).trim().replace(/\s/g, '');
-    const m = s.match(/^(\d{7})-?(\d)$/);
-    if (!m) return false;
-    const painot = [7, 9, 10, 5, 8, 4, 2];
-    const summa = m[1].split('').reduce((a, d, i) => a + Number(d) * painot[i], 0);
-    const jaannos = summa % 11;
-    if (jaannos === 1) return false;           // ei kelvollista tarkistetta
-    const tarkiste = jaannos === 0 ? 0 : 11 - jaannos;
-    return tarkiste === Number(m[2]);
-  }
-
-  // Verkkolaskuosoite (OVT) ja välittäjätunnus. Muoto vaihtelee operaattoreittain,
-  // joten tarkistetaan vain karkea rakenne – liian tiukka sääntö torppaisi
-  // kelvollisen osoitteen ja jättäisi tilauksen tekemättä.
-  function verkkolaskuosoiteKelpaa(arvo) {
-    return /^[0-9A-Za-z]{8,20}$/.test(String(arvo).trim().replace(/[\s-]/g, ''));
-  }
-
   function paivitaHintaArvio() {
-    const tilaustyyppi = form.elements.tilaustyyppi.value;
-    const onKoululisenssi = tilaustyyppi === 'koululisenssi';
-    lisenssikausiWrap.style.display = onKoululisenssi ? 'block' : 'none';
-
-    // Opettajalisenssi on henkilökohtainen eikä oppilasmäärä vaikuta hintaan.
-    // Kenttä piilotetaan ja täytetään arvolla 1, koska palvelinvalidointi
-    // vaatii sen (api/tilaus.js). Ilman tätä ostaja jää jumiin pakolliseen
-    // kenttään, joka ei liity hänen tilaukseensa mitenkään.
-    oppilasmaaraKentta.style.display = onKoululisenssi ? '' : 'none';
-    opettajaHuomio.style.display     = onKoululisenssi ? 'none' : '';
-    form.oppilasmaara.required       = onKoululisenssi;
-    if (!onKoululisenssi) form.oppilasmaara.value = 1;
-
-    // Laskutustiedot koskevat vain koululisenssiä: opettajalisenssin ostaa
-    // yksityishenkilö, jolla ei ole Y-tunnusta eikä verkkolaskuosoitetta.
-    //
-    // required-lippu on pakko kytkeä pois piilotettaessa. Submit-validointi käy
-    // läpi kaikki [required]-kentät, ja piilotettu tyhjä kenttä jäisi punaiseksi
-    // näkymättömissä – lomake vain lakkaisi lähtemästä ilman mitään selitystä.
-    laskutusWrap.style.display = onKoululisenssi ? 'block' : 'none';
-    LASKUTUSKENTAT.forEach(nimi => { form.elements[nimi].required = onKoululisenssi; });
-
-    if (!onKoululisenssi) {
-      const { hinta } = HINTA.opettaja;
-      hintaArvio.style.display = 'flex';
-      hintaArvioSumma.innerHTML = `${muotoileEuro(hinta)} <small>+ alv 13,5 % = ${muotoileEuro(hinta * (1 + ALV))} sis. alv</small>`;
-      hintaArvioMin.style.display = 'none';
-      return;
-    }
-
     const lisenssikausi = form.querySelector('input[name="lisenssikausi"]:checked')?.value || 'vuosi';
     const oppilasmaara = parseInt(form.oppilasmaara.value, 10);
 
@@ -525,11 +376,11 @@
     const kausiTeksti = lisenssikausi === '3vuotta' ? '/ 3 v' : '/ v';
 
     hintaArvio.style.display = 'flex';
-    hintaArvioSumma.innerHTML = `${muotoileEuro(netto)} <small>${kausiTeksti} + alv 13,5 % = ${muotoileEuro(brutto)} sis. alv</small>`;
+    hintaArvioSumma.innerHTML = `${muotoileEuro(brutto)} <small>sis. alv 13,5 % ${kausiTeksti} (alv 0 % ${muotoileEuro(netto)})</small>`;
     hintaArvioMin.style.display = netto > oppilasmaara * hinta ? 'inline-block' : 'none';
   }
 
-  form.querySelectorAll('input[name="tilaustyyppi"], input[name="lisenssikausi"]').forEach(el => {
+  form.querySelectorAll('input[name="lisenssikausi"]').forEach(el => {
     el.addEventListener('change', paivitaHintaArvio);
   });
   form.oppilasmaara.addEventListener('input', paivitaHintaArvio);
@@ -538,7 +389,8 @@
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    // Validointi
+    // Validointi – vain pakollisten kenttien läsnäolo. Laskutustietoja ei enää
+    // kysytä: verkkomaksussa ostaja maksaa kortilla / verkkopankissa.
     const required = form.querySelectorAll('[required]');
     let valid = true;
     let firstInvalid = null;
@@ -562,71 +414,25 @@
       }
     });
 
-    // Muototarkistukset. Ajetaan vasta kun pakolliset kentät on täytetty, jotta
-    // käyttäjä ei saa muotovirhettä tyhjästä kentästä.
-    if (valid && form.elements.tilaustyyppi.value === 'koululisenssi') {
-      const muotoTarkistukset = [
-        [form.elements.laskutus_ytunnus,           ytunnusKelpaa,           'Tarkista Y-tunnus – muoto on 1234567-8.'],
-        [form.elements.laskutus_verkkolaskuosoite, verkkolaskuosoiteKelpaa, 'Tarkista verkkolaskuosoite.'],
-        [form.elements.laskutus_valittajatunnus,   verkkolaskuosoiteKelpaa, 'Tarkista välittäjätunnus.'],
-      ];
-
-      muotoTarkistukset.forEach(([kentta, tarkista, viesti]) => {
-        if (tarkista(kentta.value)) return;
-        kentta.style.borderColor = '#dc2626';
-        valid = false;
-        if (!firstInvalid) firstInvalid = kentta;
-
-        // Muotovirhe on eri asia kuin tyhjä kenttä: punainen reunus yksin ei
-        // kerro mikä on vialla, joten syy sanotaan kentän vieressä ääneen.
-        let virhe = kentta.parentElement.querySelector('.muotovirhe');
-        if (!virhe) {
-          virhe = document.createElement('p');
-          virhe.className = 'field-hint muotovirhe';
-          virhe.style.color = '#dc2626';
-          kentta.parentElement.appendChild(virhe);
-        }
-        virhe.textContent = viesti;
-      });
-    }
-
-    // Siivotaan vanhat muotovirheilmoitukset kentiltä jotka nyt kelpaavat
-    form.querySelectorAll('.muotovirhe').forEach(el => {
-      const kentta = el.parentElement.querySelector('input');
-      if (kentta && kentta.style.borderColor !== 'rgb(220, 38, 38)') el.remove();
-    });
-
     if (!valid) {
       if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
-    btn.textContent = 'Lähetetään...';
+    btn.textContent = 'Siirrytään maksamaan...';
     btn.disabled = true;
 
-    // Kerätään kenttien arvot JSON-objektiin
-    const tilaustyyppi = form.elements.tilaustyyppi.value || 'koululisenssi';
-    const lisenssikausi = tilaustyyppi === 'koululisenssi'
-      ? (form.querySelector('input[name="lisenssikausi"]:checked')?.value || 'vuosi')
-      : undefined;
     const data = {
-      etunimi:     form.etunimi.value.trim(),
-      sukunimi:    form.sukunimi.value.trim(),
-      email:       form.email.value.trim(),
-      puhelin:     form.puhelin.value.trim(),
-      koulu:       form.koulu.value.trim(),
-      kunta:       form.kunta.value.trim(),
+      etunimi:      form.etunimi.value.trim(),
+      sukunimi:     form.sukunimi.value.trim(),
+      email:        form.email.value.trim(),
+      puhelin:      form.puhelin.value.trim(),
+      koulu:        form.koulu.value.trim(),
+      kunta:        form.kunta.value.trim(),
       oppilasmaara: form.oppilasmaara.value,
-      tilaustyyppi,
-      lisenssikausi,
-      lisatiedot:  form.lisatiedot.value.trim(),
+      lisenssikausi: form.querySelector('input[name="lisenssikausi"]:checked')?.value || 'vuosi',
+      lisatiedot:   form.lisatiedot.value.trim(),
     };
-
-    // Laskutustiedot lähetetään vain koululisenssin mukana. Opettajalisenssillä
-    // kentät ovat piilossa ja tyhjiä, eikä tyhjiä arvoja kannata tallentaa kantaan.
-    if (tilaustyyppi === 'koululisenssi') {
-      LASKUTUSKENTAT.forEach(nimi => { data[nimi] = form.elements[nimi].value.trim(); });
-    }
 
     try {
       const res = await fetch('/api/tilaus', {
@@ -637,13 +443,14 @@
 
       const json = await res.json();
 
-      if (res.ok && json.ok) {
-        form.style.display = 'none';
-        document.getElementById('successMsg').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Onnistuessa palvelin palauttaa Paytrailin maksusivun URLin – ohjataan
+      // ostaja sinne maksamaan. Lisenssiä ei ole vielä luotu; se syntyy vasta
+      // kun maksu on vahvistettu.
+      if (res.ok && json.ok && json.redirectUrl) {
+        window.location.href = json.redirectUrl;
       } else {
         console.error('Tilausvirhe:', json);
-        btn.textContent = 'Lähetys epäonnistui – yritä uudelleen';
+        btn.textContent = (json && json.virhe) ? json.virhe : 'Maksun aloitus epäonnistui – yritä uudelleen';
         btn.disabled = false;
       }
     } catch(err) {

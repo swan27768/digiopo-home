@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tilaus valmis – DigiOpo.fi</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue-deep:#1a3f6f; --blue-mid:#2563a8; --blue-pale:#ddeaf7;
+    --green-deep:#1a6b45; --green-mid:#2d9e6b; --green-pale:#d4f2e7;
+    --yellow:#f5c842; --yellow-pale:#fef9e0;
+    --text-dark:#0f2540; --text-mid:#3a5a7a; --text-light:#7a9ab5;
+    --white:#f8fbff; --off-white:#eef5fb; --error:#dc2626;
+  }
+  body { font-family:'Inter',sans-serif; background:var(--white); color:var(--text-dark); min-height:100vh; }
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    backdrop-filter:blur(20px); background:rgba(248,251,255,0.88);
+    border-bottom:1px solid rgba(107,163,216,0.2);
+    padding:0 48px; height:66px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .nav-logo { font-family:'Plus Jakarta Sans',sans-serif; font-size:23px; font-weight:700; color:var(--blue-deep); text-decoration:none; }
+  .nav-logo span { color:var(--green-mid); } .nav-logo .dot { color:var(--yellow); }
+  .nav-back { font-size:13.5px; color:var(--text-mid); text-decoration:none; }
+  .page { max-width:620px; margin:0 auto; padding:140px 32px 80px; }
+  .card {
+    background:#fff; border:1px solid rgba(107,163,216,0.2); border-radius:24px;
+    padding:48px; box-shadow:0 4px 32px rgba(26,63,111,0.06); text-align:center;
+  }
+  .badge { font-size:52px; line-height:1; margin-bottom:20px; }
+  h1 { font-family:'Plus Jakarta Sans',sans-serif; font-size:clamp(24px,4vw,32px); font-weight:800; line-height:1.2; letter-spacing:-0.6px; margin-bottom:14px; }
+  p { font-size:15.5px; color:var(--text-mid); line-height:1.7; margin-bottom:14px; }
+  .btn-row { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:28px; }
+  .btn {
+    font-family:'Plus Jakarta Sans',sans-serif; font-size:15px; font-weight:700;
+    padding:14px 28px; border-radius:12px; text-decoration:none; display:inline-block; transition:transform .2s, box-shadow .2s;
+  }
+  .btn-primary { background:linear-gradient(135deg,var(--blue-deep),var(--blue-mid)); color:#fff; box-shadow:0 6px 24px rgba(26,63,111,0.25); }
+  .btn-primary:hover { transform:translateY(-2px); }
+  .btn-ghost { background:var(--off-white); color:var(--blue-deep); }
+  .ok h1 { color:var(--green-deep); } .ok .card { border-color:var(--green-mid); }
+  .peru h1, .virhe h1 { color:var(--blue-deep); }
+  .note { font-size:13px; color:var(--text-light); margin-top:22px; }
+  @media (max-width:640px){ nav{padding:0 20px;} .page{padding:110px 20px 60px;} .card{padding:32px 22px;} }
+</style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Digi<span>Opo</span><span class="dot">·</span>fi</a>
+  <a href="index.html" class="nav-back">← Etusivulle</a>
+</nav>
+
+<div class="page" id="page">
+  <div class="card" id="card">
+    <!-- Sisältö täytetään ?tila= -parametrin mukaan -->
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const tila = params.get('tila') || 'ok';
+  const page = document.getElementById('page');
+  const card = document.getElementById('card');
+
+  const SISALTO = {
+    ok: {
+      luokka: 'ok',
+      badge: '✓',
+      otsikko: 'Kiitos tilauksestasi!',
+      html: `
+        <p>Maksu onnistui ja tilauksesi on vahvistettu. <strong>Koulukoodisi on lähetetty sähköpostiisi</strong> yhdessä maksukuitin kanssa – tarkista tarvittaessa myös roskapostikansio.</p>
+        <p>Jaa koodi oppilaillesi, niin he pääsevät kirjautumaan osoitteessa <strong>app.digiopo.fi</strong>.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="https://app.digiopo.fi">Avaa DigiOpo →</a>
+          <a class="btn btn-ghost" href="index.html">Etusivulle</a>
+        </div>
+        <p class="note">Eikö sähköposti tullut muutamassa minuutissa? Ota yhteyttä: digiopo@digiopo.fi</p>`,
+    },
+    peru: {
+      luokka: 'peru',
+      badge: '↩︎',
+      otsikko: 'Maksu keskeytyi',
+      html: `
+        <p>Maksua ei viety loppuun, eikä tilaustasi ole veloitettu. Voit palata tilauslomakkeelle ja yrittää uudelleen.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="tilauslomake.html">Takaisin tilaukseen</a>
+          <a class="btn btn-ghost" href="index.html">Etusivulle</a>
+        </div>
+        <p class="note">Ongelmia maksun kanssa? Autamme mielellämme: digiopo@digiopo.fi</p>`,
+    },
+    virhe: {
+      luokka: 'virhe',
+      badge: '⚠️',
+      otsikko: 'Jokin meni pieleen',
+      html: `
+        <p>Maksun vahvistuksessa tapahtui virhe. Jos sinua on veloitettu mutta et saanut koulukoodia sähköpostiisi muutamassa minuutissa, ole yhteydessä meihin – selvitämme tilanteen heti.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="mailto:digiopo@digiopo.fi">Ota yhteyttä</a>
+          <a class="btn btn-ghost" href="tilauslomake.html">Takaisin tilaukseen</a>
+        </div>
+        <p class="note">digiopo@digiopo.fi</p>`,
+    },
+  };
+
+  const s = SISALTO[tila] || SISALTO.virhe;
+  page.className = 'page ' + s.luokka;
+  card.innerHTML = `<div class="badge">${s.badge}</div><h1>${s.otsikko}</h1>${s.html}`;
+  document.title = s.otsikko + ' – DigiOpo.fi';
+</script>
+</body>
+</html>
