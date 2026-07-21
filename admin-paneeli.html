@@ -206,6 +206,8 @@
       <h3 class="section" style="margin-top:0">📇 Lisenssit ja yhteyshenkilöt</h3>
       <div class="empty" style="margin-bottom:12px">
         Kaikki lisenssit vanhenemisjärjestyksessä – ylimpänä ne, joiden uusinta on ajankohtaisin.
+        <b>Odottaa maksua</b> tarkoittaa tilausta, jonka lasku on lähetetty mutta ei kuitattu:
+        pääsy on voimassa 30 päivää ja päättyy itsestään, ellet merkitse sitä maksetuksi.
         <b>Punainen</b> = vanhentunut, <b>keltainen</b> = vanhenee 30 pv sisällä.
         Laitemäärä on 30 päivän aktiiviset laitteet, ja se on suuntaa-antava eikä päälukumäärä.
       </div>
@@ -1124,6 +1126,42 @@ async function haeLisenssit(){
   }
 }
 
+// Kuittaa laskun maksetuksi: jatkaa voimassaolon ostettuun kauteen.
+// taysi_voimassa_asti laskettiin tilaushetkellä, joten asiakas saa sen mitä
+// osti eikä maksun viivästyminen lyhennä hänen kauttaan.
+async function merkitseMaksetuksi(koodi){
+  const statusEl = document.getElementById('lisenssitStatus');
+  const key = adminAvainTaiVaroita(statusEl);
+  if (!key) return;
+
+  if (!confirm(`Merkitäänkö lisenssi ${koodi} maksetuksi?\n\nVoimassaolo jatketaan ostettuun kauteen.`)) return;
+
+  statusEl.textContent = 'Kuitataan…';
+  try {
+    const res = await fetch(ADMIN_LISENSSI_URL, {
+      method:  'POST',
+      headers: { 'x-admin-key': key, 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ toiminto: 'merkitse_maksetuksi', koodi }),
+    });
+    const json = await res.json();
+
+    if (json.ok) {
+      statusEl.textContent = `✅ ${json.koulu} – voimassa ${json.voimassa_asti} asti.`;
+      haeLisenssit();
+      return;
+    }
+    const viestit = {
+      lisenssia_ei_loydy:  'Lisenssiä ei löytynyt.',
+      jo_maksettu:         'Tämä lisenssi on jo merkitty maksetuksi.',
+      taysi_kausi_puuttuu: 'Riviltä puuttuu taysi_voimassa_asti – se on luotu ennen laskutusseurantaa. Jatka voimassaoloa Supabasessa.',
+      ei_valtuutusta:      'Admin-avain ei kelpaa.',
+    };
+    statusEl.textContent = viestit[json.virhe] || `Virhe: ${json.virhe || res.status}`;
+  } catch (err) {
+    statusEl.textContent = `Yhteysvirhe: ${err.message}`;
+  }
+}
+
 function renderLisenssit(lista){
   const sisalto = document.getElementById('lisenssitSisalto');
   if (!lista.length) { sisalto.innerHTML = '<div class="empty">Ei lisenssejä.</div>'; return; }
@@ -1143,12 +1181,25 @@ function renderLisenssit(lista){
     const posti = x.email
       ? `<a href="mailto:${esc(x.email)}" style="color:var(--accent2)">${esc(x.email)}</a>` : '—';
 
+    // Maksamaton tilaus: lisenssi luotiin 30 pv voimassaololla, ja voimassaolo
+    // jatketaan ostettuun kauteen vasta kun lasku on maksettu. Ilman kuittausta
+    // pääsy päättyy itsestään – oletusarvo on turvallinen.
+    const odottaaMaksua = x.maksettu === false && x.taysi_voimassa_asti;
+    const maksuSarake = odottaaMaksua
+      ? `<div style="color:var(--warn);font-weight:600;font-size:11.5px">Odottaa maksua</div>
+         <div style="color:var(--muted);font-size:11px">Lasku ${esc(x.laskunumero || '—')}${x.lasku_pvm ? ' · ' + esc(x.lasku_pvm) : ''}</div>
+         <div style="color:var(--muted);font-size:11px">Maksettuna → ${esc(x.taysi_voimassa_asti)}</div>
+         <button class="linkbtn" style="cursor:pointer;margin-top:6px;padding:4px 9px;font-size:11.5px"
+                 onclick="merkitseMaksetuksi('${esc(x.koodi)}')">💶 Merkitse maksetuksi</button>`
+      : (x.maksettu === false ? '<span style="color:var(--muted);font-size:11.5px">Maksutieto puuttuu</span>' : '');
+
     return `<tr style="border-left:3px solid ${reuna}">
       <td style="${solu}"><b>${esc(x.koulu || '—')}</b><div style="color:var(--muted);font-size:11.5px">${esc(x.tyyppi)}</div></td>
       <td style="${solu}">${esc(x.yhteyshenkilö || '—')}<div style="font-size:11.5px">${posti}</div></td>
       <td style="${solu}"><code style="font-size:11.5px">${esc(x.koodi)}</code></td>
       <td style="${solu}">${esc(x.voimassa_asti)}<div style="color:var(--muted);font-size:11.5px">${tila}</div></td>
       <td style="${solu};text-align:center">${kaytto}</td>
+      <td style="${solu}">${maksuSarake}</td>
     </tr>`;
   }).join('');
 
@@ -1158,6 +1209,7 @@ function renderLisenssit(lista){
         <th style="${solu}">Koulu</th><th style="${solu}">Yhteyshenkilö</th>
         <th style="${solu}">Koodi</th><th style="${solu}">Voimassa</th>
         <th style="${solu};text-align:center">Laitteita 30 pv</th>
+        <th style="${solu}">Maksu</th>
       </tr></thead>
       <tbody>${rivit}</tbody>
     </table></div>`;

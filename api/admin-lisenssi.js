@@ -127,6 +127,7 @@ export default async function handler(req, res) {
       if (action === 'lista') {
         const r = await sb(
           'lisenssit?select=koodi,koulu,yhteyshenkilö,email,tyyppi,voimassa_asti,aktiivinen,paikat,luotu_at' +
+          ',laskunumero,lasku_pvm,maksettu,taysi_voimassa_asti' +
           '&order=voimassa_asti.asc'
         );
         if (!r.ok) throw new Error(`Supabase ${r.status}: ${await r.text()}`);
@@ -168,6 +169,49 @@ export default async function handler(req, res) {
     }
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+
+    // ── Maksun kuittaus: jatka voimassaolo ostettuun kauteen ────────────────
+    //
+    // Tilaus luo lisenssin 30 päivän voimassaololla, jottei maksamaton tilaus
+    // anna vuoden pääsyä. Kun lasku on maksettu, voimassaolo jatketaan tähän:
+    // taysi_voimassa_asti laskettiin tilaushetkellä (tilauspäivä + ostettu
+    // kausi), joten asiakas saa sen mitä osti eikä maksun viivästyminen
+    // lyhennä hänen kauttaan.
+    if (String(body.toiminto || '') === 'merkitse_maksetuksi') {
+      const koodi = String(body.koodi || '').trim();
+      if (!koodi) return res.status(400).json({ ok: false, virhe: 'koodi_puuttuu' });
+
+      const haku = await sb(
+        `lisenssit?koodi=eq.${encodeURIComponent(koodi)}` +
+        `&select=id,koodi,koulu,voimassa_asti,taysi_voimassa_asti,maksettu&limit=1`
+      );
+      if (!haku.ok) throw new Error(`Supabase ${haku.status}: ${await haku.text()}`);
+      const [rivi] = await haku.json();
+
+      if (!rivi) return res.status(200).json({ ok: false, virhe: 'lisenssia_ei_loydy' });
+      if (rivi.maksettu) return res.status(200).json({ ok: false, virhe: 'jo_maksettu' });
+      if (!rivi.taysi_voimassa_asti) {
+        return res.status(200).json({ ok: false, virhe: 'taysi_kausi_puuttuu' });
+      }
+
+      const p = await sb(`lisenssit?id=eq.${encodeURIComponent(rivi.id)}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({
+          voimassa_asti: rivi.taysi_voimassa_asti,
+          maksettu: true,
+        }),
+      });
+      if (!p.ok) throw new Error(`Supabase ${p.status}: ${await p.text()}`);
+
+      return res.status(200).json({
+        ok: true,
+        koodi: rivi.koodi,
+        koulu: rivi.koulu,
+        voimassa_asti: rivi.taysi_voimassa_asti,
+      });
+    }
+
     const tyyppi        = String(body.tyyppi || '').trim();
     const koulu         = String(body.koulu || '').trim();
     const yhteyshenkilo = String(body.yhteyshenkilo || '').trim();
@@ -237,6 +281,9 @@ export default async function handler(req, res) {
           voimassa_asti,
           paikat,
           aktiivinen: true,
+          // Käsin luodusta lisenssistä ei ole laskua, joten se on lähtökohtaisesti
+          // "maksettu" – muuten se ilmestyisi perintätyöjonoon.
+          maksettu: true,
         }),
       });
       if (r.ok) {

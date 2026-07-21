@@ -599,18 +599,38 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, virhe: 'Virheellinen sähköpostiosoite' });
   }
 
-  // Voimassaoloaika: opettajalisenssi ja koululisenssin vuosilisenssi 12 kk,
-  // koululisenssin 3 vuoden lisenssi 36 kk
+  // ─── Voimassaolo: lyhyt alku, täysi kausi maksun jälkeen ──────────────────
+  //
+  // MIKSI: tilaus loi aiemmin lisenssin täydellä voimassaololla heti, ennen
+  // kuin laskua oli maksettu. Kuka tahansa saattoi täyttää lomakkeen
+  // tekaistuilla tiedoilla ja saada toimivan koodin vuodeksi.
+  //
+  // Nyt asiakas saa koodin heti kuten ennenkin, mutta se on voimassa 30 päivää.
+  // Kun lasku maksetaan, voimassaolo jatketaan ostettuun kauteen
+  // hallintapaneelista. Jos laskua ei makseta, pääsy päättyy itsestään –
+  // oletusarvo on turvallinen eikä vaadi kenenkään muistavan tehdä mitään.
+  //
+  // Maksuaika on 14 pv, joten 30 pv antaa puskurin viivästyksille ja lomille.
+  const ALKUVOIMASSAOLO_PV = 30;
+
   const kestoVuosina = (tilaustyyppi === 'koululisenssi' && lisenssikausi === '3vuotta') ? 3 : 1;
-  const voimassa = new Date();
-  voimassa.setFullYear(voimassa.getFullYear() + kestoVuosina);
+
+  // Täysi kausi lasketaan TILAUSPÄIVÄSTÄ, ei maksupäivästä – asiakas saa sen
+  // mitä osti, eikä maksun viivästyminen lyhennä hänen kauttaan.
+  const taysi = new Date();
+  taysi.setFullYear(taysi.getFullYear() + kestoVuosina);
+  let taysi_voimassa_asti = taysi.toISOString().split('T')[0];
+
+  const alku = new Date();
+  alku.setDate(alku.getDate() + ALKUVOIMASSAOLO_PV);
   // let, ei const: uusintatilauksessa arvo lasketaan uudelleen nykyisestä
   // päättymispäivästä, jottei asiakas menetä jäljellä olevaa aikaa.
-  let voimassa_asti = voimassa.toISOString().split('T')[0];
+  let voimassa_asti = alku.toISOString().split('T')[0];
 
   const hintatiedot = laske_hinta(tilaustyyppi, lisenssikausi, oppilasmaara);
   const laskunumero = generoi_laskunumero();
   const erapaiva    = luo_erapaiva();
+  const laskuPvm    = new Date().toISOString().split('T')[0];
 
   const emailNorm = email.trim().toLowerCase();
   const henkilö = `${etunimi.trim()} ${sukunimi.trim()}`;
@@ -638,17 +658,30 @@ export default async function handler(req, res) {
         uusinta = true;
         koodi = olemassa.koodi;
 
-        // Jatketaan nykyisestä päättymispäivästä, jos lisenssi on yhä voimassa
-        // – muuten asiakas menettäisi jäljellä olevan ajan uusiessaan ajoissa.
+        // Täysi kausi jatkuu nykyisestä päättymispäivästä, jos lisenssi on yhä
+        // voimassa – muuten asiakas menettäisi jäljellä olevan ajan uusiessaan
+        // ajoissa.
         const nykyinenLoppu = new Date(olemassa.voimassa_asti);
         const pohja = nykyinenLoppu > new Date() ? nykyinenLoppu : new Date();
         pohja.setFullYear(pohja.getFullYear() + kestoVuosina);
-        const uusiLoppu = pohja.toISOString().split('T')[0];
+        taysi_voimassa_asti = pohja.toISOString().split('T')[0];
+
+        // Pääsy jatkuu 30 pv maksua odottaessa – mutta EI koskaan lyhennä
+        // olemassa olevaa voimassaoloa. Ajoissa uusiva asiakas ei saa
+        // huonompaa pääsyä kuin hänellä jo oli.
+        const valiaikainen = new Date();
+        valiaikainen.setDate(valiaikainen.getDate() + ALKUVOIMASSAOLO_PV);
+        const uusiLoppu = (nykyinenLoppu > valiaikainen ? nykyinenLoppu : valiaikainen)
+          .toISOString().split('T')[0];
 
         await paivita_supabaseen(olemassa.id, {
           koulu: koulu.trim(),
           yhteyshenkilö: henkilö,
           voimassa_asti: uusiLoppu,
+          taysi_voimassa_asti,
+          laskunumero: String(laskunumero),
+          lasku_pvm: laskuPvm,
+          maksettu: false,
           aktiivinen: true,
         });
         voimassa_asti = uusiLoppu;
@@ -663,7 +696,11 @@ export default async function handler(req, res) {
               yhteyshenkilö: henkilö,
               email: emailNorm,
               tyyppi: 'opettaja',
-              voimassa_asti,
+              voimassa_asti,           // 30 pv – maksua odottaessa
+              taysi_voimassa_asti,     // mihin jatketaan kun lasku on maksettu
+              laskunumero: String(laskunumero),
+              lasku_pvm: laskuPvm,
+              maksettu: false,
               aktiivinen: true,
             });
             break;
@@ -719,7 +756,11 @@ export default async function handler(req, res) {
           email: emailNorm,
           tyyppi: 'vuosi',
           paikat: Number(oppilasmaara) || null, // ostettu oppilasmäärä → ylikäytön seuranta
-          voimassa_asti,
+          voimassa_asti,           // 30 pv – maksua odottaessa
+          taysi_voimassa_asti,     // mihin jatketaan kun lasku on maksettu
+          laskunumero: String(laskunumero),
+          lasku_pvm: laskuPvm,
+          maksettu: false,
           aktiivinen: true,
         });
         break;
