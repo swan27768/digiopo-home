@@ -126,6 +126,20 @@ const HINTA = {
 };
 const ALV = 0.135;
 
+// Opettajalisenssiä ei myydä yksittäiselle opettajalle. Lisenssityyppi on
+// kannassa yhä olemassa ja se voidaan luoda hallintapaneelista
+// (api/admin-lisenssi.js) omaan testikäyttöön – vain julkinen tilauskanava on
+// suljettu.
+//
+// Esto on täällä eikä pelkästään lomakkeella, koska tilauslomakkeen ohi voi
+// POSTata suoraan rajapintaan. Ilman tätä 49 €:n hinta olisi yhä tilattavissa,
+// vaikka sitä ei enää mainita missään.
+//
+// Tämän tiedoston opettajalisenssihaara jätetään paikalleen tarkoituksella:
+// myynnin avaaminen uudelleen on tämän lipun kääntäminen ja piilokentän
+// palauttaminen radiovalinnaksi tilauslomake.html:ssä.
+const OPETTAJALISENSSI_MYYNNISSA = false;
+
 // ─── Laskuttajan tiedot ───────────────────────────────────────────────────────
 const LASKUTTAJA = {
   nimi:        'DigiOpo Palvelut',
@@ -700,6 +714,13 @@ export default async function handler(req, res) {
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ ok: false, virhe: 'Virheellinen sähköpostiosoite' });
+  }
+
+  if (tilaustyyppi === 'opettajalisenssi' && !OPETTAJALISENSSI_MYYNNISSA) {
+    return res.status(400).json({
+      ok: false,
+      virhe: 'Opettajalisenssiä ei ole myynnissä. Ota yhteyttä: digiopo@digiopo.fi',
+    });
   }
 
   // Laskutustiedot vaaditaan vain koululisenssiltä. Ostaja on kunta, joka on

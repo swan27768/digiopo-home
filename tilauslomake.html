@@ -302,27 +302,23 @@
         <div class="field" id="opettajaHuomio" style="display:none">
           <p style="font-size:13px;color:#3a5a7a;line-height:1.5;margin:26px 0 0">
             Opettajalisenssi on henkilökohtainen, joten oppilasmäärää ei tarvita.
-            Hinta on kiinteä 49 €/vuosi.
           </p>
         </div>
       </div>
 
-      <div class="form-section">Tilaustyyppi</div>
+      <!-- Opettajalisenssiä ei myydä yksittäiselle opettajalle. Lisenssityyppi
+           on kannassa yhä olemassa ja se voidaan luoda hallintapaneelista
+           (api/admin-lisenssi.js), mutta julkista tilauskanavaa sille ei ole.
 
-      <div class="order-types">
-        <label class="order-type">
-          <input type="radio" name="tilaustyyppi" value="opettajalisenssi" checked>
-          <span class="order-type-title">Opettajalisenssi</span>
-          <span class="order-type-desc">Henkilökohtainen lisenssi – sidottu sähköpostiisi – 49 €/vuosi</span>
-        </label>
-        <label class="order-type">
-          <input type="radio" name="tilaustyyppi" value="koululisenssi">
-          <span class="order-type-title">Koululisenssi</span>
-          <span class="order-type-desc">Koko koululle – oppilasmäärän mukaan</span>
-        </label>
-      </div>
+           Tyyppi jää piilokentäksi eikä radiovalintana poistu kokonaan: koko
+           lomakkeen ja api/tilaus.js:n logiikka haarautuu tämän arvon mukaan,
+           ja kentän poistaminen tekisi paluusta myöhemmin ison muutoksen.
+           Myynnin avaaminen uudelleen = tämä takaisin radiovalinnaksi. -->
+      <input type="hidden" name="tilaustyyppi" value="koululisenssi">
 
-      <div id="lisenssikausiWrap" style="display: none;">
+      <div class="form-section">Lisenssikausi</div>
+
+      <div id="lisenssikausiWrap">
         <div class="order-types" style="margin-top: 12px;">
           <label class="order-type">
             <input type="radio" name="lisenssikausi" value="vuosi" checked>
@@ -485,7 +481,7 @@
   }
 
   function paivitaHintaArvio() {
-    const tilaustyyppi = form.querySelector('input[name="tilaustyyppi"]:checked')?.value;
+    const tilaustyyppi = form.elements.tilaustyyppi.value;
     const onKoululisenssi = tilaustyyppi === 'koululisenssi';
     lisenssikausiWrap.style.display = onKoululisenssi ? 'block' : 'none';
 
@@ -568,7 +564,7 @@
 
     // Muototarkistukset. Ajetaan vasta kun pakolliset kentät on täytetty, jotta
     // käyttäjä ei saa muotovirhettä tyhjästä kentästä.
-    if (valid && form.querySelector('input[name="tilaustyyppi"]:checked')?.value === 'koululisenssi') {
+    if (valid && form.elements.tilaustyyppi.value === 'koululisenssi') {
       const muotoTarkistukset = [
         [form.elements.laskutus_ytunnus,           ytunnusKelpaa,           'Tarkista Y-tunnus – muoto on 1234567-8.'],
         [form.elements.laskutus_verkkolaskuosoite, verkkolaskuosoiteKelpaa, 'Tarkista verkkolaskuosoite.'],
@@ -609,7 +605,7 @@
     btn.disabled = true;
 
     // Kerätään kenttien arvot JSON-objektiin
-    const tilaustyyppi = form.querySelector('input[name="tilaustyyppi"]:checked')?.value || 'yksittainen';
+    const tilaustyyppi = form.elements.tilaustyyppi.value || 'koululisenssi';
     const lisenssikausi = tilaustyyppi === 'koululisenssi'
       ? (form.querySelector('input[name="lisenssikausi"]:checked')?.value || 'vuosi')
       : undefined;
