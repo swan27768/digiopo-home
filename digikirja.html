@@ -139,19 +139,6 @@
   .luokka-card p { font-size: 13.5px; color: var(--text-mid); line-height: 1.65; }
   .luokka-tagline { font-size: 12px !important; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-light) !important; margin-bottom: 10px !important; }
 
-  /* OMINAISUUDET */
-  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
-  .feature-item {
-    background: #fff; border: 1px solid rgba(107,163,216,0.18);
-    border-radius: 16px; padding: 28px 24px;
-    display: flex; gap: 16px; align-items: flex-start;
-    transition: all 0.25s;
-  }
-  .feature-item:hover { box-shadow: 0 6px 28px rgba(26,63,111,0.08); transform: translateY(-2px); }
-  .feature-icon { font-size: 26px; min-width: 36px; }
-  .feature-item h4 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; color: var(--blue-deep); margin-bottom: 6px; }
-  .feature-item p { font-size: 13.5px; color: var(--text-mid); line-height: 1.6; }
-
   /* MIKSI DIGIOPO – lupaus + tehtävätyyppipilvi */
   .lupaus { text-align: center; max-width: 760px; margin: 0 auto; }
   .lupaus h2 {
@@ -435,7 +422,7 @@
     });
   }, { threshold: 0.1 });
 
-  document.querySelectorAll('.luokka-card, .feature-item').forEach(el => {
+  document.querySelectorAll('.luokka-card').forEach(el => {
     el.style.opacity = '0'; el.style.transform = 'translateY(20px)';
     el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
     observer.observe(el);
