@@ -28,7 +28,7 @@
 
 import { kirjaaVirhe } from './_lib/virhelogi.js';
 import { luoMaksu } from './_lib/paytrail.js';
-import { laskeHinta, bruttoSentteina, ilmoitaLaskutilaus } from './_lib/tilaus-taytto.js';
+import { laskeHinta, bruttoSentteina, taytaLaskutilaus } from './_lib/tilaus-taytto.js';
 import crypto from 'node:crypto';
 
 // ─── Laskutustapa: verkkomaksu (Paytrail) vai lasku (kunnat) ─────────────────
@@ -214,11 +214,12 @@ export default async function handler(req, res) {
 
   // ─── Laskulla-polku (kunnat) ───────────────────────────────────────────────
   //
-  // Ei Paytrailia. Tilaus tallennetaan maksut-tauluun tilaan 'lasku' ja
-  // ilmoitetaan adminille, joka luo lisenssin hallintapaneelista ja lähettää
-  // verkkolaskun kunnan portaaliin. Lisenssiä EI luoda automaattisesti:
-  // kuntatilaus vaatii tilausnumeron/PO:n ja ihmisen tarkistuksen – tekaistuja
-  // lomakelähetyksiä ei saa muuttua voimassa oleviksi lisensseiksi.
+  // Ei Paytrailia. Lisenssi luodaan HETI 30 päivän voimassaololla ja tilassa
+  // maksettu:false, ja koulukoodi lähetetään koululle. Täysi kausi on tallessa
+  // (taysi_voimassa_asti). Admin lähettää verkkolaskun kunnan portaaliin ja
+  // merkitsee tilauksen maksetuksi kun kunta maksaa → voimassaolo jatkuu täyteen
+  // kauteen. Jos laskua ei makseta, pääsy päättyy 30 pv:ssä itsestään – tämä on
+  // takaportti tekaistuja tilauksia vastaan (raha tulee vain laskulla).
   const maksutapa = body?.maksutapa === 'lasku' ? 'lasku' : 'verkkomaksu';
 
   if (maksutapa === 'lasku') {
@@ -229,27 +230,33 @@ export default async function handler(req, res) {
     const laskutus = normalisoiLaskutustiedot(body);
     const laskuTilaus = { ...tilaus, maksutapa: 'lasku', ...laskutus };
 
-    const laskuStamp = crypto.randomUUID();
+    // Luo lisenssi + lähetä koodi koululle + ilmoita adminille laskutettavaksi.
+    // Jos tämä kaatuu, tilausta ei synny lainkaan (koodia ei ehkä luotu) – parempi
+    // pyytää uudelleen kuin jättää maksut-rivi ilman lisenssiä.
+    let luotu;
     try {
-      await tallennaMaksu({
-        stamp: laskuStamp,
-        reference: laskuStamp,
-        tila: 'lasku',
-        summa_sentteina: summaSentteina,
-        tilaus: laskuTilaus,
-      });
+      luotu = await taytaLaskutilaus(laskuTilaus, hintatiedot);
     } catch (err) {
-      console.error('lasku: maksut-rivin tallennus epäonnistui:', err.message);
-      await kirjaaVirhe('tilaus lasku-insert', err, { koulu: tilaus.koulu, email: tilaus.email });
+      console.error('lasku: täyttö epäonnistui:', err.message);
+      await kirjaaVirhe('tilaus lasku-taytto', err, { koulu: tilaus.koulu, email: tilaus.email });
       return res.status(500).json({ ok: false, virhe: 'Palvelinvirhe – yritä uudelleen' });
     }
 
-    // Ilmoitus on parhaan yrityksen. Tilaus on jo tallennettu maksut-tauluun
-    // (tila 'lasku'), joka on pysyvä tosite – sähköpostivirhe ei saa kaataa
-    // tilausta, koska admin näkee tilauksen silti kannasta. Virhe kirjataan.
-    await ilmoitaLaskutilaus(laskuTilaus, hintatiedot).catch(async (err) => {
-      console.error('lasku: ilmoitus epäonnistui:', err.message);
-      await kirjaaVirhe('tilaus lasku-ilmoitus', err, { koulu: tilaus.koulu, email: tilaus.email });
+    // Tallenna maksut-rivi seurantaa varten. koodi mukaan, jotta admin-maksut
+    // voi jatkaa lisenssin voimassaoloa sen perusteella maksun tullessa.
+    // Parhaan yrityksen: lisenssi ja koodi on jo luotu ja lähetetty, joten
+    // seurantarivin puuttuminen ei saa kaataa tilausta (kirjataan virheeksi).
+    const laskuStamp = crypto.randomUUID();
+    await tallennaMaksu({
+      stamp: laskuStamp,
+      reference: laskuStamp,
+      tila: 'lasku',
+      summa_sentteina: summaSentteina,
+      tilaus: laskuTilaus,
+      koodi: luotu.koodi,
+    }).catch(async (err) => {
+      console.error('lasku: maksut-rivin tallennus epäonnistui:', err.message);
+      await kirjaaVirhe('tilaus lasku-insert', err, { koulu: tilaus.koulu, email: tilaus.email, koodi: luotu.koodi });
     });
 
     return res.status(200).json({ ok: true, lasku: true });

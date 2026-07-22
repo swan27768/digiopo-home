@@ -219,10 +219,12 @@
     <div class="card wide">
       <h3 class="section" style="margin-top:0">🧾 Laskutus ja maksut (digiopo-home)</h3>
       <div class="empty" style="margin-bottom:12px">
-        Laskulla-tilausten työjono ja verkkomaksujen tila. Laskulla-tilaus ei luo
-        lisenssiä automaattisesti: luo lisenssi alta (🎫 Luo lisenssi), lähetä
-        verkkolasku kunnan portaaliin (ks. <code>LASKUTUS_kunnat.md</code>) ja
-        merkitse sitten <b>laskutetuksi</b>. Hakee <code>/api/admin-maksut</code>.
+        Laskulla-tilausten työjono ja verkkomaksujen tila. Laskulla-tilaus <b>luo
+        lisenssin automaattisesti</b> (30 pv voimassa) ja lähettää koodin koululle.
+        Sinun tehtäväsi: lähetä verkkolasku kunnan portaaliin (ks.
+        <code>LASKUTUS_kunnat.md</code>) → <b>Merkitse laskutetuksi</b>. Kun kunta
+        maksaa → <b>Merkitse maksetuksi</b>, jolloin voimassaolo jatkuu täyteen
+        kauteen. Hakee <code>/api/admin-maksut</code>.
       </div>
       <button class="linkbtn" style="cursor:pointer" onclick="haeMaksut()">🔄 Lataa maksut</button>
       <div id="maksutStatus" class="savedhint" style="margin:8px 0"></div>
@@ -1083,6 +1085,7 @@ function renderMaksut(data, sisalto){
           <b style="color:var(--text)">${esc(x.koulu)}${x.kunta?', '+esc(x.kunta):''}</b>
           <b style="color:var(--text);white-space:nowrap">${esc(x.summa)}</b>
         </div>
+        ${maksuRivi('Koulukoodi (luotu, lähetetty)', x.koodi)}
         ${maksuRivi('Tuote', `${x.lisenssikausi}, ${x.oppilasmaara} oppilasta`)}
         ${maksuRivi('Laskutettava', `${l.nimi} (${l.ytunnus})`)}
         ${maksuRivi('Verkkolaskuosoite', l.valittaja ? `${l.ovt} · välittäjä ${l.valittaja}` : l.ovt)}

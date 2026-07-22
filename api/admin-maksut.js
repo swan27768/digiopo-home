@@ -180,7 +180,32 @@ export default async function handler(req, res) {
       return res.status(404).json({ ok: false, virhe: 'tilausta_ei_loytynyt' });
     }
 
-    return res.status(200).json({ ok: true, tila: uusiTila });
+    // Maksettu → jatka lisenssin voimassaolo täyteen kauteen. Laskulla-tilaus
+    // loi lisenssin 30 pv:n voimassaololla (maksettu:false); nyt raha on saatu,
+    // joten voimassa_asti nostetaan tallennettuun taysi_voimassa_asti-arvoon.
+    // Sama logiikka kuin admin-lisenssi.js:n merkitse_maksetuksi.
+    let lisenssiJatkettu = null;
+    const koodi = paivitetyt[0].koodi;
+    if (uusiTila === 'maksettu' && koodi) {
+      const hl = await sb(
+        `lisenssit?koodi=eq.${encodeURIComponent(koodi)}` +
+        `&select=id,voimassa_asti,taysi_voimassa_asti,maksettu&limit=1`
+      );
+      if (hl.ok) {
+        const [lis] = await hl.json();
+        if (lis && !lis.maksettu && lis.taysi_voimassa_asti) {
+          const pl = await sb(`lisenssit?id=eq.${encodeURIComponent(lis.id)}`, {
+            method: 'PATCH',
+            headers: { Prefer: 'return=minimal' },
+            body: JSON.stringify({ voimassa_asti: lis.taysi_voimassa_asti, maksettu: true }),
+          });
+          if (pl.ok) lisenssiJatkettu = lis.taysi_voimassa_asti;
+          else console.warn('admin-maksut: lisenssin jatko epäonnistui', await pl.text());
+        }
+      }
+    }
+
+    return res.status(200).json({ ok: true, tila: uusiTila, lisenssiJatkettu });
   } catch (err) {
     console.error('admin-maksut virhe:', err.message);
     return res.status(500).json({ ok: false, virhe: 'palvelinvirhe' });

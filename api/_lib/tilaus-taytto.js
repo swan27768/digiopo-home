@@ -399,32 +399,109 @@ export async function taytaTilaus(tilaus, tositenumero) {
   return { koodi, voimassa_asti };
 }
 
-// ─── Laskulla-tilauksen ilmoitus (kunnat) ─────────────────────────────────────
+// ─── Koulun koodisähköposti laskutilaukselle ─────────────────────────────────
+// Kuten sahkopostiKoululle, mutta ei mainitse maksua: koodi on voimassa 30 pv ja
+// jatkuu automaattisesti täyteen kauteen, kun kunta maksaa laskun.
+function sahkopostiKoululleLasku(etunimi, koodi, voimassa_asti, taysi_voimassa_asti) {
+  const pvm = new Date(voimassa_asti).toLocaleDateString('fi-FI', { day: 'numeric', month: 'long', year: 'numeric' });
+  const taysiPvm = new Date(taysi_voimassa_asti).toLocaleDateString('fi-FI', { day: 'numeric', month: 'long', year: 'numeric' });
+  return `<!DOCTYPE html>
+<html lang="fi">
+<body style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;padding:32px 20px;color:#0f2540;background:#f8fbff">
+  <div style="text-align:center;margin-bottom:28px">
+    <span style="font-size:26px;font-weight:700;color:#1a3f6f">Digi<span style="color:#2d9e6b">Opo</span></span>
+  </div>
+  <h2 style="color:#1a3f6f;margin-bottom:10px">Hei ${etunimi}!</h2>
+  <p style="line-height:1.6;margin-bottom:24px">Kiitos DigiOpo-tilauksestasi. Koulukoodisi on luotu ja oppilaat voivat kirjautua sisään heti.</p>
+  <div style="background:#ddeaf7;border-radius:14px;padding:28px;text-align:center;margin-bottom:24px">
+    <p style="margin:0 0 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#3a5a7a">KOULUKOODISI</p>
+    <p style="font-size:34px;font-weight:700;letter-spacing:5px;color:#1a3f6f;margin:0">${koodi}</p>
+    <p style="margin:12px 0 0;font-size:13px;color:#3a5a7a">Voimassa ${pvm} asti</p>
+  </div>
+  <div style="background:#fef9e0;border:1px solid #f5c842;border-radius:10px;padding:16px 20px;margin-bottom:28px">
+    <p style="margin:0;font-size:13px;color:#7a5c00;line-height:1.6">Lasku lähetetään kunnallenne erikseen. Koodi on voimassa 30 päivää, ja kun lasku on maksettu, voimassaolo jatkuu automaattisesti <strong>${taysiPvm}</strong> asti — sinun ei tarvitse tehdä mitään.</p>
+  </div>
+  <p style="line-height:1.6;margin-bottom:8px"><strong>Näin jaat koodin oppilaille:</strong></p>
+  <ol style="line-height:1.8;padding-left:20px;margin-bottom:24px">
+    <li>Oppilaat menevät osoitteeseen <strong>app.digiopo.fi</strong></li>
+    <li>Syöttävät koulukoodin <strong>${koodi}</strong> kirjautumisruutuun</li>
+    <li>Pääsevät suoraan sisältöön</li>
+  </ol>
+  <div style="text-align:center;margin-bottom:32px">
+    <a href="https://app.digiopo.fi" style="background:#1a3f6f;color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">Avaa DigiOpo →</a>
+  </div>
+  <p style="font-size:13px;color:#7a9ab5;line-height:1.6">📖 Opettajan pikaohje on tämän viestin liitteenä. Kysyttävää? Vastaa suoraan tähän sähköpostiin.</p>
+</body>
+</html>`;
+}
+
+// ─── Laskulla-tilauksen täyttö (kunnat) ───────────────────────────────────────
 //
-// Ei luo lisenssiä eikä lähetä koodia. Kuntatilaus vaatii ihmisen tarkistuksen:
-// admin luo lisenssin hallintapaneelista ja lähettää verkkolaskun kunnan
-// portaaliin. Tämä funktio vain ilmoittaa – tilaus itsessään on jo tallennettu
-// maksut-tauluun (tila 'lasku'), joka on pysyvä tosite. Sähköpostit ovat
-// parhaan yrityksen ilmoituksia: jos ne eivät lähde, tilaus näkyy silti kannassa.
-export async function ilmoitaLaskutilaus(tilaus, hintatiedot) {
+// Luo lisenssin HETI, mutta lyhyellä 30 päivän voimassaololla ja tilassa
+// maksettu:false. Täysi kausi (taysi_voimassa_asti) on tallessa, ja kun lasku
+// maksetaan, admin jatkaa voimassaolon siihen (api/admin-maksut.js → maksettu,
+// tai admin-lisenssi.js → merkitse_maksetuksi). Jos laskua ei makseta, pääsy
+// päättyy 30 päivässä itsestään – turvallinen oletus, joka suojaa tekaistuilta
+// tilauksilta (raha tulee vain laskulla, jonka lähetyksen admin hallitsee).
+//
+// Palauttaa luodun koodin, jotta se voidaan tallentaa maksut-riville (admin
+// laajentaa lisenssin sen perusteella maksun tullessa).
+export async function taytaLaskutilaus(tilaus, hintatiedot) {
   const {
     etunimi, sukunimi, email, puhelin, koulu, kunta, oppilasmaara, lisenssikausi, lisatiedot,
     laskutus_nimi, laskutus_ytunnus, laskutus_ovt, laskutus_valittaja,
     laskutus_viite, laskutus_tilausnumero, laskutus_yksikko,
   } = tilaus;
 
+  const emailNorm = String(email).trim().toLowerCase();
+  const henkilo = `${String(etunimi).trim()} ${String(sukunimi).trim()}`;
+  const luotuPvm = new Date().toISOString().split('T')[0];
+
+  // Lyhyt alkuvoimassaolo (30 pv) + täysi kausi maksun jälkeen.
+  const ALKUVOIMASSAOLO_PV = 30;
+  const kestoVuosina = lisenssikausi === '3vuotta' ? 3 : 1;
+  const taysi = new Date();
+  taysi.setFullYear(taysi.getFullYear() + kestoVuosina);
+  const taysi_voimassa_asti = taysi.toISOString().split('T')[0];
+  const alku = new Date();
+  alku.setDate(alku.getDate() + ALKUVOIMASSAOLO_PV);
+  const voimassa_asti = alku.toISOString().split('T')[0];
+
+  // Luo lisenssi; 3 yritystä koodin törmäyksen varalta.
+  let koodi = null;
+  for (let yritys = 0; yritys < 3; yritys++) {
+    koodi = generoiKoodi(koulu);
+    try {
+      await lisaaLisenssi({
+        koodi,
+        koulu: String(koulu).trim(),
+        yhteyshenkilö: henkilo,
+        email: emailNorm,
+        tyyppi: 'vuosi',
+        paikat: Number(oppilasmaara) || null,
+        voimassa_asti,               // 30 pv – jatkuu maksun jälkeen
+        taysi_voimassa_asti,         // mihin jatketaan kun lasku maksetaan
+        maksettu: false,             // lasku lähetetään erikseen
+        aktiivinen: true,
+      });
+      break;
+    } catch (err) {
+      if (yritys === 2) throw err;
+    }
+  }
+
   const kausiTeksti = lisenssikausi === '3vuotta'
     ? 'Koululisenssi, 3 vuotta (12,50 €/oppilas)'
     : 'Koululisenssi, 1 lukuvuosi (5,90 €/oppilas)';
-
   const rivi = (n, a) =>
     `<tr><td style="padding:6px 14px 6px 0;color:#3a5a7a;vertical-align:top;white-space:nowrap">${n}</td><td style="padding:6px 0;color:#0f2540">${a || '–'}</td></tr>`;
 
-  // Admin: toimenpidelista. Kaikki laskun tarvitsemat tiedot yhdessä paikassa.
+  // Admin: toimenpidelista. Lisenssi ja koodi on jo luotu – jäljellä lasku.
   const adminHtml = `<!DOCTYPE html><html lang="fi"><head><meta charset="UTF-8"></head>
   <body style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:28px 20px;color:#0f2540">
-    <h2 style="color:#1a3f6f;margin:0 0 4px">Laskulla-tilaus – toimenpiteet</h2>
-    <p style="font-size:13px;color:#7a9ab5;margin:0 0 20px">1) Luo lisenssi hallintapaneelista · 2) Lähetä verkkolasku kunnan portaaliin · 3) ALV 13,5 % (ei käännettyä)</p>
+    <h2 style="color:#1a3f6f;margin:0 0 4px">Laskulla-tilaus – lähetä lasku</h2>
+    <p style="font-size:13px;color:#7a9ab5;margin:0 0 8px">Lisenssi ja koulukoodi on jo luotu ja lähetetty koululle (voimassa 30 pv). Jäljellä: lähetä verkkolasku kunnan portaaliin ja merkitse tilaus laskutetuksi. Maksun tullessa merkitse maksetuksi → voimassaolo jatkuu täyteen kauteen.</p>
+    <p style="font-size:14px;margin:0 0 20px">Koulukoodi: <strong style="font-size:18px;letter-spacing:2px">${koodi}</strong> · ALV 13,5 % (ei käännettyä)</p>
 
     <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7a9ab5;margin:0 0 6px">Laskutettava (kunta)</div>
     <table style="font-size:14px;line-height:1.5;margin-bottom:20px">
@@ -456,26 +533,17 @@ export async function ilmoitaLaskutilaus(tilaus, hintatiedot) {
     </table>
   </body></html>`;
 
-  // Tilaaja: vahvistus. Ei koodia vielä – kerrotaan mitä tapahtuu seuraavaksi.
-  const asiakasHtml = `<!DOCTYPE html><html lang="fi"><head><meta charset="UTF-8"></head>
-  <body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:28px 20px;color:#0f2540">
-    <h2 style="color:#1a3f6f;margin:0 0 12px">Kiitos tilauksesta, ${etunimi}!</h2>
-    <p style="font-size:15px;line-height:1.7;color:#3a5a7a">Tilauksesi on vastaanotettu. Toimitamme koulukoodin sähköpostitse ja lähetämme laskun kuntanne laskutusohjeiden mukaan. Otamme tarvittaessa yhteyttä tilauksen tietojen tarkistamiseksi.</p>
-    <table style="font-size:14px;line-height:1.6;margin:16px 0;color:#0f2540">
-      ${rivi('Tuote', kausiTeksti)}
-      ${rivi('Oppilasmäärä', String(oppilasmaara))}
-      ${rivi('Summa', `${muotoileEuro(hintatiedot.brutto)} (sis. alv 13,5 %)`)}
-      ${rivi('Laskutus', `${laskutus_nimi} (${laskutus_ytunnus})`)}
-    </table>
-    <p style="font-size:13px;color:#7a9ab5;line-height:1.6">Kysymyksiä? Vastaa tähän viestiin tai kirjoita osoitteeseen digiopo@digiopo.fi.</p>
-  </body></html>`;
+  const pdfB64 = await haePikaohjeetBase64();
+  const pdfLiite = pdfB64 ? [{ filename: 'DigiOpo_opettajan_pikaohjeet.pdf', content: pdfB64 }] : [];
 
   await lahetaSahkopostitJaKirjaa(
-    'lasku ilmoitus sahkoposti',
-    { koulu, email },
+    'lasku taytto sahkoposti',
+    { koulu, email: emailNorm, koodi },
     [
+      lahetaSahkoposti(emailNorm, 'DigiOpo – koulukoodisi on valmis', sahkopostiKoululleLasku(etunimi, koodi, voimassa_asti, taysi_voimassa_asti), pdfLiite),
       ADMIN_EMAIL && lahetaSahkoposti(ADMIN_EMAIL, `LASKUTA: ${koulu} (${kunta}) – ${muotoileEuro(hintatiedot.brutto)}`, adminHtml),
-      lahetaSahkoposti(email, 'DigiOpo – tilauksesi on vastaanotettu', asiakasHtml),
     ]
   );
+
+  return { koodi, voimassa_asti, taysi_voimassa_asti };
 }
