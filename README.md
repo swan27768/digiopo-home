@@ -39,7 +39,7 @@ digiopo-home/
 ├── index.html                        Etusivu
 ├── hinnasto.html                     Hinnasto
 ├── tilauslomake.html                 Tilauslomake
-├── digikirja.html, tehtavapankki.html, stream-palvelut.html
+├── digikirja.html, tehtavapankki.html
 ├── tietosuojaseloste.html
 ├── admin-paneeli.html                Hallintapaneeli (EI julkaista, ks. alla)
 ├── DigiOpo_opettajan_pikaohjeet.pdf  Liite tilausvahvistukseen
