@@ -132,6 +132,12 @@
      yleensä opo eikä talousosasto – ilman ohjetta kenttä täytetään arvaamalla. */
   .field-hint { font-size: 12px; color: var(--text-light); line-height: 1.55; margin-top: 6px; }
   .field-hint code { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; background: var(--off-white); padding: 1px 5px; border-radius: 4px; }
+  .laskutus-ohje {
+    background: var(--blue-pale); border-radius: 12px;
+    padding: 14px 18px; margin-bottom: 20px;
+    font-size: 13px; color: var(--text-mid); line-height: 1.6;
+  }
+  .laskutus-ohje strong { color: var(--blue-deep); }
 
   /* Checkbox */
   .checkbox-field {
@@ -313,9 +319,77 @@
       </div>
 
       <div class="hinta-arvio" id="hintaArvio" style="display: none;">
-        <span class="hinta-arvio-label">Arvioitu hinta (maksettava sis. alv)</span>
+        <span class="hinta-arvio-label">Arvioitu hinta (sis. alv 13,5 %)</span>
         <span class="hinta-arvio-summa" id="hintaArvioSumma">–</span>
         <span class="hinta-arvio-min" id="hintaArvioMin" style="display: none;">Minimitilaus käytössä</span>
+      </div>
+
+      <div class="form-section">Maksutapa</div>
+
+      <div class="order-types">
+        <label class="order-type">
+          <input type="radio" name="maksutapa" value="verkkomaksu" checked>
+          <span class="order-type-title">Maksa verkossa</span>
+          <span class="order-type-desc">Verkkopankki, kortti tai MobilePay. Koulukoodi heti maksun jälkeen.</span>
+        </label>
+        <label class="order-type">
+          <input type="radio" name="maksutapa" value="lasku">
+          <span class="order-type-title">Tilaa laskulla</span>
+          <span class="order-type-desc">Kunnille ja kouluille. Lähetämme verkkolaskun kuntanne laskutusohjeiden mukaan.</span>
+        </label>
+      </div>
+
+      <!-- Laskutustiedot: vain laskulla-tilauksessa.
+           Kunnat vastaanottavat vain verkkolaskun. Tiedot (OVT, operaattori,
+           viitteet) eroavat kunnittain, joten kentät ovat vapaita – täytetään
+           kunnan laskutusohjeesta. Piilossa oletuksena (verkkomaksu). -->
+      <div id="laskutusWrap" style="display: none; margin-top: 20px;">
+        <div class="laskutus-ohje">
+          Lasku lähetetään verkkolaskuna kunnalle. Tiedot löytyvät kuntanne
+          <strong>laskutusohjeista</strong> tai koulun kansliasta – ne ovat julkisia.
+          Lasku osoitetaan <strong>kunnalle</strong>, ei koululle.
+        </div>
+
+        <div class="field">
+          <label for="laskutus_nimi">Laskutettava organisaatio <span>*</span></label>
+          <input type="text" id="laskutus_nimi" name="laskutus_nimi" placeholder="Esim. Vantaan kaupunki">
+          <p class="field-hint">Kunta tai kuntayhtymä. Koululla ei ole omaa Y-tunnusta.</p>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="laskutus_ytunnus">Y-tunnus <span>*</span></label>
+            <input type="text" id="laskutus_ytunnus" name="laskutus_ytunnus" placeholder="1234567-8">
+          </div>
+          <div class="field">
+            <label for="laskutus_ovt">Verkkolaskuosoite (OVT) <span>*</span></label>
+            <input type="text" id="laskutus_ovt" name="laskutus_ovt" placeholder="003712345678">
+            <p class="field-hint">Alkaa yleensä <code>0037</code>.</p>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="laskutus_valittaja">Välittäjätunnus</label>
+            <input type="text" id="laskutus_valittaja" name="laskutus_valittaja" placeholder="Kunnan operaattori">
+          </div>
+          <div class="field">
+            <label for="laskutus_viite">Viitteenne <span>*</span></label>
+            <input type="text" id="laskutus_viite" name="laskutus_viite" placeholder="Kustannuspaikka tai tilausviite">
+            <p class="field-hint"><strong>Tärkein kenttä:</strong> kunnan antama viite/kustannuspaikka. Ilman sitä lasku ei mene maksuun.</p>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="laskutus_tilausnumero">Tilausnumero</label>
+            <input type="text" id="laskutus_tilausnumero" name="laskutus_tilausnumero" placeholder="Jos ostotilaus">
+          </div>
+          <div class="field">
+            <label for="laskutus_yksikko">Vastaanottava yksikkö</label>
+            <input type="text" id="laskutus_yksikko" name="laskutus_yksikko" placeholder="Esim. koulun tai toimialan nimi">
+          </div>
+        </div>
       </div>
 
       <div class="field" style="margin-top: 20px;">
@@ -332,10 +406,15 @@
 
       <div class="submit-area">
         <button type="submit" class="btn-submit">Siirry maksamaan →</button>
-        <p class="submit-note">Sinut ohjataan turvalliseen maksupalveluun (Paytrail). Maksuvaihtoehdot: verkkopankki, kortti ja MobilePay.<br>Saat koulukoodin sähköpostiisi heti maksun jälkeen. Tähtimerkatut kentät ovat pakollisia.</p>
+        <p class="submit-note" id="submitNote">Sinut ohjataan turvalliseen maksupalveluun (Paytrail). Maksuvaihtoehdot: verkkopankki, kortti ja MobilePay.<br>Saat koulukoodin sähköpostiisi heti maksun jälkeen. Tähtimerkatut kentät ovat pakollisia.</p>
       </div>
 
     </form>
+
+    <div class="success-msg" id="successMsg">
+      <h3>Kiitos tilauksesta!</h3>
+      <p>Tilauksesi on vastaanotettu. Toimitamme koulukoodin sähköpostitse ja lähetämme laskun kuntanne laskutusohjeiden mukaan. Saat vahvistuksen sähköpostiisi. Otamme tarvittaessa yhteyttä.</p>
+    </div>
 
   </div>
 </div>
@@ -386,11 +465,53 @@
   form.oppilasmaara.addEventListener('input', paivitaHintaArvio);
   paivitaHintaArvio();
 
+  // ─── Maksutapa: verkkomaksu vai lasku ───────────────────────────────────────
+  const laskutusWrap = document.getElementById('laskutusWrap');
+  const submitNote   = document.getElementById('submitNote');
+  const LASKUTUS_PAKOLLISET = ['laskutus_nimi', 'laskutus_ytunnus', 'laskutus_ovt', 'laskutus_viite'];
+
+  function valittuMaksutapa() {
+    return form.querySelector('input[name="maksutapa"]:checked')?.value || 'verkkomaksu';
+  }
+
+  function paivitaMaksutapa() {
+    const lasku = valittuMaksutapa() === 'lasku';
+    laskutusWrap.style.display = lasku ? 'block' : 'none';
+    // required-lippu pois piilotettaessa, muuten piilotettu tyhjä kenttä estäisi
+    // lähetyksen näkymättömästi.
+    LASKUTUS_PAKOLLISET.forEach(n => { form.elements[n].required = lasku; });
+    btn.textContent = lasku ? 'Lähetä tilaus →' : 'Siirry maksamaan →';
+    submitNote.innerHTML = lasku
+      ? 'Lähetämme verkkolaskun kuntanne laskutusohjeiden mukaan. Toimitamme koulukoodin sähköpostitse. Tähtimerkatut kentät ovat pakollisia.'
+      : 'Sinut ohjataan turvalliseen maksupalveluun (Paytrail). Maksuvaihtoehdot: verkkopankki, kortti ja MobilePay.<br>Saat koulukoodin sähköpostiisi heti maksun jälkeen. Tähtimerkatut kentät ovat pakollisia.';
+  }
+  form.querySelectorAll('input[name="maksutapa"]').forEach(el => {
+    el.addEventListener('change', paivitaMaksutapa);
+  });
+  paivitaMaksutapa();
+
+  // Y-tunnuksen tarkistusmerkki (mod 11) ja OVT:n karkea muototarkistus. Samat
+  // tarkistukset ajetaan palvelimella – tämä on käyttömukavuutta.
+  function ytunnusKelpaa(a) {
+    const m = String(a || '').trim().replace(/\s/g, '').match(/^(\d{7})-?(\d)$/);
+    if (!m) return false;
+    const p = [7, 9, 10, 5, 8, 4, 2];
+    const s = m[1].split('').reduce((x, d, i) => x + Number(d) * p[i], 0);
+    const j = s % 11;
+    if (j === 1) return false;
+    return (j === 0 ? 0 : 11 - j) === Number(m[2]);
+  }
+  function ovtKelpaa(a) {
+    return /^[0-9A-Za-z]{8,20}$/.test(String(a || '').trim().replace(/[\s-]/g, ''));
+  }
+
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    // Validointi – vain pakollisten kenttien läsnäolo. Laskutustietoja ei enää
-    // kysytä: verkkomaksussa ostaja maksaa kortilla / verkkopankissa.
+    const lasku = valittuMaksutapa() === 'lasku';
+
+    // Pakollisten kenttien läsnäolo. Laskulla-tilauksessa laskutuskentät ovat
+    // mukana (required kytketty päälle maksutapavalinnassa).
     const required = form.querySelectorAll('[required]');
     let valid = true;
     let firstInvalid = null;
@@ -414,12 +535,35 @@
       }
     });
 
+    // Laskulla: Y-tunnuksen ja OVT:n muototarkistus, kun kentät on täytetty.
+    form.querySelectorAll('.muotovirhe').forEach(el => el.remove());
+    if (valid && lasku) {
+      const tarkistukset = [
+        [form.elements.laskutus_ytunnus, ytunnusKelpaa, 'Tarkista Y-tunnus – muoto on 1234567-8.'],
+        [form.elements.laskutus_ovt,     ovtKelpaa,     'Tarkista verkkolaskuosoite.'],
+      ];
+      if (String(form.elements.laskutus_valittaja.value).trim()) {
+        tarkistukset.push([form.elements.laskutus_valittaja, ovtKelpaa, 'Tarkista välittäjätunnus.']);
+      }
+      tarkistukset.forEach(([kentta, tarkista, viesti]) => {
+        if (tarkista(kentta.value)) return;
+        kentta.style.borderColor = '#dc2626';
+        valid = false;
+        if (!firstInvalid) firstInvalid = kentta;
+        const virhe = document.createElement('p');
+        virhe.className = 'field-hint muotovirhe';
+        virhe.style.color = '#dc2626';
+        virhe.textContent = viesti;
+        kentta.parentElement.appendChild(virhe);
+      });
+    }
+
     if (!valid) {
       if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
-    btn.textContent = 'Siirrytään maksamaan...';
+    btn.textContent = lasku ? 'Lähetetään...' : 'Siirrytään maksamaan...';
     btn.disabled = true;
 
     const data = {
@@ -432,7 +576,16 @@
       oppilasmaara: form.oppilasmaara.value,
       lisenssikausi: form.querySelector('input[name="lisenssikausi"]:checked')?.value || 'vuosi',
       lisatiedot:   form.lisatiedot.value.trim(),
+      maksutapa:    lasku ? 'lasku' : 'verkkomaksu',
     };
+
+    // Laskutustiedot vain laskulla-tilauksen mukana.
+    if (lasku) {
+      ['laskutus_nimi', 'laskutus_ytunnus', 'laskutus_ovt', 'laskutus_valittaja',
+       'laskutus_viite', 'laskutus_tilausnumero', 'laskutus_yksikko'].forEach(n => {
+        data[n] = form.elements[n].value.trim();
+      });
+    }
 
     try {
       const res = await fetch('/api/tilaus', {
@@ -443,14 +596,17 @@
 
       const json = await res.json();
 
-      // Onnistuessa palvelin palauttaa Paytrailin maksusivun URLin – ohjataan
-      // ostaja sinne maksamaan. Lisenssiä ei ole vielä luotu; se syntyy vasta
-      // kun maksu on vahvistettu.
+      // Verkkomaksu: palvelin palauttaa Paytrailin maksusivun URLin.
+      // Lasku: palvelin palauttaa { lasku: true } – näytetään kiitosviesti.
       if (res.ok && json.ok && json.redirectUrl) {
         window.location.href = json.redirectUrl;
+      } else if (res.ok && json.ok && json.lasku) {
+        form.style.display = 'none';
+        document.getElementById('successMsg').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         console.error('Tilausvirhe:', json);
-        btn.textContent = (json && json.virhe) ? json.virhe : 'Maksun aloitus epäonnistui – yritä uudelleen';
+        btn.textContent = (json && json.virhe) ? json.virhe : 'Tilaus epäonnistui – yritä uudelleen';
         btn.disabled = false;
       }
     } catch(err) {

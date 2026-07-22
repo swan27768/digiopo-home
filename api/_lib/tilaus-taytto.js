@@ -398,3 +398,84 @@ export async function taytaTilaus(tilaus, tositenumero) {
 
   return { koodi, voimassa_asti };
 }
+
+// ─── Laskulla-tilauksen ilmoitus (kunnat) ─────────────────────────────────────
+//
+// Ei luo lisenssiä eikä lähetä koodia. Kuntatilaus vaatii ihmisen tarkistuksen:
+// admin luo lisenssin hallintapaneelista ja lähettää verkkolaskun kunnan
+// portaaliin. Tämä funktio vain ilmoittaa – tilaus itsessään on jo tallennettu
+// maksut-tauluun (tila 'lasku'), joka on pysyvä tosite. Sähköpostit ovat
+// parhaan yrityksen ilmoituksia: jos ne eivät lähde, tilaus näkyy silti kannassa.
+export async function ilmoitaLaskutilaus(tilaus, hintatiedot) {
+  const {
+    etunimi, sukunimi, email, puhelin, koulu, kunta, oppilasmaara, lisenssikausi, lisatiedot,
+    laskutus_nimi, laskutus_ytunnus, laskutus_ovt, laskutus_valittaja,
+    laskutus_viite, laskutus_tilausnumero, laskutus_yksikko,
+  } = tilaus;
+
+  const kausiTeksti = lisenssikausi === '3vuotta'
+    ? 'Koululisenssi, 3 vuotta (12,50 €/oppilas)'
+    : 'Koululisenssi, 1 lukuvuosi (5,90 €/oppilas)';
+
+  const rivi = (n, a) =>
+    `<tr><td style="padding:6px 14px 6px 0;color:#3a5a7a;vertical-align:top;white-space:nowrap">${n}</td><td style="padding:6px 0;color:#0f2540">${a || '–'}</td></tr>`;
+
+  // Admin: toimenpidelista. Kaikki laskun tarvitsemat tiedot yhdessä paikassa.
+  const adminHtml = `<!DOCTYPE html><html lang="fi"><head><meta charset="UTF-8"></head>
+  <body style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:28px 20px;color:#0f2540">
+    <h2 style="color:#1a3f6f;margin:0 0 4px">Laskulla-tilaus – toimenpiteet</h2>
+    <p style="font-size:13px;color:#7a9ab5;margin:0 0 20px">1) Luo lisenssi hallintapaneelista · 2) Lähetä verkkolasku kunnan portaaliin · 3) ALV 13,5 % (ei käännettyä)</p>
+
+    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7a9ab5;margin:0 0 6px">Laskutettava (kunta)</div>
+    <table style="font-size:14px;line-height:1.5;margin-bottom:20px">
+      ${rivi('Organisaatio', laskutus_nimi)}
+      ${rivi('Y-tunnus', laskutus_ytunnus)}
+      ${rivi('Verkkolaskuosoite', laskutus_ovt)}
+      ${rivi('Välittäjätunnus', laskutus_valittaja)}
+      ${rivi('Viitteenne', `<strong>${laskutus_viite || '–'}</strong>`)}
+      ${rivi('Tilausnumero', laskutus_tilausnumero)}
+      ${rivi('Vastaanottava yksikkö', laskutus_yksikko)}
+    </table>
+
+    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7a9ab5;margin:0 0 6px">Tilaus</div>
+    <table style="font-size:14px;line-height:1.5;margin-bottom:20px">
+      ${rivi('Tuote', kausiTeksti)}
+      ${rivi('Oppilasmäärä', String(oppilasmaara))}
+      ${rivi('Veroton', muotoileEuro(hintatiedot.netto))}
+      ${rivi('ALV 13,5 %', muotoileEuro(hintatiedot.alv))}
+      ${rivi('Yhteensä', `<strong>${muotoileEuro(hintatiedot.brutto)}</strong>`)}
+    </table>
+
+    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7a9ab5;margin:0 0 6px">Yhteyshenkilö (koulu)</div>
+    <table style="font-size:14px;line-height:1.5">
+      ${rivi('Koulu', `${koulu}, ${kunta}`)}
+      ${rivi('Nimi', `${etunimi} ${sukunimi}`)}
+      ${rivi('Sähköposti', `<a href="mailto:${email}">${email}</a>`)}
+      ${rivi('Puhelin', puhelin)}
+      ${rivi('Lisätiedot', lisatiedot)}
+    </table>
+  </body></html>`;
+
+  // Tilaaja: vahvistus. Ei koodia vielä – kerrotaan mitä tapahtuu seuraavaksi.
+  const asiakasHtml = `<!DOCTYPE html><html lang="fi"><head><meta charset="UTF-8"></head>
+  <body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:28px 20px;color:#0f2540">
+    <h2 style="color:#1a3f6f;margin:0 0 12px">Kiitos tilauksesta, ${etunimi}!</h2>
+    <p style="font-size:15px;line-height:1.7;color:#3a5a7a">Tilauksesi on vastaanotettu. Toimitamme koulukoodin sähköpostitse ja lähetämme laskun kuntanne laskutusohjeiden mukaan. Otamme tarvittaessa yhteyttä tilauksen tietojen tarkistamiseksi.</p>
+    <table style="font-size:14px;line-height:1.6;margin:16px 0;color:#0f2540">
+      ${rivi('Tuote', kausiTeksti)}
+      ${rivi('Oppilasmäärä', String(oppilasmaara))}
+      ${rivi('Summa', `${muotoileEuro(hintatiedot.brutto)} (sis. alv 13,5 %)`)}
+      ${rivi('Laskutus', `${laskutus_nimi} (${laskutus_ytunnus})`)}
+    </table>
+    <p style="font-size:13px;color:#7a9ab5;line-height:1.6">Kysymyksiä? Vastaa tähän viestiin tai kirjoita osoitteeseen digiopo@digiopo.fi.</p>
+  </body></html>`;
+
+  await lahetaSahkopostitJaKirjaa(
+    'lasku ilmoitus sahkoposti',
+    { koulu, email },
+    [
+      ADMIN_EMAIL && lahetaSahkoposti(ADMIN_EMAIL, `LASKUTA: ${koulu} (${kunta}) – ${muotoileEuro(hintatiedot.brutto)}`, adminHtml),
+      lahetaSahkoposti(email, 'DigiOpo – tilauksesi on vastaanotettu', asiakasHtml),
+    ]
+  );
+}

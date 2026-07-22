@@ -28,8 +28,65 @@
 
 import { kirjaaVirhe } from './_lib/virhelogi.js';
 import { luoMaksu } from './_lib/paytrail.js';
-import { laskeHinta, bruttoSentteina } from './_lib/tilaus-taytto.js';
+import { laskeHinta, bruttoSentteina, ilmoitaLaskutilaus } from './_lib/tilaus-taytto.js';
 import crypto from 'node:crypto';
+
+// ─── Laskutustapa: verkkomaksu (Paytrail) vai lasku (kunnat) ─────────────────
+//
+// Kunnat eivät maksa kortilla/verkkopankissa – ne vastaanottavat verkkolaskun ja
+// maksavat sen omassa ostolaskuprosessissaan. Siksi tarjolla on kaksi polkua:
+//   'verkkomaksu' – ostaja maksaa heti Paytrailissa (yksityiskoulut, pienet)
+//   'lasku'       – tilaus ilmoitetaan adminille, joka luo lisenssin ja lähettää
+//                   verkkolaskun kunnan portaaliin. Ei Paytrailia.
+//
+// Laskutustiedot (OVT, operaattori, viitteet) eroavat kunnittain ja muuttuvat
+// ajassa, joten ne ovat vapaita tekstikenttiä – ei kovakoodausta.
+
+const LASKUTUSKENTAT = ['laskutus_nimi', 'laskutus_ytunnus', 'laskutus_ovt', 'laskutus_viite'];
+
+// Suomalaisen Y-tunnuksen tarkistusmerkki (mod 11, painot 7-9-10-5-8-4-2).
+// Selainvalidointi on käyttömukavuutta; tämä on todellinen suoja lomakkeen ohi.
+function ytunnusKelpaa(arvo) {
+  const m = String(arvo || '').trim().replace(/\s/g, '').match(/^(\d{7})-?(\d)$/);
+  if (!m) return false;
+  const painot = [7, 9, 10, 5, 8, 4, 2];
+  const summa = m[1].split('').reduce((a, d, i) => a + Number(d) * painot[i], 0);
+  const jaannos = summa % 11;
+  if (jaannos === 1) return false;
+  return (jaannos === 0 ? 0 : 11 - jaannos) === Number(m[2]);
+}
+
+function ovtKelpaa(arvo) {
+  return /^[0-9A-Za-z]{8,20}$/.test(String(arvo || '').trim().replace(/[\s-]/g, ''));
+}
+
+// Palauttaa virheilmoituksen tai null. Vaadittavat kentät: organisaatio,
+// Y-tunnus, OVT ja viitteenne. Välittäjä, tilausnumero ja yksikkö vapaaehtoisia
+// (osa kunnista ei niitä tarvitse; kaikki tarkistetaan silti muodoltaan jos annettu).
+function tarkistaLaskutustiedot(b) {
+  for (const k of LASKUTUSKENTAT) {
+    if (!String(b?.[k] || '').trim()) return 'Laskutustiedot puuttuvat';
+  }
+  if (!ytunnusKelpaa(b.laskutus_ytunnus)) return 'Virheellinen Y-tunnus';
+  if (!ovtKelpaa(b.laskutus_ovt)) return 'Virheellinen verkkolaskuosoite';
+  if (String(b.laskutus_valittaja || '').trim() && !ovtKelpaa(b.laskutus_valittaja)) {
+    return 'Virheellinen välittäjätunnus';
+  }
+  return null;
+}
+
+function normalisoiLaskutustiedot(b) {
+  const yt = String(b.laskutus_ytunnus).trim().replace(/[\s-]/g, '');
+  return {
+    laskutus_nimi:        String(b.laskutus_nimi).trim(),
+    laskutus_ytunnus:     `${yt.slice(0, 7)}-${yt.slice(7)}`,
+    laskutus_ovt:         String(b.laskutus_ovt).trim().replace(/[\s-]/g, ''),
+    laskutus_valittaja:   String(b.laskutus_valittaja || '').trim().replace(/[\s-]/g, ''),
+    laskutus_viite:       String(b.laskutus_viite).trim(),
+    laskutus_tilausnumero: String(b.laskutus_tilausnumero || '').trim(),
+    laskutus_yksikko:     String(b.laskutus_yksikko || '').trim(),
+  };
+}
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
@@ -154,6 +211,49 @@ export default async function handler(req, res) {
     lisenssikausi: kausi,
     lisatiedot: String(lisatiedot || '').trim(),
   };
+
+  // ─── Laskulla-polku (kunnat) ───────────────────────────────────────────────
+  //
+  // Ei Paytrailia. Tilaus tallennetaan maksut-tauluun tilaan 'lasku' ja
+  // ilmoitetaan adminille, joka luo lisenssin hallintapaneelista ja lähettää
+  // verkkolaskun kunnan portaaliin. Lisenssiä EI luoda automaattisesti:
+  // kuntatilaus vaatii tilausnumeron/PO:n ja ihmisen tarkistuksen – tekaistuja
+  // lomakelähetyksiä ei saa muuttua voimassa oleviksi lisensseiksi.
+  const maksutapa = body?.maksutapa === 'lasku' ? 'lasku' : 'verkkomaksu';
+
+  if (maksutapa === 'lasku') {
+    const laskutusVirhe = tarkistaLaskutustiedot(body);
+    if (laskutusVirhe) {
+      return res.status(400).json({ ok: false, virhe: laskutusVirhe });
+    }
+    const laskutus = normalisoiLaskutustiedot(body);
+    const laskuTilaus = { ...tilaus, maksutapa: 'lasku', ...laskutus };
+
+    const laskuStamp = crypto.randomUUID();
+    try {
+      await tallennaMaksu({
+        stamp: laskuStamp,
+        reference: laskuStamp,
+        tila: 'lasku',
+        summa_sentteina: summaSentteina,
+        tilaus: laskuTilaus,
+      });
+    } catch (err) {
+      console.error('lasku: maksut-rivin tallennus epäonnistui:', err.message);
+      await kirjaaVirhe('tilaus lasku-insert', err, { koulu: tilaus.koulu, email: tilaus.email });
+      return res.status(500).json({ ok: false, virhe: 'Palvelinvirhe – yritä uudelleen' });
+    }
+
+    // Ilmoitus on parhaan yrityksen. Tilaus on jo tallennettu maksut-tauluun
+    // (tila 'lasku'), joka on pysyvä tosite – sähköpostivirhe ei saa kaataa
+    // tilausta, koska admin näkee tilauksen silti kannasta. Virhe kirjataan.
+    await ilmoitaLaskutilaus(laskuTilaus, hintatiedot).catch(async (err) => {
+      console.error('lasku: ilmoitus epäonnistui:', err.message);
+      await kirjaaVirhe('tilaus lasku-ilmoitus', err, { koulu: tilaus.koulu, email: tilaus.email });
+    });
+
+    return res.status(200).json({ ok: true, lasku: true });
+  }
 
   const stamp = crypto.randomUUID();
   const reference = stamp; // uniikki, ei paljasta mitään ostajasta
