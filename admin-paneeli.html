@@ -217,6 +217,21 @@
 
   <div class="grid nogap">
     <div class="card wide">
+      <h3 class="section" style="margin-top:0">🧾 Laskutus ja maksut (digiopo-home)</h3>
+      <div class="empty" style="margin-bottom:12px">
+        Laskulla-tilausten työjono ja verkkomaksujen tila. Laskulla-tilaus ei luo
+        lisenssiä automaattisesti: luo lisenssi alta (🎫 Luo lisenssi), lähetä
+        verkkolasku kunnan portaaliin (ks. <code>LASKUTUS_kunnat.md</code>) ja
+        merkitse sitten <b>laskutetuksi</b>. Hakee <code>/api/admin-maksut</code>.
+      </div>
+      <button class="linkbtn" style="cursor:pointer" onclick="haeMaksut()">🔄 Lataa maksut</button>
+      <div id="maksutStatus" class="savedhint" style="margin:8px 0"></div>
+      <div id="maksutSisalto"></div>
+    </div>
+  </div>
+
+  <div class="grid nogap">
+    <div class="card wide">
       <h3 class="section" style="margin-top:0">📇 Lisenssit ja yhteyshenkilöt</h3>
       <div class="empty" style="margin-bottom:12px">
         Kaikki lisenssit vanhenemisjärjestyksessä – ylimpänä ne, joiden uusinta on ajankohtaisin.
@@ -1000,6 +1015,125 @@ if (localStorage.getItem('tokenBannerDismissed') === '1') {
 // polku toimisi vain digiopo.fi-sivustolta avattuna – paneelia käytetään myös
 // paikallisena kopiona (työpöydältä, file://), jolloin se osoittaisi tyhjään.
 const ADMIN_LISENSSI_URL = 'https://www.digiopo.fi/api/admin-lisenssi';
+const ADMIN_MAKSUT_URL   = 'https://www.digiopo.fi/api/admin-maksut';
+
+// ─── Laskutus ja maksut ───────────────────────────────────────────────────────
+async function haeMaksut(){
+  const statusEl = document.getElementById('maksutStatus');
+  const sisalto  = document.getElementById('maksutSisalto');
+  const key = adminAvainTaiVaroita(statusEl);
+  if (!key) return;
+
+  statusEl.textContent = 'Haetaan maksuja…';
+  sisalto.innerHTML = '';
+  try {
+    const res  = await fetch(ADMIN_MAKSUT_URL, { headers: { 'x-admin-key': key } });
+    const json = await res.json();
+    if (!json.ok) { statusEl.textContent = `Virhe: ${json.virhe || res.status}`; return; }
+    statusEl.textContent = `${json.tilastot.laskuja_jonossa} laskua jonossa · ${json.tilastot.maksettu_kk_kpl} verkkomaksua tässä kuussa (${json.tilastot.maksettu_kk_summa}).`;
+    renderMaksut(json, sisalto);
+  } catch (err) {
+    statusEl.textContent = `Yhteysvirhe: ${err.message}`;
+  }
+}
+
+async function merkitseMaksuTila(stamp, toiminto, kuvaus){
+  const statusEl = document.getElementById('maksutStatus');
+  const key = adminAvainTaiVaroita(statusEl);
+  if (!key) return;
+  if (!confirm(`${kuvaus}?`)) return;
+
+  statusEl.textContent = 'Päivitetään…';
+  try {
+    const res = await fetch(ADMIN_MAKSUT_URL, {
+      method:  'POST',
+      headers: { 'x-admin-key': key, 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ stamp, toiminto }),
+    });
+    const json = await res.json();
+    if (json.ok) { haeMaksut(); return; }
+    statusEl.textContent = `Virhe: ${json.virhe || res.status}`;
+  } catch (err) {
+    statusEl.textContent = `Yhteysvirhe: ${err.message}`;
+  }
+}
+
+function maksuRivi(kentta, arvo){
+  if (!arvo) return '';
+  return `<div style="font-size:12.5px;color:var(--muted)">${esc(kentta)}: <span style="color:var(--text)">${esc(String(arvo))}</span></div>`;
+}
+
+function renderMaksut(data, sisalto){
+  const t = data.tilastot;
+  let html = `<div class="stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0 18px">
+    <div class="statbox"><div class="num ${t.laskuja_jonossa>0?'warn':''}">${t.laskuja_jonossa}</div><div class="lbl">Laskua jonossa</div></div>
+    <div class="statbox"><div class="num">${t.maksettu_kk_kpl}</div><div class="lbl">Verkkomaksua / kk</div></div>
+    <div class="statbox"><div class="num">${esc(t.maksettu_kk_summa)}</div><div class="lbl">Maksettu / kk</div></div>
+  </div>`;
+
+  // ── Laskutustyöjono (tila 'lasku') ──────────────────────────────────────
+  html += `<h3 class="section" style="color:var(--warn)">🧾 Laskutustyöjono – lähetä lasku</h3>`;
+  if (!data.tyojono.length) {
+    html += `<div class="empty" style="margin-bottom:14px">Ei laskutettavia tilauksia.</div>`;
+  } else {
+    for (const x of data.tyojono) {
+      const l = x.laskutus || {};
+      html += `<div style="background:var(--panel2);border:1px solid var(--warn);border-radius:10px;padding:14px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+          <b style="color:var(--text)">${esc(x.koulu)}${x.kunta?', '+esc(x.kunta):''}</b>
+          <b style="color:var(--text);white-space:nowrap">${esc(x.summa)}</b>
+        </div>
+        ${maksuRivi('Tuote', `${x.lisenssikausi}, ${x.oppilasmaara} oppilasta`)}
+        ${maksuRivi('Laskutettava', `${l.nimi} (${l.ytunnus})`)}
+        ${maksuRivi('Verkkolaskuosoite', l.valittaja ? `${l.ovt} · välittäjä ${l.valittaja}` : l.ovt)}
+        ${maksuRivi('Viitteenne', l.viite)}
+        ${maksuRivi('Tilausnumero', l.tilausnumero)}
+        ${maksuRivi('Vastaanottava yksikkö', l.yksikko)}
+        ${maksuRivi('Yhteyshenkilö', `${x.yhteyshenkilo} · ${x.email}${x.puhelin?' · '+x.puhelin:''}`)}
+        ${maksuRivi('Lisätiedot', x.lisatiedot)}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+          <button class="linkbtn" style="cursor:pointer;border-color:var(--ok)" onclick="merkitseMaksuTila('${esc(x.stamp)}','laskutettu','Merkitäänkö laskutetuksi: ${esc(x.koulu)}')">✓ Merkitse laskutetuksi</button>
+          <button class="linkbtn" style="cursor:pointer" onclick="merkitseMaksuTila('${esc(x.stamp)}','peruttu','Perutaanko tilaus: ${esc(x.koulu)}')">Peru</button>
+        </div>
+      </div>`;
+    }
+  }
+
+  // ── Laskutetut (odottaa maksua) ─────────────────────────────────────────
+  if (data.laskutetut.length) {
+    html += `<h3 class="section">📨 Lasku lähetetty – odottaa maksua</h3>`;
+    for (const x of data.laskutetut) {
+      const l = x.laskutus || {};
+      html += `<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div><span style="color:var(--text)">${esc(x.koulu)}</span> <span style="color:var(--muted);font-size:12.5px">${esc(x.summa)}${l.viite?' · viite '+esc(l.viite):''}</span></div>
+        <button class="linkbtn" style="cursor:pointer;border-color:var(--ok)" onclick="merkitseMaksuTila('${esc(x.stamp)}','maksettu','Merkitäänkö maksetuksi: ${esc(x.koulu)}')">✓ Maksettu</button>
+      </div>`;
+    }
+  }
+
+  // ── Verkkomaksut ────────────────────────────────────────────────────────
+  const vm = data.verkkomaksut;
+  html += `<h3 class="section">💳 Verkkomaksut (Paytrail)</h3>`;
+  const lyhytLista = (otsikko, rivit, vari) => {
+    if (!rivit.length) return '';
+    let s = `<div style="font-size:12.5px;color:${vari||'var(--muted)'};margin:6px 0 2px">${esc(otsikko)} (${rivit.length})</div>`;
+    for (const x of rivit.slice(0, 15)) {
+      s += `<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border)">
+        <span style="color:var(--text)">${esc(x.koulu||'–')}${x.kunta?', '+esc(x.kunta):''}</span>
+        <span style="color:var(--muted);white-space:nowrap">${esc(x.summa)}</span>
+      </div>`;
+    }
+    return s;
+  };
+  const onVerkkomaksuja = vm.maksetut.length || vm.odottaa.length || vm.virheet.length;
+  html += onVerkkomaksuja
+    ? lyhytLista('✅ Maksetut', vm.maksetut, 'var(--ok)') +
+      lyhytLista('⏳ Odottaa / keskeneräinen', vm.odottaa, 'var(--warn)') +
+      lyhytLista('⚠️ Virheet / perutut', vm.virheet, 'var(--danger)')
+    : `<div class="empty">Ei verkkomaksuja vielä.</div>`;
+
+  sisalto.innerHTML = html;
+}
 
 function lisPvm(paivia){
   const d = new Date();
