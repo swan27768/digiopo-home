@@ -115,16 +115,18 @@
   .kirja-kansi-slot {
     position: absolute; width: 270px; aspect-ratio: 3/4; transform: rotate(-4deg);
     box-shadow: 0 24px 60px rgba(26,63,111,0.22); border-radius: 20px;
-    background: var(--off-white); border: 2px dashed rgba(107,163,216,0.4);
-    display: flex; align-items: center; justify-content: center; text-align: center;
-    color: var(--text-light); font-size: 13px; padding: 16px;
+    overflow: hidden; background: var(--off-white);
+  }
+  .kirja-kansi-slot img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
   }
   .ruutukaappaus-slot {
     position: absolute; width: 175px; aspect-ratio: 4/3;
     box-shadow: 0 16px 40px rgba(26,63,111,0.2); border-radius: 14px; border: 5px solid var(--white);
-    background: var(--off-white); outline: 2px dashed rgba(107,163,216,0.4); outline-offset: -5px;
-    display: flex; align-items: center; justify-content: center; text-align: center;
-    color: var(--text-light); font-size: 12px; padding: 12px;
+    overflow: hidden; background: var(--off-white);
+  }
+  .ruutukaappaus-slot img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
   }
   .ruutukaappaus-slot.rk1 { left: 6%; bottom: 4%; transform: rotate(6deg); }
   .ruutukaappaus-slot.rk2 { right: 4%; top: 2%; width: 165px; transform: rotate(-8deg); }
@@ -286,9 +288,9 @@
     </p>
   </div>
   <div class="kirjaesittely-visual">
-    <div class="kirja-kansi-slot">Kirjan kansikuva<br>(lisää kuva tähän)</div>
-    <div class="ruutukaappaus-slot rk1">Ruutukaappaus:<br>tehtävänäkymä</div>
-    <div class="ruutukaappaus-slot rk2">Ruutukaappaus:<br>hallintapaneeli</div>
+    <div class="kirja-kansi-slot"><img src="images/digiopo_etusivu.png" alt="Omilla Jäljillä -digikirjan etusivu"></div>
+    <div class="ruutukaappaus-slot rk1"><img src="images/digiopo_valitse_luokka.png" alt="Luokan valinta -näkymä"></div>
+    <div class="ruutukaappaus-slot rk2"><img src="images/digiopo_duunimina.png" alt="Duunimina-tehtävänäkymä"></div>
   </div>
 </div>
 
